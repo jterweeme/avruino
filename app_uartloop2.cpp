@@ -1,5 +1,9 @@
+/*
+Loop on default UART using interrupt method
+*/
+
 #include "board.h"
-#include <avr/io.h>
+#include <avr/sleep.h>
 
 class MyUart : public DefaultUart
 {
@@ -28,10 +32,8 @@ App::App()
 
 int App::run()
 {
-
     while (true)
-    {
-    }
+        sleep_mode();
 
     return 0;
 }

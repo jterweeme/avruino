@@ -1,3 +1,7 @@
+/*
+Prints hello on the default UART
+*/
+
 #include "board.h"
 
 class App

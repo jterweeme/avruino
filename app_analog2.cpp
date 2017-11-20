@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include "uno.h"
+#include "analog.h"
 
 class App : public Board
 {

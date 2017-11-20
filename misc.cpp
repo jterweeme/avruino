@@ -1,6 +1,7 @@
 #include "board.h"
 #include "misc.h"
 #include <stdarg.h>
+#include "analog.h"
 
 static inline void _delay_loop_1(uint8_t __count) __attribute__((always_inline));
 static inline void _delay_loop_2(uint16_t __count) __attribute__((always_inline));

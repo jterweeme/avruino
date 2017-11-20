@@ -23,6 +23,7 @@ public:
     static size_t strlen(const char *s);
     static char *itoa(int num, char *str, int base);
     static void *malloc(size_t size) { return ::malloc(size); }
+    static int isdigit(int c) { return c >= '0' && c <= '9' ? 1 : 0; }
 };
 
 inline void * operator new (size_t size) { return Utility::malloc(size); }
@@ -54,6 +55,13 @@ public:
     iterator begin() { return buffer; }
     iterator end() { return buffer + getSize(); }
     T & operator [] (unsigned index) { return buffer[index]; }
+};
+
+template <typename T, size_t N> struct MyArray
+{
+    T elems[N];
+    constexpr size_t size() const { return N; }
+    T &at(size_t n) const { return const_cast<T&>(elems[n]); }
 };
 
 class string
@@ -113,6 +121,8 @@ class Terminal
 public:
     virtual void myPutc(char c) { }
     virtual void puts(const char *s) { while (*s) myPutc(*s++); }
+    void write(char c) { myPutc(c); }
+    void write(const char *s) { puts(s); }
     virtual void printf(const char *format, ...);
     virtual uint8_t readByte() { return 0; }
     void operator<< (const char *s) { puts(s); }
@@ -150,38 +160,6 @@ public:
     uint8_t readByte() { while (!(*ucsra & sra::MRXC)) { } return *udr; }
 };
 
-class AnalogBase
-{
-protected:
-    volatile uint8_t * const base;
-    volatile uint8_t * const adcl;
-    volatile uint8_t * const adch;
-    volatile uint8_t * const adcsra;
-    volatile uint8_t * const adcsrb;
-    volatile uint8_t * const admux;
-public:
-    static const uint8_t BREFS0 = 6;
-    static const uint8_t BREFS1 = 7;
-    static const uint8_t BADPS0 = 0;
-    static const uint8_t BADPS1 = 1;
-    static const uint8_t BADPS2 = 2;
-    static const uint8_t BADEN = 7;
-    static const uint8_t BADATE = 5;
-    static const uint8_t BADTS0 = 0;
-    static const uint8_t BADTS1 = 1;
-    static const uint8_t BADTS2 = 2;
-    static const uint8_t BADSC = 6;
-    static const uint8_t RREFS0 = 1 << BREFS0;
-    AnalogBase(uint8_t *base);
-    unsigned read() { return *adcl | ((unsigned)*adch << 8); }
-};
-
-class Analog : public AnalogBase
-{
-public:
-    Analog();
-};
-
 class LCD : public Terminal
 {
 protected:
@@ -193,17 +171,18 @@ protected:
     Pin * const d7;
     void lcd_write_4(uint8_t theByte);
 public:
-    static const uint8_t LINEONE = 0x00;
-    static const uint8_t LINETWO = 0x40;
-    static const uint8_t CLEAR = 0x01;
-    static const uint8_t HOME = 0x02;
-    static const uint8_t ENTRYMODE = 0x06;
-    static const uint8_t OFF = 0x08;
-    static const uint8_t ON = 0x0c;
-    static const uint8_t RESET = 0x30;
-    static const uint8_t FOURBIT = 0x28;
-    static const uint8_t SETCURSOR = 0x80;
-    static const uint8_t CURSOR_HOME = 0x02;
+    static const uint8_t LINEONE = 0x00,
+        LINETWO = 0x40,
+        CLEAR = 0x01,
+        HOME = 0x02,
+        ENTRYMODE = 0x06,
+        OFF = 0x08,
+        ON = 0x0c,
+        RESET = 0x30,
+        FOURBIT = 0x28,
+        SETCURSOR = 0x80,
+        CURSOR_HOME = 0x02;
+
     LCD(Pin *rs, Pin *e, Pin *d4, Pin *d5, Pin *d6, Pin *d7);
     void myPutc(char c);
     void puts(const char *s);
@@ -445,19 +424,6 @@ protected:
 public:
     Timer1();
     static Timer1 *getInstance() { return instance; }
-};
-
-class DFKeyPad
-{
-    AnalogBase &adc;
-public:
-    static const uint8_t SELECT = 1;
-    static const uint8_t UP = 2;
-    static const uint8_t LEFT = 3;
-    static const uint8_t RIGHT = 4;
-    static const uint8_t DOWN = 5;
-    DFKeyPad(AnalogBase &adc) : adc(adc) { }
-    uint8_t poll();
 };
 
 class AT45DBXX

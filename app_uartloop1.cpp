@@ -1,5 +1,8 @@
+/*
+Loop on standard UART using polling method
+*/
+
 #include "board.h"
-#include <avr/io.h>
 
 class App
 {
@@ -17,13 +20,10 @@ App::App()
 
 int App::run()
 {
-
     while (true)
-    {
         uart.myPutc(uart.readByte());
-    }
 
-    return 0;
+    return 0;       // never reach this
 }
 
 int main()

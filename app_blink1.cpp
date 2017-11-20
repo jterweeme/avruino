@@ -7,11 +7,11 @@ void delay()
 
 int main()
 {
-    DDRB |= 1 << 7;
+    DDRC |= 1 << 6;
 
     while (true)
     {
-        PORTB ^= 1 << 7;
+        PORTC ^= 1 << 6;
         ::delay();
     }
         

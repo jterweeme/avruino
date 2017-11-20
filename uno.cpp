@@ -1,11 +1,11 @@
 #define F_CPU 16000000UL
 #include "uno.h"
 #include "misc.h"
-#include <avr/io.h>
+#include <avr/interrupt.h>
 
 Uart::Uart()
   :
-    UartBase((uint16_t *)0xc4, (uint8_t *)0xc6, (uint8_t *)0xc0, (uint8_t *)0xc1)
+    UartBase((uint16_t *)ubrr0, (uint8_t *)udr0, (uint8_t *)ucsr0a, (uint8_t *)ucsr0b)
 {
     instance = this;
 }
