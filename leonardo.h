@@ -1,7 +1,7 @@
-#ifndef _HELIOS_H_
-#define _HELIOS_H_
+#ifndef _LEONARDO_H_
+#define _LEONARDO_H_
 
-#define F_CPU 8000000UL
+#define F_CPU 16000000
 
 #include "misc.h"
 
@@ -55,7 +55,23 @@ static constexpr uint8_t
     cs10 = 0, cs11 = 1, cs12 = 2, wgm12 = 3, wgm13 = 4, ines1 = 6, icnc1 = 7,
     tccr1c = 0x82,
     foc1c = 5, foc1b = 6, foc1a = 7,
-    tcnt1 = 0x84, tcnt1l = 0x84;
+    tcnt1 = 0x84, tcnt1l = 0x84,
+    ss_port_base = portb_base,
+    ss_ddr = ss_port_base + 1,
+    ss_port = ss_port_base + 2,
+    pss = pb0,
+    sck_port_base = portb_base,
+    sck_ddr = sck_port_base + 1,
+    sck_port = sck_port_base + 2,
+    psck = pb1,
+    mosi_port_base = portb_base,
+    mosi_ddr = mosi_port_base + 1,
+    mosi_port = mosi_port_base + 2,
+    pmosi = pb2,
+    miso_port_base = portb_base,
+    miso_ddr = miso_port_base + 1,
+    miso_port = miso_port_base + 2,
+    pmiso = pb3;
 
 static volatile uint8_t
     *p_pinb = (volatile uint8_t * const)pinb,
@@ -67,7 +83,15 @@ static volatile uint8_t
     *p_adch = (volatile uint8_t * const)adch,
     *p_adcsra = (volatile uint8_t * const)adcsra,
     *p_adcsrb = (volatile uint8_t * const)adcsrb,
-    *p_admux = (volatile uint8_t * const)admux;
+    *p_admux = (volatile uint8_t * const)admux,
+    *p_ddr_ss = (volatile uint8_t * const)ss_ddr,
+    *p_port_ss = (volatile uint8_t * const)ss_port,
+    *p_ddr_sck = (volatile uint8_t * const)sck_ddr,
+    *p_port_sck = (volatile uint8_t * const)sck_port,
+    *p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,
+    *p_port_mosi = (volatile uint8_t * const)mosi_port,
+    *p_ddr_miso = (volatile uint8_t * const)miso_ddr,
+    *p_port_miso = (volatile uint8_t * const)miso_port;
 
 class Timer3 : public Timer<uint16_t>
 {

@@ -6,6 +6,7 @@
 #include "glcdfont.h"
 #include "tft.h"
 #include <string.h>
+#include "board.h"
 
 #define F_CPU 16000000L
 #include <util/delay.h>
@@ -48,10 +49,10 @@ void TFT::init_table16(const void *table, int16_t size)
         }
         else
         {
-            PORTC &= ~(1<<3);
+            b.pinA3.clear();
             writeCmd(cmd);
             writeData(d);
-            PORTC |= 1<<3;
+            b.pinA3.set();
         }
         size -= 2 * sizeof(int16_t);
     }
@@ -70,7 +71,7 @@ void TFT::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
     drawVLine(x+w-1, y, h, color);
 }
 
-void TFT::drawPixel(int16_t x, int16_t y, uint16_t color) const
+void TFT::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
     if (x < 0 || y < 0 || x >= width() || y >= height())
         return;
@@ -81,7 +82,7 @@ void TFT::drawPixel(int16_t x, int16_t y, uint16_t color) const
     writeCmdData(_MW, color);
 }
 
-void TFT::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) const
+void TFT::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
     int16_t steep = zabs(y1 - y0) > zabs(x1 - x0);
 
@@ -119,28 +120,28 @@ void TFT::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t colo
     }
 }
 
-void TFT::drawHLine(int16_t x, int16_t y, int16_t w, uint16_t color) const
+void TFT::drawHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
     drawLine(x, y, x + w - 1, y, color);
 }
 
-void TFT::drawVLine(int16_t x, int16_t y, int16_t h, uint16_t color) const
+void TFT::drawVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
     drawLine(x, y, x, y + h - 1, color);
 }
 
-void TFT::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) const
+void TFT::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
 {
     for (int16_t i = x; i < x + w; i ++)
         drawVLine(i, y, h, color);
 }
 
-int16_t TFT::width() const
+int16_t TFT::width()
 {
     return _width;
 }
 
-int16_t TFT::height() const
+int16_t TFT::height()
 {
     return _height;
 }
@@ -165,7 +166,7 @@ void TFT::drawString(int16_t x, int16_t y, const char *s)
         drawChar(x + i * 8, y, s[i]);
 }
 
-void TFT::setAddrWindow(int16_t x, int16_t y, int16_t x1, int16_t y1) const
+void TFT::setAddrWindow(int16_t x, int16_t y, int16_t x1, int16_t y1)
 {
     writeCmdData(_MC, x);
     writeCmdData(_MP, y);
@@ -224,64 +225,74 @@ void TFT::begin()
     setRotation(0);             //PORTRAIT
 }
 
-uint8_t TFT::read8() const
+uint8_t TFT::read8()
 {
     uint8_t dst;
-    PORTC |= 1<<0;
-    PORTC &= ~(1<<0);
-    PORTC &= ~(1<<0);
-    PORTC &= ~(1<<0);
+    b.pinA0.set();
+    b.pinA0.clear();
+    b.pinA0.clear();
+    b.pinA0.clear();
     dst = PINB & 0x03 | PIND & 0xfc;
-    PORTC |= 1<<0;
+    b.pinA0.set();
     return dst;
 }
 
-void TFT::writeData(uint16_t x) const
+void TFT::writeData(uint16_t x)
 {
-    PORTC |= 1<<2;
+    b.pinA2.set();
     write16(x);
 }
 
-void TFT::writeCmdData(uint16_t cmd, uint16_t data) const
+void TFT::writeCmdData(uint16_t cmd, uint16_t data)
 {
-    PORTC &= ~(1<<3);
+    b.pinA3.clear();
     writeCmd(cmd);
     writeData(data);
-    PORTC |= 1<<3;
+    b.pinA3.set();
 }
 
 void TFT::reset()
 {
-    DDRB |= 0x03;
-    DDRD |= 0xFC;
-    DDRC |= 1<<0 | 1<<1 | 1<<2 | 1<<3 | 1<<4;
-    PORTC |= 1<<3;
-    PORTC |= 1<<0;
-    PORTC |= 1<<1;
-    PORTC |= 1<<4;
+    b.pin8.direction(OUTPUT);
+    b.pin9.direction(OUTPUT);
+    b.pin2.direction(OUTPUT);
+    b.pin3.direction(OUTPUT);
+    b.pin4.direction(OUTPUT);
+    b.pin5.direction(OUTPUT);
+    b.pin6.direction(OUTPUT);
+    b.pin7.direction(OUTPUT);
+    b.pinA0.direction(OUTPUT);
+    b.pinA1.direction(OUTPUT);
+    b.pinA2.direction(OUTPUT);
+    b.pinA3.direction(OUTPUT);
+    b.pinA4.direction(OUTPUT);
+    b.pinA3.set();
+    b.pinA0.set();
+    b.pinA1.set();
+    b.pinA4.set();
     _delay_ms(50);
-    PORTC &= ~(1<<4);
+    b.pinA4.clear();
     _delay_ms(100);
-    PORTC |= 1<<4;
+    b.pinA4.set();
     _delay_ms(100);
     writeCmdData(0xB0, 0x0000);
 }
 
-uint16_t TFT::read16() const
+uint16_t TFT::read16()
 {
     uint16_t ret = read8();
     uint8_t lo = read8();
     return (ret << 8) | lo;
 }
 
-uint16_t TFT::readReg(uint16_t reg, int8_t index) const
+uint16_t TFT::readReg(uint16_t reg, int8_t index)
 {
     uint16_t ret;
-    PORTC &= ~(1<<3);
+    b.pinA3.clear();
     writeCmd(reg);
     DDRB &= ~0x03;
     DDRD &= ~0xFC;
-    PORTC |= 1<<2;
+    b.pinA2.set();
     _delay_ms(1);
 
     do
@@ -290,35 +301,35 @@ uint16_t TFT::readReg(uint16_t reg, int8_t index) const
     }
     while (--index >= 0);
 
-    PORTC |= 1<<0;
-    PORTC |= 1<<3;
+    b.pinA0.set();
+    b.pinA3.set();
     DDRB |=  0x03;
     DDRD |=  0xFC;
     return ret;
 }
 
-inline void TFT::write8(uint8_t x) const
+inline void TFT::write8(uint8_t x)
 {
     PORTB = (PORTB & ~0x03) | (x & 0x03);
     PORTD = (PORTD & ~0xfc) | (x & 0xfc);
-    PORTC &= ~(1<<1);
-    PORTC |= 1<<1;
+    b.pinA1.clear();
+    b.pinA1.set();
 }
 
-void TFT::write16(uint16_t x) const
+void TFT::write16(uint16_t x)
 {
     uint8_t h = x >> 8, l = (uint8_t)x;
     write8(h);
     write8(l);
 }
 
-void TFT::writeCmd(uint16_t x) const
+void TFT::writeCmd(uint16_t x)
 {
-    PORTC &= ~(1<<2);
+    b.pinA2.clear();
     write16(x);
 }
 
-uint16_t TFT::readID() const
+uint16_t TFT::readID()
 {
     return readReg(0);
 }

@@ -3,7 +3,7 @@
 #include "board.h"
 
 #define USE_LUFA_CONFIG_HEADER
-#define F_USB 8000000UL
+#define F_USB F_CPU
 #define USB_SERIES_4_AVR
 #define USB_CAN_BE_DEVICE
 

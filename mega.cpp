@@ -54,11 +54,11 @@ Timer0 *Timer0::instance;
 Uart *Uart::instance;
 
 extern "C" void __vector_13() __attribute__ ((signal, used, externally_visible));
-extern "C" void __vector_16() __attribute__ ((signal, used, externally_visible));
+//extern "C" void __vector_16() __attribute__ ((signal, used, externally_visible));
 extern "C" void __vector_18() __attribute__ ((signal, used, externally_visible));
 
 void __vector_13() {     Timer1::getInstance()->onOverflow(); }
-void __vector_16() {    Timer0::getInstance()->onOverflow(); }
+//void __vector_16() {    Timer0::getInstance()->onOverflow(); }
 void __vector_18() {    Uart::getInstance()->onReceive(); }
 
 SPIBus::SPIBus() : SPIBase((uint8_t *)0x4c)

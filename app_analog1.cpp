@@ -20,7 +20,7 @@ int App::run()
 
     while (true)
     {
-        unsigned x = ADCL | ((unsigned)ADCH << 8);
+        uint16_t x = ADCL | ((uint16_t)ADCH << 8);
         uart.printf("%u\r\n", x);
         Utility::delay(0x1ffff);
         //lcd.printf("Hello");

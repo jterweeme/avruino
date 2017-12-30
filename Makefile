@@ -20,6 +20,12 @@ MMCU = atmega8
 BSP = uno.o misc.o
 BOARDDEF = UNO
 USBOPT =
+else ifeq ($(BOARD), leonardo)
+PART = m32u4
+MMCU = atmega32u4
+BSP = leonardo.o misc.o
+BOARDREF = LEONARDO
+USBOPT = $(USBO)
 else
 PART = m328p
 MMCU = atmega328p
@@ -30,18 +36,23 @@ endif
 
 TARGETS = app_blink1.elf app_hello.elf app_test1.elf app_timer1.elf app_i2cscan1.elf \
     app_pcf8563test1.elf app_pcf8563test2.elf app_blink2.elf app_lcdtest1.elf \
-    app_test2.elf app_calc1.elf app_calc2.elf \
+    app_test2.elf app_calc1.elf app_calc2.elf app_sdod1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex \
     app_optiboot1.hex app_heliosboot1.hex
 
 ifeq ($(BOARD), uno)
-TARGETS += app_ds1302test1.elf app_analog1.elf app_sd1.elf app_sd2.elf app_sd3.elf app_sd4.elf \
-    app_vga1.elf app_vga2.elf app_lyrics1.elf app_blink4.hex 
+TARGETS += app_ds1302test1.elf app_analog1.elf \
+    app_vga1.elf app_vga2.elf app_blink4.hex 
 endif
 
 ifeq ($(BOARD), helios)
+TARGETS += app_groen1.elf app_i2cscan2.elf app_usbtest1.elf app_wifi1.elf \
+    app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf
+endif
+
+ifeq ($(BOARD), leonardo)
 TARGETS += app_groen1.elf app_i2cscan2.elf app_usbtest1.elf app_wifi1.elf \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf
 endif
@@ -85,14 +96,10 @@ app_lcdtest2.elf: app_lcdtest2.o
 app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o $(BSP)
-app_lyrics1.elf: app_lyrics1.o sd.o $(BSP)
 app_pcf8563test1.elf: app_pcf8563test1.o $(USBOPT) $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
-app_sd1.elf: app_sd1.o $(UBSOPT) $(BSP)
-app_sd2.elf: app_sd2.o
-app_sd3.elf: app_sd3.o sd.o $(BSP)
-app_sd4.elf: app_sd4.o sd.o $(BSP)
+app_sdod1.elf: app_sdod1.o zd2card.o $(BSP)
 app_segment1.elf: app_segment1.o
 app_serialusb1.elf: app_serialusb1.o $(USBOPT) $(BSP)
 app_test1.elf: app_test1.o $(BSP)
@@ -124,15 +131,11 @@ app_lcdtest2.o: app_lcdtest2.cpp
 app_lcdtest3.o: app_lcdtest3.cpp
 app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
-app_lyrics1.o: app_lyrics1.cpp
 app_pcf8563test1.o: app_pcf8563test1.cpp misc.h
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_segment1.o: app_segment1.cpp
-app_sd1.o: app_sd1.cpp misc.h board.h
-app_sd2.o: app_sd2.cpp
-app_sd3.o: app_sd3.cpp
-app_sd4.o: app_sd4.cpp
+app_sdod1.o: app_sdod1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_test1.o: app_test1.cpp
 app_test2.o: app_test2.cpp
@@ -159,9 +162,13 @@ sd.o: sd.cpp
 tft.o: tft.cpp tft.h
 uno.o: uno.cpp uno.h misc.h
 vga.o: vga.cpp vga.h
+zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
 	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
+
+wiring: $(APP)
+	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<
 
 download: $(APP)
 	avrdude -c stk500 -p $(PART) -P /dev/ttyUSB0 -U $<

@@ -9,7 +9,6 @@
 #include "analog.h"
 #include "button.h"
 #include "calc.h"
-#include "uno.h"
 
 class OutputLine : public Output
 {

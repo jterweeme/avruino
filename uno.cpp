@@ -43,7 +43,7 @@ Timer0 *Timer0::instance;
 Uart *Uart::instance;
 
 extern "C" void __vector_13() __attribute__ ((signal, used, externally_visible));
-extern "C" void __vector_16() __attribute__ ((signal, used, externally_visible));
+//extern "C" void __vector_16() __attribute__ ((signal, used, externally_visible));
 extern "C" void __vector_18() __attribute__ ((signal, used, externally_visible));
 
 void __vector_13() { Timer1::getInstance()->onOverflow(); }
@@ -61,6 +61,7 @@ unsigned long millis()
     return m;
 }
 
+#if 0
 void __vector_16()
 {
     unsigned long m = timer0_millis;
@@ -79,6 +80,7 @@ void __vector_16()
     timer0_overflow_count++;
     Timer0::getInstance()->onOverflow();
 }
+#endif
 
 void __vector_18() { Uart::getInstance()->onReceive(); }
 

@@ -19,7 +19,7 @@ Jasper ter Weeme
 #elif defined (__AVR_ATmega8__)
 #include "uno.h"
 #elif defined (__AVR_ATmega32U4__)
-#include "helios.h"
+#include "leonardo.h"               // kan ook helios zijn!
 #elif defined (__AVR_ATmega2560__)
 #include "mega.h"
 #endif

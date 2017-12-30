@@ -200,10 +200,25 @@ void Pin::direction(Direction dir)
         *port.direction &= ~(1<<bit);
         break;
     case OUTPUT:
-        *port.direction |= (1<<bit);
+        *port.direction |= 1<<bit;
         break;
     }
 }
+
+#if 0
+void PinX::direction(Direction dir)
+{
+    switch (dir)
+    {
+    case INPUT:
+        *direction &= ~(1<<bit);
+        break;
+    case OUTPUT:
+        *direction |= 1<<bit;
+        break;
+    }
+}
+#endif
 
 void Utility::reverse(char str[], int length)
 {
