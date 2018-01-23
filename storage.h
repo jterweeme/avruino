@@ -36,6 +36,18 @@ template <typename T, size_t N> struct MyArray
     T &at(size_t n) const { return const_cast<T&>(elems[n]); }
 };
 
+template <uint8_t N> class RingBuf
+{
+private:
+    volatile uint8_t _buf[N];
+public:
+    volatile uint8_t head = 0, tail = 0;
+    void push(uint8_t v) { uint8_t i = (head + 1) % N; if (i != tail) { _buf[i] = v; head = i; } }
+    bool empty() const { return head == tail; }
+    inline uint8_t get(uint8_t pos) { if (empty()) return 0; tail = pos; return _buf[pos]; }
+    inline uint8_t get() { uint8_t i = tail; if (++i >= N) i = 0; return get(i); }
+};
+
 class string
 {
     char *s;

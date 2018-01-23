@@ -2,9 +2,7 @@
 #include "misc.h"
 #include <avr/io.h>
 
-Uart::Uart()
-  :
-    UartBase((uint16_t *)0xcc, (uint8_t *)0xce, (uint8_t *)0xc8, (uint8_t *)0xc9)
+Uart::Uart() : UartBase(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b)
 {
     instance = this;
 }

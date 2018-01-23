@@ -1,21 +1,51 @@
 #include "zd2card.h"
 #include <avr/io.h>
 
-extern uint32_t millis2();
+static uint16_t constexpr
+    SD_INIT_TIMEOUT = 2000,
+    SD_ERASE_TIMEOUT = 10000,
+    SD_READ_TIMEOUT = 300,
+    SD_WRITE_TIMEOUT = 600;
 
-static void spiSend(uint8_t b)
+static constexpr uint8_t
+    SD_CARD_ERROR_CMD0 = 0X1,
+    SD_CARD_ERROR_CMD8 = 0X2,
+    SD_CARD_ERROR_CMD17 = 0X3,
+    SD_CARD_ERROR_CMD24 = 0X4,
+    SD_CARD_ERROR_CMD25 = 0X05,
+    SD_CARD_ERROR_CMD58 = 0X06,
+    SD_CARD_ERROR_ACMD23 = 0X07,
+    SD_CARD_ERROR_ACMD41 = 0X08,
+    SD_CARD_ERROR_BAD_CSD = 0X09,
+    SD_CARD_ERROR_ERASE = 0X0A,
+    SD_CARD_ERROR_ERASE_SINGLE_BLOCK = 0X0B,
+    SD_CARD_ERROR_ERASE_TIMEOUT = 0X0C,
+    SD_CARD_ERROR_READ = 0X0D,
+    SD_CARD_ERROR_READ_REG = 0X0E,
+    SD_CARD_ERROR_READ_TIMEOUT = 0X0F,
+    SD_CARD_ERROR_STOP_TRAN = 0X10,
+    SD_CARD_ERROR_WRITE = 0X11,
+    SD_CARD_ERROR_WRITE_BLOCK_ZERO = 0X12,
+    SD_CARD_ERROR_WRITE_MULTIPLE = 0X13,
+    SD_CARD_ERROR_WRITE_PROGRAMMING = 0X14,
+    SD_CARD_ERROR_WRITE_TIMEOUT = 0X15,
+    SD_CARD_ERROR_SCK_RATE = 0x16,  // incorrect rate selected
+    SD_CARD_TYPE_SD1 = 1,
+    SD_CARD_TYPE_SD2 = 2,
+    SD_CARD_TYPE_SDHC = 3;
+
+static inline void spiSend(uint8_t b)
 {
     SPDR = b;
     while (!(SPSR & 1<<SPIF));
 }
 
-static uint8_t spiRec(void)
+static inline uint8_t spiRec(void)
 {
     spiSend(0XFF);
     return SPDR;
 }
 
-// send command and return error code.  Return zero for OK
 uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg)
 {
     readEnd();  // end read if in partialBlockRead mode
@@ -23,17 +53,15 @@ uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg)
     waitNotBusy(300); // wait up to 300 ms if busy
     spiSend(cmd | 0x40);  // send command
 
-    // send argument
     for (int8_t s = 24; s >= 0; s -= 8)
         spiSend(arg >> s);
 
-    // send CRC
     uint8_t crc = 0XFF;
 
-    if (cmd == CMD0)
+    if (cmd == 0)
         crc = 0X95;  // correct crc for CMD0 with arg 0
 
-    if (cmd == CMD8)
+    if (cmd == 8)
         crc = 0X87;  // correct crc for CMD8 with arg 0X1AA
 
     spiSend(crc);
@@ -45,7 +73,7 @@ uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg)
     return status_;
 }
 
-uint32_t Sd2Card::cardSize(void)
+uint32_t Sd2Card::cardSize()
 {
     csd_t csd;
 
@@ -56,22 +84,22 @@ uint32_t Sd2Card::cardSize(void)
     {
         uint8_t read_bl_len = csd.v1.read_bl_len;
 
-        uint16_t c_size = (csd.v1.c_size_high << 10)
-                        | (csd.v1.c_size_mid << 2) | csd.v1.c_size_low;
+        uint16_t c_size = csd.v1.c_size_high<<10 | csd.v1.c_size_mid<<2 | csd.v1.c_size_low;
 
         uint8_t c_size_mult = (csd.v1.c_size_mult_high << 1) | csd.v1.c_size_mult_low;
         return (uint32_t)(c_size + 1) << (c_size_mult + read_bl_len - 7);
     }
-    else if (csd.v2.csd_ver == 1)
+
+    if (csd.v2.csd_ver == 1)
     {
-        uint32_t c_size = ((uint32_t)csd.v2.c_size_high << 16)
-            | (csd.v2.c_size_mid << 8) | csd.v2.c_size_low;
+        uint32_t c_size = (uint32_t)csd.v2.c_size_high<<16
+            | csd.v2.c_size_mid<<8 | csd.v2.c_size_low;
 
         return (c_size + 1) << 10;
-    } else {
-        error(SD_CARD_ERROR_BAD_CSD);
-        return 0;
     }
+
+    error(SD_CARD_ERROR_BAD_CSD);
+    return 0;
 }
 
 uint8_t Sd2Card::erase(uint32_t firstBlock, uint32_t lastBlock)
@@ -88,7 +116,7 @@ uint8_t Sd2Card::erase(uint32_t firstBlock, uint32_t lastBlock)
         lastBlock <<= 9;
     }
 
-    if (cardCommand(CMD32, firstBlock) || cardCommand(CMD33, lastBlock) || cardCommand(CMD38, 0))
+    if (cardCommand(32, firstBlock) || cardCommand(33, lastBlock) || cardCommand(38, 0))
     {
         error(SD_CARD_ERROR_ERASE);
         goto fail;
@@ -117,7 +145,7 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
 {
     errorCode_ = inBlock_ = partialBlockRead_ = type_ = 0;
     // 16-bit init start time allows over a minute
-    uint16_t t0 = (uint16_t)millis2();
+    uint16_t t0 = (uint16_t)_ticks;
     uint32_t arg;
     _cs->direction(OUTPUT);
     _cs->set();
@@ -138,16 +166,16 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
     _cs->clear();
 
     // command to go idle in SPI mode
-    while ((status_ = cardCommand(CMD0, 0)) != R1_IDLE_STATE)
+    while ((status_ = cardCommand(0, 0)) != R1_IDLE_STATE)
     {
-        if (((uint16_t)millis2() - t0) > SD_INIT_TIMEOUT)
+        if (((uint16_t)_ticks - t0) > SD_INIT_TIMEOUT)
         {
             error(SD_CARD_ERROR_CMD0);
             goto fail;
         }
     }
   // check SD version
-  if ((cardCommand(CMD8, 0x1AA) & R1_ILLEGAL_COMMAND)) {
+  if ((cardCommand(8, 0x1AA) & R1_ILLEGAL_COMMAND)) {
     type(SD_CARD_TYPE_SD1);
   } else {
     // only need last byte of r7 response
@@ -157,49 +185,48 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
       goto fail;
     }
     type(SD_CARD_TYPE_SD2);
-  }
-  // initialize card and send host supports SDHC if SD2
-  arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
-
-  while ((status_ = cardAcmd(ACMD41, arg)) != R1_READY_STATE) {
-    // check for timeout
-    if (((uint16_t)millis2() - t0) > SD_INIT_TIMEOUT) {
-      error(SD_CARD_ERROR_ACMD41);
-      goto fail;
     }
-  }
-  // if SD2 read OCR register to check for SDHC card
-  if (type() == SD_CARD_TYPE_SD2) {
-    if (cardCommand(CMD58, 0)) {
-      error(SD_CARD_ERROR_CMD58);
-      goto fail;
+    // initialize card and send host supports SDHC if SD2
+    arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
+
+    while ((status_ = cardAcmd(41, arg)) != R1_READY_STATE)
+    {
+        // check for timeout
+        if (((uint16_t)_ticks - t0) > SD_INIT_TIMEOUT)
+        {
+            error(SD_CARD_ERROR_ACMD41);
+            goto fail;
+        }
     }
-    if ((spiRec() & 0XC0) == 0XC0) type(SD_CARD_TYPE_SDHC);
-    // discard rest of ocr - contains allowed voltage range
-    for (uint8_t i = 0; i < 3; i++) spiRec();
-  }
-  chipSelectHigh();
 
-#ifndef SOFTWARE_SPI
-  return setSckRate(sckRateID);
-#else  // SOFTWARE_SPI
-  return true;
-#endif  // SOFTWARE_SPI
+    // if SD2 read OCR register to check for SDHC card
+    if (type() == SD_CARD_TYPE_SD2)
+    {
+        if (cardCommand(58, 0))
+        {
+            error(SD_CARD_ERROR_CMD58);
+            goto fail;
+        }
 
- fail:
-  chipSelectHigh();
-  return false;
+        if ((spiRec() & 0XC0) == 0XC0)
+            type(SD_CARD_TYPE_SDHC);
+
+        // discard rest of ocr - contains allowed voltage range
+        for (uint8_t i = 0; i < 3; i++)
+            spiRec();
+    }
+
+    chipSelectHigh();
+    return setSckRate(sckRateID);
+fail:
+    chipSelectHigh();
+    return false;
 }
 
 void Sd2Card::partialBlockRead(uint8_t value)
 {
     readEnd();
     partialBlockRead_ = value;
-}
-
-uint8_t Sd2Card::readBlock(uint32_t block, uint8_t* dst)
-{
-    return readData(block, 0, 512, dst);
 }
 
 uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8_t* dst)
@@ -213,7 +240,7 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
     block_ = block;
     // use address if not SDHC card
     if (type()!= SD_CARD_TYPE_SDHC) block <<= 9;
-    if (cardCommand(CMD17, block)) {
+    if (cardCommand(17, block)) {
       error(SD_CARD_ERROR_CMD17);
       goto fail;
     }
@@ -224,7 +251,7 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
     inBlock_ = 1;
   }
 
-#ifdef OPTIMIZE_HARDWARE_SPI
+#if 1
   // start first spi transfer
   SPDR = 0XFF;
 
@@ -243,9 +270,7 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
   // wait for last byte
   while (!(SPSR & (1 << SPIF)));
   dst[n] = SPDR;
-
-#else  // OPTIMIZE_HARDWARE_SPI
-
+#else
   // skip data before offset
   for (;offset_ < offset; offset_++) {
     spiRec();
@@ -254,7 +279,7 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
     // transfer data
     for (uint16_t i = 0; i < count; i++)
         dst[i] = spiRec();
-#endif  // OPTIMIZE_HARDWARE_SPI
+#endif
 
     offset_ += count;
 
@@ -274,7 +299,7 @@ fail:
 void Sd2Card::readEnd(void) {
   if (inBlock_) {
       // skip data and crc
-#ifdef OPTIMIZE_HARDWARE_SPI
+#if 1
     // optimize skip for hardware
     SPDR = 0XFF;
     while (offset_++ < 513) {
@@ -283,14 +308,14 @@ void Sd2Card::readEnd(void) {
     }
     // wait for last crc byte
     while (!(SPSR & (1 << SPIF)));
-#else  // OPTIMIZE_HARDWARE_SPI
+#else
     while (offset_++ < 514) spiRec();
-#endif  // OPTIMIZE_HARDWARE_SPI
+#endif
     chipSelectHigh();
     inBlock_ = 0;
   }
 }
-//------------------------------------------------------------------------------
+
 /** read CID or CSR register */
 uint8_t Sd2Card::readRegister(uint8_t cmd, void* buf) {
   uint8_t* dst = reinterpret_cast<uint8_t*>(buf);
@@ -332,20 +357,20 @@ uint8_t Sd2Card::setSckRate(uint8_t sckRateID)
 // wait for card to go not busy
 uint8_t Sd2Card::waitNotBusy(uint16_t timeoutMillis)
 {
-  uint16_t t0 = millis2();
+  uint16_t t0 = _ticks;
   do {
     if (spiRec() == 0XFF) return true;
   }
-  while (((uint16_t)millis2() - t0) < timeoutMillis);
+  while (((uint16_t)_ticks - t0) < timeoutMillis);
   return false;
 }
 
 /** Wait for start block token */
 uint8_t Sd2Card::waitStartBlock()
 {
-  uint16_t t0 = millis2();
+  uint16_t t0 = _ticks;
   while ((status_ = spiRec()) == 0XFF) {
-    if (((uint16_t)millis2() - t0) > SD_READ_TIMEOUT) {
+    if (((uint16_t)_ticks - t0) > SD_READ_TIMEOUT) {
       error(SD_CARD_ERROR_READ_TIMEOUT);
       goto fail;
     }
@@ -370,17 +395,9 @@ uint8_t Sd2Card::waitStartBlock()
  * the value zero, false, is returned for failure.
  */
 uint8_t Sd2Card::writeBlock(uint32_t blockNumber, const uint8_t* src) {
-#if SD_PROTECT_BLOCK_ZERO
-  // don't allow write to first block
-  if (blockNumber == 0) {
-    error(SD_CARD_ERROR_WRITE_BLOCK_ZERO);
-    goto fail;
-  }
-#endif  // SD_PROTECT_BLOCK_ZERO
-
   // use address if not SDHC card
   if (type() != SD_CARD_TYPE_SDHC) blockNumber <<= 9;
-  if (cardCommand(CMD24, blockNumber)) {
+  if (cardCommand(24, blockNumber)) {
     error(SD_CARD_ERROR_CMD24);
     goto fail;
   }
@@ -392,7 +409,7 @@ uint8_t Sd2Card::writeBlock(uint32_t blockNumber, const uint8_t* src) {
     goto fail;
   }
   // response is r2 so get and check two bytes for nonzero
-    if (cardCommand(CMD13, 0) || spiRec()) {
+    if (cardCommand(13, 0) || spiRec()) {
         error(SD_CARD_ERROR_WRITE_PROGRAMMING);
         goto fail;
     }
@@ -417,7 +434,7 @@ uint8_t Sd2Card::writeData(const uint8_t* src) {
 // send one block of data for write block or write multiple blocks
 uint8_t Sd2Card::writeData(uint8_t token, const uint8_t* src)
 {
-#ifdef OPTIMIZE_HARDWARE_SPI
+#if 1
     SPDR = token;
 
     for (uint16_t i = 0; i < 512; i += 2)
@@ -432,12 +449,12 @@ uint8_t Sd2Card::writeData(uint8_t token, const uint8_t* src)
     while (!(SPSR & (1 << SPIF)))
         ;
 
-#else  // OPTIMIZE_HARDWARE_SPI
+#else
   spiSend(token);
   for (uint16_t i = 0; i < 512; i++) {
     spiSend(src[i]);
   }
-#endif  // OPTIMIZE_HARDWARE_SPI
+#endif
   spiSend(0xff);  // dummy crc
   spiSend(0xff);  // dummy crc
 
@@ -452,15 +469,7 @@ uint8_t Sd2Card::writeData(uint8_t token, const uint8_t* src)
 
 uint8_t Sd2Card::writeStart(uint32_t blockNumber, uint32_t eraseCount)
 {
-#if SD_PROTECT_BLOCK_ZERO
-    // don't allow write to first block
-    if (blockNumber == 0) {
-        error(SD_CARD_ERROR_WRITE_BLOCK_ZERO);
-        goto fail;
-    }
-#endif  // SD_PROTECT_BLOCK_ZERO
-    // send pre-erase count
-    if (cardAcmd(ACMD23, eraseCount))
+    if (cardAcmd(23, eraseCount))
     {
         error(SD_CARD_ERROR_ACMD23);
         goto fail;
@@ -470,7 +479,7 @@ uint8_t Sd2Card::writeStart(uint32_t blockNumber, uint32_t eraseCount)
     if (type() != SD_CARD_TYPE_SDHC)
         blockNumber <<= 9;
 
-    if (cardCommand(CMD25, blockNumber))
+    if (cardCommand(25, blockNumber))
     {
         error(SD_CARD_ERROR_CMD25);
         goto fail;
@@ -502,7 +511,7 @@ fail:
 
 uint8_t Sd2Card::cardAcmd(uint8_t cmd, uint32_t arg)
 {
-    cardCommand(CMD55, 0);
+    cardCommand(55, 0);
     return cardCommand(cmd, arg);
 }
 

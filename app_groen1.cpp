@@ -23,15 +23,19 @@ void SPI::transfer(uint8_t foo)
 
 int main()
 {
-    DDRF |= (1<<4) | (1<<5);
+    DDRF |= 1<<4 | 1<<5;
     PORTF &= ~(1<<4);
     PORTF &= ~(1<<5);
     SPI spi;
     spi.init();
     spi.transfer(1<<5);
     spi.transfer(20);
-    PORTF |= (1<<4);
+    PORTF |= 1<<4;
     PORTF &= ~(1<<4);
+
+    while (true)
+        ;
+
     return 0;
 }
 

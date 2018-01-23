@@ -49,7 +49,6 @@ extern "C" void __vector_18() __attribute__ ((signal, used, externally_visible))
 void __vector_13() { Timer1::getInstance()->onOverflow(); }
 
 static volatile unsigned long timer0_millis = 0;
-static unsigned char timer0_fract = 0;
 
 unsigned long millis()
 {

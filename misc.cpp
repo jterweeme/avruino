@@ -136,7 +136,8 @@ char *Utility::itoa(int num, char *str, int base)
     return str;
 }
 
-UartBase::UartBase(uint16_t *brr, uint8_t *udr, uint8_t *ucsra, uint8_t *ucsrb)
+UartBase::UartBase(volatile uint16_t *brr, volatile uint8_t *udr,
+    volatile uint8_t *ucsra, volatile uint8_t *ucsrb)
   :
     brr(brr),
     udr(udr),
@@ -472,63 +473,6 @@ void LCD::lcd_write_instruction_4d(uint8_t theInstruction)
 
 }
 
-I2CBus::I2CBus(unsigned brr)
-  :
-    twbr((uint8_t *)0xb8),
-    twsr((uint8_t *)0xb9),
-    twar((uint8_t *)0xba),
-    twdr((uint8_t *)0xbb),
-    twcr((uint8_t *)0xbc),
-    slaves(128)
-{
-    *twcr = 0;
-    *twar = 0;
-    *twsr = 0;
-    *twbr = brr;
-}
-
-uint8_t I2CBus::start()
-{
-    *twcr = RTWINT | RTWEN | RTWSTA;
-    while (!(*twcr & RTWINT)) { }
-    return *twsr;
-}
-
-uint8_t I2CBus::write(uint8_t data)
-{
-    *twdr = data;
-    *twcr = RTWINT | RTWEN;
-    while (!(*twcr & RTWINT)) { }
-    return *twsr;
-}
-
-uint8_t I2CBus::read(uint8_t ack)
-{
-    *twcr = RTWINT | RTWEN | ((ack == 0) ? RTWEA : 0);
-    while (!(*twcr & RTWINT)) { }
-    return *twdr;
-}
-
-void I2CBus::scan()
-{
-    for (int i = 0; i < 128; i++)
-    {
-        start();
-        uint8_t status = write(i << 1);
-        stop();
-        
-        if (status == 0x18)
-            slaves.push_back(i);
-    }
-    
-}
-
-void I2CBus::stop()
-{
-    *twcr = RTWINT | RTWEN | RTWSTO;
-    while (!(*twcr & RTWSTO)) { }
-}
-
 uint8_t DFKeyPad::poll()
 {
     unsigned x = adc.read();
@@ -540,29 +484,7 @@ uint8_t DFKeyPad::poll()
     return 0;
 }
 
-void PCF8563::gettime(Terminal *uart)
-{
-    bus->start();
-    bus->write(ADDR << 1);
-    bus->write(0x0);
-    bus->start();
-    bus->write((ADDR << 1) | 1);
-    regs.control_status_1 = bus->read(0);
-    regs.control_status_2 = bus->read(0);
-    regs.vl_seconds = bus->read(0);
-    regs.minutes = bus->read(0);
-    regs.hours = bus->read(0);
-    regs.days = bus->read(0);
-    regs.weekdays = bus->read(0);
-    regs.century_months = bus->read(0);
-    regs.years = bus->read(0);
-    regs.minute_alarm = bus->read(0);
-    uint8_t sec = ((regs.vl_seconds >> 4) & 0x7) * 10 + (regs.vl_seconds & 0xf);
-    uint8_t min = ((regs.minutes >> 4) & 0x7) * 10 + (regs.minutes & 0xf);
-    uint8_t hour = ((regs.hours >> 4) & 0x7) * 10 + (regs.hours & 0xf);
-    bus->stop();
-    uart->printf("%u %u %u\r\n", hour & 0x3f, min & 0x7f, sec);
-}
+
 
 /*
 char *__brkval;

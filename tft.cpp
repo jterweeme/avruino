@@ -8,7 +8,10 @@
 #include <string.h>
 #include "board.h"
 
+#ifndef F_CPU
 #define F_CPU 16000000L
+#endif
+
 #include <util/delay.h>
 
 static const uint16_t TFTLCD_DELAY = 0xffff;
@@ -49,10 +52,22 @@ void TFT::init_table16(const void *table, int16_t size)
         }
         else
         {
+#if defined (__AVR_ATmega328P__)
+            PORTC &= ~(1<<3);   // A3
+            writeCmd(cmd);
+            writeData(d);
+            PORTC |= 1<<3;      // A3
+#elif defined (__AVR_ATmega2560__)
+            PORTF &= ~(1<<3);   // A3
+            writeCmd(cmd);
+            writeData(d);
+            PORTF |= 1<<3;      // A3
+#else
             b.pinA3.clear();
             writeCmd(cmd);
             writeData(d);
             b.pinA3.set();
+#endif
         }
         size -= 2 * sizeof(int16_t);
     }
@@ -76,7 +91,8 @@ void TFT::drawPixel(int16_t x, int16_t y, uint16_t color)
     if (x < 0 || y < 0 || x >= width() || y >= height())
         return;
 
-    DDRC |= 1<<2 | 1<<3;
+    b.pinA2.direction(OUTPUT);
+    b.pinA3.direction(OUTPUT);
     writeCmdData(_MC, x);
     writeCmdData(_MP, y);
     writeCmdData(_MW, color);
@@ -227,28 +243,71 @@ void TFT::begin()
 
 uint8_t TFT::read8()
 {
-    uint8_t dst;
+    uint8_t dst = 0;
+#if defined (__AVR_ATmega328P__)
+    PORTC |= 1<<0;
+    PORTC &= ~(1<<0);
+    PORTC &= ~(1<<0);
+    PORTC &= ~(1<<0);
+    dst = (PINB & 0x03) | (PIND & 0xfc);
+    PORTC |= 1<<0;
+#elif defined (__AVR_ATmega2560__)
+    PORTF |= 1<<0;
+    PORTF &= ~(1<<0);
+    PORTF &= ~(1<<0);
+    PORTF &= ~(1<<0);
+    dst |= b.pin8.read() ? 1<<0 : 0;
+    dst |= b.pin9.read() ? 1<<1 : 0;
+    dst |= b.pin2.read() ? 1<<2 : 0;
+    dst |= b.pin3.read() ? 1<<3 : 0;
+    dst |= b.pin4.read() ? 1<<4 : 0;
+    dst |= b.pin5.read() ? 1<<5 : 0;
+    dst |= b.pin6.read() ? 1<<6 : 0;
+    dst |= b.pin7.read() ? 1<<7 : 0;
+    PORTF |= 1<<0;
+#else
     b.pinA0.set();
     b.pinA0.clear();
     b.pinA0.clear();
     b.pinA0.clear();
-    dst = PINB & 0x03 | PIND & 0xfc;
+    dst |= b.pin8.read() ? 1<<0 : 0;
+    dst |= b.pin9.read() ? 1<<1 : 0;
+    dst |= b.pin2.read() ? 1<<2 : 0;
+    dst |= b.pin3.read() ? 1<<3 : 0;
+    dst |= b.pin4.read() ? 1<<4 : 0;
+    dst |= b.pin5.read() ? 1<<5 : 0;
+    dst |= b.pin6.read() ? 1<<6 : 0;
+    dst |= b.pin7.read() ? 1<<7 : 0;
     b.pinA0.set();
+#endif
     return dst;
 }
 
 void TFT::writeData(uint16_t x)
 {
+#if defined (__AVR_ATmega328P__)
+    PORTC |= 1<<2;
+    write16(x);
+#else
     b.pinA2.set();
     write16(x);
+#endif
 }
 
 void TFT::writeCmdData(uint16_t cmd, uint16_t data)
 {
+#if defined (__AVR_ATmega328P__)
+    PORTC &= ~(1<<3);
+#else
     b.pinA3.clear();
+#endif
     writeCmd(cmd);
     writeData(data);
+#if defined (__AVR_ATmega328P__)
+    PORTC |= 1<<3;
+#else
     b.pinA3.set();
+#endif
 }
 
 void TFT::reset()
@@ -282,7 +341,7 @@ uint16_t TFT::read16()
 {
     uint16_t ret = read8();
     uint8_t lo = read8();
-    return (ret << 8) | lo;
+    return ret << 8 | lo;
 }
 
 uint16_t TFT::readReg(uint16_t reg, int8_t index)
@@ -290,8 +349,14 @@ uint16_t TFT::readReg(uint16_t reg, int8_t index)
     uint16_t ret;
     b.pinA3.clear();
     writeCmd(reg);
-    DDRB &= ~0x03;
-    DDRD &= ~0xFC;
+    b.pin2.direction(INPUT);
+    b.pin3.direction(INPUT);
+    b.pin4.direction(INPUT);
+    b.pin5.direction(INPUT);
+    b.pin6.direction(INPUT);
+    b.pin7.direction(INPUT);
+    b.pin8.direction(INPUT);
+    b.pin9.direction(INPUT);
     b.pinA2.set();
     _delay_ms(1);
 
@@ -303,17 +368,47 @@ uint16_t TFT::readReg(uint16_t reg, int8_t index)
 
     b.pinA0.set();
     b.pinA3.set();
-    DDRB |=  0x03;
-    DDRD |=  0xFC;
+    b.pin2.direction(OUTPUT);
+    b.pin3.direction(OUTPUT);
+    b.pin4.direction(OUTPUT);
+    b.pin5.direction(OUTPUT);
+    b.pin6.direction(OUTPUT);
+    b.pin7.direction(OUTPUT);
+    b.pin8.direction(OUTPUT);
+    b.pin9.direction(OUTPUT);
     return ret;
 }
 
 inline void TFT::write8(uint8_t x)
 {
+#if defined (__AVR_ATmega328P__)
     PORTB = (PORTB & ~0x03) | (x & 0x03);
     PORTD = (PORTD & ~0xfc) | (x & 0xfc);
+    PORTC &= ~(1<<1);
+    PORTC |= 1<<1;
+#elif defined (__AVR_ATmega2560__)
+    PORTH = (PORTH & 0x87);
+    PORTH |= (x << 5) & (1<<PH5 | 1<<PH6);
+    PORTH |= (x >> 3) & (1<<PH4 | 1<<PH3);
+    PORTE = (PORTE & 0xc7);
+    PORTE |= (x << 2) & (1<<PE4 | 1<<PE5);
+    PORTE |= (x >> 2) & (1<<PE3);
+    PORTG = (PORTG & 0xdf);
+    PORTG |= (x << 1) & (1<<PG5);
     b.pinA1.clear();
     b.pinA1.set();
+#else
+    b.pin8.set(x & 1<<0 ? true : false);
+    b.pin9.set(x & 1<<1 ? true : false);
+    b.pin2.set(x & 1<<2 ? true : false);
+    b.pin3.set(x & 1<<3 ? true : false);
+    b.pin4.set(x & 1<<4 ? true : false);
+    b.pin5.set(x & 1<<5 ? true : false);
+    b.pin6.set(x & 1<<6 ? true : false);
+    b.pin7.set(x & 1<<7 ? true : false);
+    b.pinA1.clear();
+    b.pinA1.set();
+#endif
 }
 
 void TFT::write16(uint16_t x)
@@ -336,11 +431,10 @@ uint16_t TFT::readID()
 
 void TFT::setRotation(uint8_t r)
 {
-    uint16_t GS, SS, ORG, REV = _lcd_rev;
-    uint8_t val, d[3];
-    uint8_t rotation = r & 3;
-    _width = (rotation & 1) ? HEIGHT : WIDTH;
-    _height = (rotation & 1) ? WIDTH : HEIGHT;
+    uint16_t GS, SS, ORG;
+    uint8_t val, rotation = r & 3;
+    _width = rotation & 1 ? HEIGHT : WIDTH;
+    _height = rotation & 1 ? WIDTH : HEIGHT;
 
     switch (rotation)
     {

@@ -92,14 +92,16 @@ public:
 
     enum srb
     {
-        TXEn = 1 << 3,
-        RXEn = 1 << 4,
-        udrie = 1 << 5,
-        txcie = 1 << 6,
-        rxcie = 1 << 7
+        TXEn = 1<<3,
+        RXEn = 1<<4,
+        udrie = 1<<5,
+        txcie = 1<<6,
+        rxcie = 1<<7
     };
 
-    UartBase(uint16_t *brr, uint8_t *udr, uint8_t *ucsra, uint8_t *ucsrb);
+    UartBase(volatile uint16_t *brr, volatile uint8_t *udr, volatile uint8_t *ucsra,
+        volatile uint8_t *ucsrb);
+
     void myPutc(char c) { while (!(*ucsra & sra::MUDRE)) { } *udr = c; }
     virtual void onReceive() { }
     void inline enableTransmit() { *ucsrb |= srb::TXEn; }
@@ -168,38 +170,6 @@ public:
         spe = 1 << 6,
         spie = 1 << 7
     };
-};
-
-class I2CBus
-{
-protected:
-    volatile uint8_t * const twbr;
-    volatile uint8_t * const twsr;
-    volatile uint8_t * const twar;
-    volatile uint8_t * const twdr;
-    volatile uint8_t * const twcr;
-    static const uint8_t TW_START = 0x08;
-    static const uint8_t BTWIE = 0;
-    static const uint8_t BTWEN = 2;
-    static const uint8_t BTWSTO = 4;
-    static const uint8_t BTWSTA = 5;
-    static const uint8_t BTWEA = 6;
-    static const uint8_t BTWINT = 7;
-    static const uint8_t RTWIE = 1 << BTWIE;
-    static const uint8_t RTWEN = 1 << BTWEN;
-    static const uint8_t RTWSTO = 1 << BTWSTO;
-    static const uint8_t RTWSTA = 1 << BTWSTA;
-    static const uint8_t RTWEA = 1 << BTWEA;
-    static const uint8_t RTWINT = 1 << BTWINT;
-public:
-    vector<uint8_t> slaves;
-    I2CBus(unsigned brr = 72);
-    uint8_t start();
-    uint8_t restart();
-    void stop();
-    uint8_t write(uint8_t data);
-    uint8_t read(uint8_t ack);
-    void scan();
 };
 
 class Uart : public UartBase
@@ -289,37 +259,6 @@ public:
     bitset<8> toggleReadBitset();
     uint8_t toggleRead() { return toggleReadBitset().data; }
     DS1302_Regs get() { return regs; }
-};
-
-struct PCF8563_Regs
-{
-    uint8_t control_status_1;
-    uint8_t control_status_2;
-    uint8_t vl_seconds;
-    uint8_t minutes;
-    uint8_t hours;
-    uint8_t days;
-    uint8_t weekdays;
-    uint8_t century_months;
-    uint8_t years;
-    uint8_t minute_alarm;
-    uint8_t hour_alarm;
-    uint8_t day_alarm;
-    uint8_t weekday_alarm;
-    uint8_t clkout_control;
-    uint8_t timer_control;
-    uint8_t timer;
-} __attribute__ ((packed));
-
-class PCF8563
-{
-    I2CBus * const bus;
-    PCF8563_Regs regs;
-public:
-    static const uint8_t ADDR = 0x51;
-    PCF8563(I2CBus * const bus) : bus(bus) { }
-    void gettime(Terminal *uart);
-    void gettime() { gettime(Uart::getInstance()); }
 };
 
 template <class T> class Timer

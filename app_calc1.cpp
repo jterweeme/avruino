@@ -1,3 +1,13 @@
+/*
+TFT calculator
+
+LCD data 0 = D8
+LCD data 1 = D9
+LCD data 2 = D2
+LCD data 3 = D3
+LCD data 4 = D4
+*/
+
 #include "board.h"
 #include "st7783.h"
 
@@ -15,7 +25,7 @@ class OutputLine : public Output
 private:
     char _buffer[20] = {0};
     uint8_t _pos = 0;
-    TFT *_tft;
+    TFT * const _tft;
 public:
     OutputLine(TFT *tft) : _tft(tft) { }
     void clear() { _buffer[_pos = 0] = 0; redraw(); }
@@ -27,7 +37,8 @@ public:
 class GUI
 {
 public:
-    static const uint8_t ID_BTN1 = 101,
+    static const uint8_t
+        ID_BTN1 = 101,
         ID_BTN2 = 102,
         ID_BTN3 = 103,
         ID_BTN4 = 104,
@@ -47,32 +58,32 @@ public:
         ID_EMPTY2 = 117;
 private:
     MyArray<Button, 18> _buttons;
+    TFT * const _tft;
     OutputLine _ol;
-    TFT *_tft;
     uint16_t _prevClr = 0xf;
-    uint8_t _prevBtn = 0;
+    Button *_prevBtn = 0;
 public:
+    Button *find(TSPoint p) const;
     GUI(TFT *tft) : _tft(tft), _ol(tft) { }
     void init();
-    void lightUp(uint8_t id);
+    void lightUp(Button *button);
     void draw();
-    uint8_t id(TSPoint p) const;
 };
 
-void GUI::lightUp(uint8_t id)
+void GUI::lightUp(Button *button)
 {
-    _buttons.at(_prevBtn).fill(_prevClr);
-    _buttons.at(_prevBtn).draw(*_tft);
-
-    for (uint8_t i = 0; i < 18; i++)
+    if (_prevBtn)
     {
-        if (_buttons.at(i).id() == id)
-        {
-            _prevBtn = i;
-            _prevClr = _buttons.at(i).fill();
-            _buttons.at(i).fill(0xfff);
-            _buttons.at(i).draw(*_tft);
-        }
+        _prevBtn->fill(_prevClr);
+        _prevBtn->draw(_tft);
+    }
+
+    if (button)
+    {
+        _prevBtn = button;
+        _prevClr = _prevBtn->fill();
+        button->fill(0xfff);
+        button->draw(_tft);
     }
 }
 
@@ -85,14 +96,14 @@ void OutputLine::redraw()
 void GUI::draw()
 {
     for (size_t i = 0; i < _buttons.size(); i++)
-        _buttons.at(i).draw(*_tft);
+        _buttons.at(i).draw(_tft);
 }
 
-uint8_t GUI::id(TSPoint p) const
+Button *GUI::find(TSPoint p) const
 {
     for (size_t i = 0; i < _buttons.size(); i++)
         if (_buttons.at(i).contains(p))
-            return _buttons.at(i).id();
+            return &_buttons.at(i);
 
     return 0;
 }
@@ -160,29 +171,24 @@ int main()
     GUI gui(&tft);
     gui.init();
     gui.draw();
-    Uart s;
-    //s.init();
-    TouchScreen ts;
+    TouchScreen ts(&analog);
     OutputLine ol(&tft);
     Calculator calc(&ol);
     Sub sub;
     Mul mul;
     Div div;
     calc.reset();
-    uint8_t prev_id = 0;
     uint8_t id;
-    *p_ddrb |= 1<<ddb5;
 
     while (true)
     {
-        *p_portb |= 1<<pb5;
-        TSPoint p = ts.getPoint(analog);
-        *p_portb &= ~(1<<pb5);
+        TSPoint p = ts.getPoint();
 
         if (p.z > 200)
         {
-            id = gui.id(p);
-            gui.lightUp(id);
+            Button *button = gui.find(p);
+            gui.lightUp(button);
+            id = button ? button->id() : 0;
             _delay_ms(250);
 
             switch (id)
@@ -238,7 +244,6 @@ int main()
             }
         }
     }
-
 
     return 0;
 }

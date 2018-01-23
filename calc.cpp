@@ -39,7 +39,7 @@ void Calculator::equals()
     _op = &_dum;
     _ol->clear();
     char buf[16] = {0};
-    snprintf(buf, 16, "%u", _sum);
+    snprintf(buf, 16, "%lu", _sum);
     _ol->push(buf);
     _stack.clear();
 }
