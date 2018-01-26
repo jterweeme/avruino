@@ -24,6 +24,8 @@ Jasper ter Weeme
 #include "mega.h"
 #endif
 
+#define zei()  __asm__ __volatile__ ("sei" ::: "memory")
+#define zli()  __asm__ __volatile__ ("cli" ::: "memory")
 
 #endif
 

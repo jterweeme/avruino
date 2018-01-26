@@ -55,7 +55,8 @@ endif
 
 ifeq ($(BOARD), leonardo)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
-    app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf
+    app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
+    app_usbsound1.elf app_pi1.elf app_midi1.elf app_usbjoy1.elf app_usbkb1.elf
 endif
 
 %.o: %.cpp
@@ -100,6 +101,7 @@ app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o $(USBOPT) $(BSP)
+app_pi1.elf: app_pi1.o $(USBOPT) $(BSP)
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
 app_sdod1.elf: app_sdod1.o zd2card.o $(BSP)
@@ -112,10 +114,14 @@ app_timer1.elf: app_timer1.o $(BSP)
 app_ts1.elf: app_ts1.o analog.o $(BSP)
 app_ts2.elf: app_ts2.o analog.o $(BSP)
 app_usbloop1.elf: app_usbloop1.o $(USBOPT) $(BSP)
+app_midi1.elf: app_midi1.o busby.o $(BSP)
 app_usbsd2.elf: app_usbsd2.o usbsd.o zd2card.o busby.o $(BSP)
 app_usbtest1.elf: app_usbtest1.o $(USBOPT) $(BSP)
 app_uartloop1.elf: app_uartloop1.o $(BSP)
 app_uartloop2.elf: app_uartloop2.o $(BSP)
+app_usbjoy1.elf: app_usbjoy1.o analog.o misc.o usbjoy.o busby.o $(BSP)
+app_usbkb1.elf: app_usbkb1.o usbkb.o busby.o $(BSP)
+app_usbsound1.elf: app_usbsound1.o busby.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 app_wifi1.elf: app_wifi1.o misc.o $(USBOPT) $(BSP)
@@ -155,6 +161,8 @@ app_usbsd2.o: app_usbsd2.cpp busby.h misc.h
 app_usbtest1.o: app_usbtest1.cpp
 app_uartloop1.o: app_uartloop1.cpp misc.h
 app_uartloop2.o: app_uartloop2.cpp misc.h
+app_usbjoy1.o: app_usbjoy1.cpp
+app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_wifi1.o: app_wifi1.cpp misc.h
@@ -171,6 +179,7 @@ misc.o: misc.cpp misc.h
 sd.o: sd.cpp
 tft.o: tft.cpp tft.h
 uno.o: uno.cpp uno.h misc.h
+usbkb.o: usbkb.cpp usbkb.h
 usbsd.o: usbsd.cpp usbsd.h busby.h
 vga.o: vga.cpp vga.h
 zd2card.o: zd2card.cpp zd2card.h

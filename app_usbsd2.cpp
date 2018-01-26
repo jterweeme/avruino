@@ -1,5 +1,4 @@
 #include "usbsd.h"
-#include <avr/interrupt.h>
 
 int main(void)
 {
@@ -9,7 +8,7 @@ int main(void)
     serial.write("SD card reader\r\n");
 #endif
     USBSD usbsd;
-    sei();  // dit is nodig!
+    zei();  // dit is nodig!
 
 	for (;;)
 	{

@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <avr/boot.h>
 #include "busby.h"
 #include "misc.h"
 #include "zd2card.h"
@@ -13,19 +12,19 @@ static constexpr uint32_t
     M2S_CSW_SIGNATURE = 0x53425355,
     M2S_CBW_SIGNATURE = 0x43425355;
 
-struct MS_KommandBlockWrapper_t
+struct CmdBlock
 {
-    uint32_t Signature;
-    uint32_t Tag;
+    uint32_t signature;
+    uint32_t tag;
     uint32_t DataTransferLength;
-    uint8_t Flags;
+    uint8_t flags;
     uint8_t LUN;
     uint8_t SCSICommandLength;
-    uint8_t SCSICommandData[16];
+    uint8_t cmdData[16];
 }
 __attribute__ ((packed));
 
-struct MS_KommandStatusWrapper_t
+struct CmdStatus
 {
     uint32_t Signature;
     uint32_t Tag;
@@ -42,8 +41,8 @@ private:
     Sd2Card _sd;
     Endpoint _inpoint;
     Endpoint _outpoint;
-    MS_KommandBlockWrapper_t cmdBlock;
-    MS_KommandStatusWrapper_t cmdStatus = { .Signature = M2S_CSW_SIGNATURE };
+    CmdBlock cmdBlock;
+    CmdStatus cmdStatus = { .Signature = M2S_CSW_SIGNATURE };
     bool ReadInCommandBlock();
     inline void _sdReadBlock(uint32_t block);
     void _sdReadBlocks(uint32_t start, uint16_t n);
@@ -51,10 +50,12 @@ private:
     void _sdWriteBlocks(uint32_t start, uint16_t n);
     bool SCSI_Command_ReadWrite_10(const bool IsDataRead);
 public:
+    void customCtrl();
+    uint16_t getDesc(uint16_t wValue, uint16_t wIndex, const void **const descAddr);
+    void configure();
     void ReturnCommandStatus();
     void MassStorage_Task();
     bool decodeSCSICmd();
-    void procCtrlReq();
     USBSD();
 };
 
