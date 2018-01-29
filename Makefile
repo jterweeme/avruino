@@ -34,10 +34,10 @@ BOARDDEF = UNO
 USBOPT = 
 endif
 
-TARGETS = app_aditbox.elf \
+TARGETS = app_aditbox.elf app_capsense2.elf app_sdod1.elf app_sdls1.elf \
     app_blink1.elf app_hello.elf app_test1.elf app_timer1.elf app_i2cscan1.elf \
     app_pcf8563test2.elf app_blink2.elf app_lcdtest1.elf \
-    app_test2.elf app_calc1.elf app_calc2.elf app_sdod1.elf app_ts2.elf \
+    app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex \
@@ -56,7 +56,8 @@ endif
 ifeq ($(BOARD), leonardo)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
-    app_usbsound1.elf app_pi1.elf app_midi1.elf app_usbjoy1.elf app_usbkb1.elf
+    app_usbsound1.elf app_pi1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
+    app_usbpiano1.elf
 endif
 
 %.o: %.cpp
@@ -89,6 +90,7 @@ app_blink2.elf: app_blink2.o $(BSP)
 app_blink3.elf: app_blink3.o $(BSP)
 app_calc1.elf: app_calc1.o analog.o button.o tft.o calc.o $(BSP)
 app_calc2.elf: app_calc2.o calc.o $(BSP)
+app_capsense2.elf: app_capsense2.o capsense.o $(USBOPT) $(BSP)
 app_ds1302test1.elf: app_ds1302test1.o $(BSP)
 app_groen1.elf: app_groen1.o
 app_hello.elf: app_hello.o $(BSP)
@@ -104,7 +106,8 @@ app_pcf8563test2.elf: app_pcf8563test2.o i2c.o $(USBOPT) $(BSP)
 app_pi1.elf: app_pi1.o $(USBOPT) $(BSP)
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
-app_sdod1.elf: app_sdod1.o zd2card.o $(BSP)
+app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
+app_sdod1.elf: app_sdod1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
 app_serialusb1.elf: app_serialusb1.o $(USBOPT) $(BSP)
 app_sound1.elf: app_sound1.o
@@ -114,13 +117,14 @@ app_timer1.elf: app_timer1.o $(BSP)
 app_ts1.elf: app_ts1.o analog.o $(BSP)
 app_ts2.elf: app_ts2.o analog.o $(BSP)
 app_usbloop1.elf: app_usbloop1.o $(USBOPT) $(BSP)
-app_midi1.elf: app_midi1.o busby.o $(BSP)
+app_usbmidi1.elf: app_usbmidi1.o busby.o $(BSP)
 app_usbsd2.elf: app_usbsd2.o usbsd.o zd2card.o busby.o $(BSP)
 app_usbtest1.elf: app_usbtest1.o $(USBOPT) $(BSP)
 app_uartloop1.elf: app_uartloop1.o $(BSP)
 app_uartloop2.elf: app_uartloop2.o $(BSP)
 app_usbjoy1.elf: app_usbjoy1.o analog.o misc.o usbjoy.o busby.o $(BSP)
 app_usbkb1.elf: app_usbkb1.o usbkb.o busby.o $(BSP)
+app_usbpiano1.elf: app_usbpiano1.o capsense.o busby.o $(BSP)
 app_usbsound1.elf: app_usbsound1.o busby.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
@@ -148,6 +152,7 @@ app_ledmatrix2.o: app_ledmatrix2.cpp
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_segment1.o: app_segment1.cpp
+app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
 app_sdod1.o: app_sdod1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_sound1.o: app_sound1.cpp
@@ -162,6 +167,7 @@ app_usbtest1.o: app_usbtest1.cpp
 app_uartloop1.o: app_uartloop1.cpp misc.h
 app_uartloop2.o: app_uartloop2.cpp misc.h
 app_usbjoy1.o: app_usbjoy1.cpp
+app_usbpiano1.o: app_usbpiano1.cpp busby.h
 app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
@@ -170,6 +176,7 @@ analog.o: analog.cpp analog.h
 busby.o: busby.cpp
 button.o: button.cpp
 calc.o: calc.cpp
+capsense.o: capsense.cpp capsense.h
 helios.o: helios.cpp helios.h misc.h
 i2c.o: i2c.cpp misc.h
 infrared.o: infrared.cpp infrared.h

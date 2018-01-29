@@ -7,7 +7,6 @@ credits to SparkFun Electronics
 #define _ZD2CARD_H_
 #include <stdint.h>
 #include "board.h"
-#include <avr/io.h>
 
 static constexpr uint8_t
     R1_READY_STATE = 0x00,

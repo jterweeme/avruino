@@ -3,9 +3,9 @@ Adapted from LUFA code by Dean Camera
 */
 
 #include "busby.h"
-#include <avr/interrupt.h>
 #include <avr/boot.h>
 #include <avr/pgmspace.h>
+#include "int.h"
 
 USB *USB::instance;
 
@@ -458,12 +458,14 @@ void USB::com()
     selectEndpoint(prevSelectedEndp);
 }
 
-ISR(USB_COM_vect)
+extern "C" void __vector_11() __attribute__ ((signal, used, externally_visible));
+void __vector_11()
 {
     USB::instance->com();
 }
 
-ISR(USB_GEN_vect)
+extern "C" void __vector_10() __attribute__ ((signal, used, externally_visible));
+void __vector_10()
 {
     USB::instance->gen();
 }
@@ -480,7 +482,7 @@ void USB::gen()
         if (*p_usbsta & 1<<vbus)
         {
             *p_pllcsr = USB_PLL_PSC;
-            *p_pllcsr = USB_PLL_PSC | 1<<PLLE;
+            *p_pllcsr = USB_PLL_PSC | 1<<plle;
 
             while ((*p_pllcsr & 1<<plock) == 0)
                 ;

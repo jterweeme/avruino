@@ -18,7 +18,7 @@ DefaultUart::DefaultUart()
 
 Timer0::Timer0()
   :
-    Timer((uint8_t *)0x46, (uint8_t *)0x35, (uint8_t *)0x6e, (uint8_t *)0x44, (uint8_t *)0x45)
+    Timer((uint8_t *)p_tcnt0, (uint8_t *)0x35, (uint8_t *)0x6e, (uint8_t *)0x44, (uint8_t *)0x45)
 {
     instance = this;
     *tifr = 0;

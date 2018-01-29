@@ -1,6 +1,10 @@
 /*
-makes a hexdump of an SD card, so doesn't use the
+makes a hexdump of the MBR of an SD card, so doesn't use the
 FAT code
+
+works
+
+ChipSelect = D9
 */
 
 #include "zd2card.h"
@@ -9,20 +13,13 @@ FAT code
 #include <avr/interrupt.h>
 #include "board.h"
 #include "stream.h"
+#include "int.h"
 
 static Sd2Card *g_sd;
 
-uint32_t g_millis = 0;
-
-ISR(TIMER0_OVF_vect)
+IZR(TIMER0_OVF_vect)
 {
     g_sd->tick();
-    g_millis++;
-}
-
-uint32_t millis2()
-{
-    return g_millis;
 }
 
 static void hexDump(uint8_t *point, ostream &os)
@@ -50,8 +47,8 @@ static void hexDump(uint8_t *point, ostream &os)
 
 int main()
 {
-    TCCR0B = 1<<CS02;
-    TIMSK0 = 1<<TOIE0;
+    *p_tccr0b = 1<<cs02;
+    *p_timsk0 = 1<<toie0;
     sei();
     Board board;
     Sd2Card sd(&board.pin9);
@@ -59,9 +56,13 @@ int main()
     sd.init(SPI_FULL_SPEED);
     uint8_t buf[512];
     sd.readBlock(0, buf);
-    DefaultUart serial;
-    UartStream cout(&serial);
-
+#if defined (__AVR_ATmega32U4__)
+    CDC cdc;
+    USBStream cout(&cdc);
+#else
+    DefaultUart s;
+    UartStream cout(&s);
+#endif
     while (true)
     {
         hexDump(buf, cout);

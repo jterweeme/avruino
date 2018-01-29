@@ -350,11 +350,35 @@ void MIDI::task()
         midiPitch = 0x3d;
     }
 
+    if ((*p_pinf & 1<<5) == 0)
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3e;
+    }
+
+    if ((*p_pinf & 1<<4) == 0)
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3f;
+    }
+
+    if ((*p_pinf & 1<<1) == 0)
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x1f;
+    }
+
+    if ((*p_pinf & 1<<0) == 0)
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x1e;
+    }
+
     if (midiCommand)
     {
         MIDIEventPacket ev;
         ev.event = MIDI_EVENT(0, midiCommand);
-        ev.data1 = midiCommand | 9; // channel
+        ev.data1 = midiCommand | 1; // channel
         ev.data2 = midiPitch;
         ev.data3 = MIDI_STANDARD_VELOCITY;
         writeStream2(&ev, sizeof(ev), NULL);
