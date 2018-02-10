@@ -6,18 +6,19 @@
 
 int main()
 {
-    CapSense sense2(p_pin2_base, pin2_bit);
-    CapSense sense6(p_pin6_base, pin6_bit);
-    CapSense sense7(p_pin7_base, pin7_bit);
-    CapSense sense8(p_pin8_base, pin8_bit);
-    CapSense sense9(p_pin9_base, pin9_bit);
-    CapSense sense10(p_pin10_base, pin10_bit);
-    CapSense sense11(p_pin11_base, pin11_bit);
-    CapSense sense12(p_pin12_base, pin12_bit);
-    CapSense senseA5(p_pinA5_base, pinA5_bit);
-    CapSense senseA4(p_pinA4_base, pinA4_bit);
-    CapSense senseA3(p_pinA3_base, pinA3_bit);
-    CapSense senseA2(p_pinA2_base, pinA2_bit);
+    Board board;
+    CapSense toets08(board.pin13, board.pin5);
+    CapSense sense6(board.pin13, board.pin6);
+    CapSense sense7(board.pin13, board.pin7);
+    CapSense sense8(board.pin13, board.pin8);
+    CapSense sense9(board.pin13, board.pin9);
+    CapSense sense10(board.pin13, board.pin10);
+    CapSense sense11(board.pin13, board.pin11);
+    CapSense sense12(board.pin13, board.pin12);
+    CapSense senseA2(board.pin13, board.pinA2);
+    CapSense senseA3(board.pin13, board.pinA3);
+    CapSense senseA4(board.pin13, board.pinA4);
+    CapSense senseA5(board.pin13, board.pinA5);
 #if defined (__AVR_ATmega32U4__)
     CDC cdc;
     USBStream cout(&cdc);
@@ -28,7 +29,7 @@ int main()
 #endif
     while (true)
     {
-        uint32_t total2 = sense2.senseRaw(30);
+        uint32_t total08 = toets08.senseRaw(30);
         uint32_t total6 = sense6.senseRaw(30);
         uint32_t total7 = sense7.senseRaw(30);
         uint32_t total8 = sense8.senseRaw(30);
@@ -41,34 +42,34 @@ int main()
         uint32_t totalA3 = senseA3.senseRaw(30);
         uint32_t totalA2 = senseA2.senseRaw(30);
         char buf[50];
-        snprintf(buf, 50, "%lu\t", total2);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total6);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total7);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total8);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total9);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total10);
+        snprintf(buf, 50, "%lu\t", total12);
         cout.writeString(buf);
         snprintf(buf, 50, "%lu\t", total11);
         cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", total12);
+        snprintf(buf, 50, "%lu\t", total10);
         cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", totalA5);
+        snprintf(buf, 50, "%lu\t", total9);
         cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", totalA4);
+        snprintf(buf, 50, "%lu\t", total8);
+        cout.writeString(buf);
+        snprintf(buf, 50, "%lu\t", total7);
+        cout.writeString(buf);
+        snprintf(buf, 50, "%lu\t", total6);
+        cout.writeString(buf);
+        snprintf(buf, 50, "%lu\t", total08);
+        cout.writeString(buf);
+        snprintf(buf, 50, "%lu\t", totalA2);
         cout.writeString(buf);
         snprintf(buf, 50, "%lu\t", totalA3);
         cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", totalA2);
+        snprintf(buf, 50, "%lu\t", totalA4);
+        cout.writeString(buf);
+        snprintf(buf, 50, "%lu\t", totalA5);
         cout.writeString(buf);
         cout.writeString("\r\n");
         cout.flush();
 
-        for (volatile uint32_t i = 0; i < 0xfff; i++)
+        for (volatile uint32_t i = 0; i < 0x3fff; i++)
             ;
     }
     return 0;

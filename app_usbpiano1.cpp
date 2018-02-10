@@ -3,25 +3,14 @@ Kartonnen piano met aluminium folie toetsen test
 
 eerste test succesvol
 
-D4 is zend pin
+D13 is zend pin
 */
 
 #include "busby.h"
 #include "usbsound.h"
 #include <avr/pgmspace.h>
 #include "capsense.h"
-
-static const uint8_t
-    MIDI_JACKTYPE_EMBEDDED = 0x01,
-    MIDI_JACKTYPE_EXTERNAL = 0x02,
-    MIDI_STREAM_IN_EPADDR = ENDPOINT_DIR_IN | 1,
-    MIDI_STREAM_OUT_EPADDR = ENDPOINT_DIR_OUT | 2,
-    MIDI_STREAM_EPSIZE = 64,
-    MIDI_COMMAND_NOTE_ON = 0x90,
-    MIDI_COMMAND_NOTE_OFF = 0x80,
-    MIDI_STANDARD_VELOCITY = 64,
-    INTERFACE_ID_AUDIOCONTROL = 0,
-    INTERFACE_ID_AUDIOSTREAM = 1;
+#include "usbmidi.h"
 
 static const DescDev PROGMEM devDesc =
 {
@@ -41,51 +30,6 @@ static const DescDev PROGMEM devDesc =
     1
 };
 
-struct MIDIInterfaceAS
-{
-    uint8_t bLength;
-    uint8_t bDescriptorType;
-    uint8_t bDescriptorSubType;
-    uint16_t bcdMSC;
-    uint16_t wTotalLength;
-}
-__attribute__ ((packed));
-
-struct MIDIDescInputJack
-{
-    uint8_t size;
-    uint8_t type;
-    uint8_t subType;
-    uint8_t jackType;
-    uint8_t jackID;
-    uint8_t jackStrIndex;
-}
-__attribute__ ((packed));
-
-struct MIDIDescOutputJack
-{
-    uint8_t size;
-    uint8_t type;
-    uint8_t subType;
-    uint8_t jackType;
-    uint8_t jackID;
-    uint8_t numPins;
-    uint8_t srcJackID[1];
-    uint8_t srcPinID[1];
-    uint8_t jackStrIndex;
-}
-__attribute__ ((packed));
-
-struct MIDIEndpoint
-{
-    uint8_t size;
-    uint8_t type;
-    uint8_t subtype;
-    uint8_t totalEmbeddedJacks;
-    uint8_t associatedJackID[1];
-}
-__attribute__ ((packed));
-
 struct MyConf
 {
     DescConf config;
@@ -102,15 +46,6 @@ struct MyConf
     AudioEndpoint outJack;
     MIDIEndpoint outJackSPC;
 };
-
-struct MIDIEventPacket
-{
-    uint8_t event;
-    uint8_t data1;
-    uint8_t data2;
-    uint8_t data3;
-}
-__attribute__ ((packed));
 
 static const DescDev PROGMEM DeviceDescriptor =
 {
@@ -279,25 +214,26 @@ static const DescString<15> PROGMEM productString =
     L"LUFA MIDI Demo"
 };
 
-static constexpr uint16_t THRESHOLD = 1500;
+static constexpr uint16_t THRESHOLD = 3000;
 
 class MIDI : public USB
 {
 private:
+    Board _board;
     Endpoint _inpoint;
     Endpoint _outpoint;
-    CapSense _sense2;
-    CapSense _sense6;
-    CapSense _sense7;
-    CapSense _sense8;
-    CapSense _sense9;
-    CapSense _sense10;
-    CapSense _sense11;
-    CapSense _sense12;
-    CapSense _senseA2;
-    CapSense _senseA3;
-    CapSense _senseA4;
-    CapSense _senseA5;
+    CapSense _toets01;
+    CapSense _toets02;
+    CapSense _toets03;
+    CapSense _toets04;
+    CapSense _toets05;
+    CapSense _toets06;
+    CapSense _toets07;
+    CapSense _toets08;
+    CapSense _toets09;
+    CapSense _toets10;
+    CapSense _toets11;
+    CapSense _toets12;
 public:
     uint16_t getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddr);
     void configure();
@@ -357,92 +293,90 @@ static constexpr uint8_t MIDI_EVENT(uint8_t cable, uint8_t command)
 void MIDI::task()
 {
     _inpoint.select();
-
     uint8_t midiCommand = 0, midiPitch;
+    uint32_t toets01 = _toets01.senseRaw(30);
+    uint32_t toets02 = _toets02.senseRaw(30);
+    uint32_t toets03 = _toets03.senseRaw(30);
+    uint32_t toets04 = _toets04.senseRaw(30);
+    uint32_t toets05 = _toets05.senseRaw(30);
+    uint32_t toets06 = _toets06.senseRaw(30);
+    uint32_t toets07 = _toets07.senseRaw(30);
+    uint32_t toets08 = _toets08.senseRaw(30);
+    uint32_t toets09 = _toets09.senseRaw(30);
+    uint32_t toets10 = _toets10.senseRaw(30);
+    uint32_t toets11 = _toets11.senseRaw(30);
+    uint32_t toets12 = _toets12.senseRaw(30);
 
-    uint32_t total2 = _sense2.senseRaw(30);
-    uint32_t total6 = _sense6.senseRaw(30);
-    uint32_t total7 = _sense7.senseRaw(30);
-    uint32_t total8 = _sense8.senseRaw(30);
-    uint32_t total9 = _sense9.senseRaw(30);
-    uint32_t total10 = _sense10.senseRaw(30);
-    uint32_t total11 = _sense11.senseRaw(30);
-    uint32_t total12 = _sense12.senseRaw(30);
-    uint32_t totalA2 = _senseA2.senseRaw(30);
-    uint32_t totalA3 = _senseA3.senseRaw(30);
-    uint32_t totalA4 = _senseA4.senseRaw(30);
-    uint32_t totalA5 = _senseA5.senseRaw(30);
-
-    if (total2 > THRESHOLD)
+    if (toets01 > _toets01.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3a;
+        midiPitch = 0x30;
     }
 
-    if (total6 > THRESHOLD)
+    if (toets02 > _toets02.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3b;
+        midiPitch = 0x33;
     }
 
-    if (total7 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3c;
-    }
-
-    if (total8 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3d;
-    }
-
-    if (total9 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3e;
-    }
-
-    if (total10 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x3f;
-    }
-
-    if (total11 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x39;
-    }
-
-    if (total12 > THRESHOLD)
-    {
-        midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x38;
-    }
-
-    if (totalA2 > THRESHOLD)
+    if (toets03 > _toets03.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
         midiPitch = 0x37;
     }
 
-    if (totalA3 > THRESHOLD)
+    if (toets04 > _toets04.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x36;
+        midiPitch = 0x38;
     }
 
-    if (totalA4 > THRESHOLD)
+    if (toets05 > _toets05.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x35;
+        midiPitch = 0x39;
     }
 
-    if (totalA5 > 2500)
+    if (toets06 > _toets06.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
-        midiPitch = 0x34;
+        midiPitch = 0x3a;
+    }
+
+    if (toets07 > _toets07.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3b;
+    }
+
+    if (toets08 > _toets08.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3c;
+    }
+
+    if (toets09 > _toets09.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3d;
+    }
+
+    if (toets10 > _toets10.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3e;
+    }
+
+    if (toets11 > _toets11.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x3f;
+    }
+
+    if (toets12 > _toets12.threshold())
+    {
+        midiCommand = MIDI_COMMAND_NOTE_ON;
+        midiPitch = 0x46;
     }
 
     if (midiCommand)
@@ -472,18 +406,18 @@ MIDI::MIDI()
   :
     _inpoint(MIDI_STREAM_IN_EPADDR, EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1),
     _outpoint(MIDI_STREAM_OUT_EPADDR, EP_TYPE_BULK, MIDI_STREAM_EPSIZE, 1),
-    _sense2(p_pin2_base, pin2_bit),
-    _sense6(p_pin6_base, pin6_bit),
-    _sense7(p_pin7_base, pin7_bit),
-    _sense8(p_pin8_base, pin8_bit),
-    _sense9(p_pin9_base, pin9_bit),
-    _sense10(p_pin10_base, pin10_bit),
-    _sense11(p_pin11_base, pin11_bit),
-    _sense12(p_pin12_base, pin12_bit),
-    _senseA2(p_pinA2_base, pinA2_bit),
-    _senseA3(p_pinA3_base, pinA3_bit),
-    _senseA4(p_pinA4_base, pinA4_bit),
-    _senseA5(p_pinA5_base, pinA5_bit)
+    _toets01(_board.pin13, _board.pin12, 1500),
+    _toets02(_board.pin13, _board.pin11, 1500),
+    _toets03(_board.pin13, _board.pin10, 1500),
+    _toets04(_board.pin13, _board.pin9, 1500),
+    _toets05(_board.pin13, _board.pin8, 1500),
+    _toets06(_board.pin13, _board.pin7, 1500),
+    _toets07(_board.pin13, _board.pin6, 1500),
+    _toets08(_board.pin13, _board.pin5, 1500),
+    _toets09(_board.pin13, _board.pinA2, 1500),
+    _toets10(_board.pin13, _board.pinA3, 2000),
+    _toets11(_board.pin13, _board.pinA4, 1500),
+    _toets12(_board.pin13, _board.pinA5, 2200)
 {
     *p_usbcon &= ~(1<<otgpade);
     *p_uhwcon |= 1<<uvrege;

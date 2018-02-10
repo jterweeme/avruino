@@ -54,7 +54,7 @@ TSPoint TouchScreen::getPoint()
     DDRB |= 1<<1;       //D9
     PORTB &= ~(1<<1);   //D9
     PORTC |= 1<<3;      //A3
-#elif defined (__AVR_ATmega2560P__)
+#elif defined (__AVR_ATmega2560__)
     DDRH &= ~(1<<5);    //D8
     DDRF &= ~(1<<2);    //A2
     DDRF |= 1<<3;       //A3

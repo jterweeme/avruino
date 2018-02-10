@@ -13,6 +13,8 @@
 
 #include "misc.h"
 #include <avr/io.h>
+#include "timer.h"
+#include "uart.h"
 
 class MyTimer0 : public Timer0
 {

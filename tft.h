@@ -1,6 +1,5 @@
 #ifndef _TFT_H_
 #define _TFT_H_
-#include <stdint.h>
 #include "board.h"
 
 static const uint16_t AUTO_READINC  = 1<<1;

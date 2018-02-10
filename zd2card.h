@@ -5,7 +5,7 @@ credits to SparkFun Electronics
 
 #ifndef _ZD2CARD_H_
 #define _ZD2CARD_H_
-#include <stdint.h>
+#include "types.h"
 #include "board.h"
 
 static constexpr uint8_t
@@ -23,28 +23,30 @@ static constexpr uint8_t
     SEND_CSD = 9,
     SEND_CID = 10;
 
-typedef struct CID {
-  // byte 0
-  uint8_t mid;  // Manufacturer ID
-  // byte 1-2
-  char oid[2];  // OEM/Application ID
-  // byte 3-7
-  char pnm[5];  // Product name
-  // byte 8
-  unsigned prv_m : 4;  // Product revision n.m
-  unsigned prv_n : 4;
-  // byte 9-12
-  uint32_t psn;  // Product serial number
-  // byte 13
-  unsigned mdt_year_high : 4;  // Manufacturing date
-  unsigned reserved : 4;
-  // byte 14
-  unsigned mdt_month : 4;
-  unsigned mdt_year_low :4;
-  // byte 15
-  unsigned always1 : 1;
-  unsigned crc : 7;
-}cid_t;
+typedef struct CID
+{
+    // byte 0
+    uint8_t mid;  // Manufacturer ID
+    // byte 1-2
+    char oid[2];  // OEM/Application ID
+    // byte 3-7
+    char pnm[5];  // Product name
+    // byte 8
+    unsigned prv_m : 4;  // Product revision n.m
+    unsigned prv_n : 4;
+    // byte 9-12
+    uint32_t psn;  // Product serial number
+    // byte 13
+    unsigned mdt_year_high : 4;  // Manufacturing date
+    unsigned reserved : 4;
+    // byte 14
+    unsigned mdt_month : 4;
+    unsigned mdt_year_low :4;
+    // byte 15
+    unsigned always1 : 1;
+    unsigned crc : 7;
+}
+cid_t;
 
 
 typedef struct CSDV1 {
@@ -136,31 +138,31 @@ typedef struct CSDV2 {
   // byte 9
   uint8_t c_size_low;
   // byte 10
-  unsigned sector_size_high : 6;
-  unsigned erase_blk_en : 1;
-  unsigned reserved4 : 1;
-  // byte 11
-  unsigned wp_grp_size : 7;
-  unsigned sector_size_low : 1;
-  // byte 12
-  unsigned write_bl_len_high : 2;
-  unsigned r2w_factor : 3;
-  unsigned reserved5 : 2;
-  unsigned wp_grp_enable : 1;
-  // byte 13
-  unsigned reserved6 : 5;
-  unsigned write_partial : 1;
-  unsigned write_bl_len_low : 2;
-  // byte 14
-  unsigned reserved7: 2;
-  unsigned file_format : 2;
-  unsigned tmp_write_protect : 1;
-  unsigned perm_write_protect : 1;
-  unsigned copy : 1;
-  unsigned file_format_grp : 1;
-  // byte 15
-  unsigned always1 : 1;
-  unsigned crc : 7;
+    unsigned sector_size_high : 6;
+    unsigned erase_blk_en : 1;
+    unsigned reserved4 : 1;
+    // byte 11
+    unsigned wp_grp_size : 7;
+    unsigned sector_size_low : 1;
+    // byte 12
+    unsigned write_bl_len_high : 2;
+    unsigned r2w_factor : 3;
+    unsigned reserved5 : 2;
+    unsigned wp_grp_enable : 1;
+    // byte 13
+    unsigned reserved6 : 5;
+    unsigned write_partial : 1;
+    unsigned write_bl_len_low : 2;
+    // byte 14
+    unsigned reserved7: 2;
+    unsigned file_format : 2;
+    unsigned tmp_write_protect : 1;
+    unsigned perm_write_protect : 1;
+    unsigned copy : 1;
+    unsigned file_format_grp : 1;
+    // byte 15
+    unsigned always1 : 1;
+    unsigned crc : 7;
 }csd2_t;
 
 union csd_t

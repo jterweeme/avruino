@@ -1,6 +1,7 @@
 #include "board.h"
 #include "stream.h"
 #include <avr/io.h>
+#include "uart.h"
 
 class MyUart : public DefaultUart
 {

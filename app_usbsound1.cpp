@@ -1,16 +1,10 @@
 #include <avr/pgmspace.h>
-#include <avr/interrupt.h>
 #include "busby.h"
 #include "usbsound.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000
 #endif
-
-static constexpr uint8_t
-    STRING_ID_Language = 0,
-    STRING_ID_Manufacturer = 1,
-    STRING_ID_Product = 2;
 
 static const DescDev PROGMEM devDesc =
 {
@@ -24,8 +18,8 @@ static const DescDev PROGMEM devDesc =
     0x03eb,
     0x2046,
     0x0002,
-    STRING_ID_Manufacturer,
-    STRING_ID_Product,
+    STRING_ID_MANUFACTURER,
+    STRING_ID_PRODUCT,
     0,
     1
 };
@@ -190,8 +184,6 @@ static const DescString<11> PROGMEM productString =
     L"Audio Demo"
 };
 
-
-
 class USBSound : public USB
 {
 private:
@@ -224,15 +216,15 @@ uint16_t USBSound::getDesc(uint16_t wValue, uint16_t wIndex, const void **const 
     case DTYPE_STRING:
         switch (wValue & 0xff)
         {
-        case STRING_ID_Language:
+        case STRING_ID_LANGUAGE:
             addr = &languageString;
             size = pgm_read_byte(&languageString.size);
             break;
-        case STRING_ID_Manufacturer:
+        case STRING_ID_MANUFACTURER:
             addr = &manufacturerString;
             size = pgm_read_byte(&manufacturerString.size);
             break;
-        case STRING_ID_Product:
+        case STRING_ID_PRODUCT:
             addr = &productString;
             size = pgm_read_byte(&productString.size);
             break;
@@ -359,7 +351,9 @@ void USBSound::connect()
     *p_tccr3b = 1<<wgm32 | 1<<cs30;
 }
 
-ISR(TIMER0_COMPA_vect)
+//ISR(TIMER0_COMPA_vect)
+extern "C" void __vector_21() __attribute__ ((signal, used, externally_visible));
+void __vector_21()
 {
     g_usbSound->sampleCallback();
 }
@@ -377,8 +371,8 @@ void USBSound::sampleCallback()
         if ((*p_ueintx & 1<<rwal) == 0) // r/w not allowed?
             *p_ueintx &= ~(1<<rxouti | 1<<fifocon); // clear out
 
-        OCR3A = left ^ 1<<7;
-        OCR3B = right ^ 1<<7;
+        *p_ocr3a = left ^ 1<<7;
+        *p_ocr3b = right ^ 1<<7;
     }
 
     selectEndpoint(prevEp);
@@ -388,11 +382,10 @@ int main()
 {
     USBSound usbSound;
     g_usbSound = &usbSound;
-    sei();
+    zei();
 
     while (true)
-    {
-    }
+        ;
 
     return 0;
 }

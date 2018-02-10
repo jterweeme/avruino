@@ -7,7 +7,7 @@ PCSpeaker: D9
 
 */
 
-#include <stdint.h>
+#include "types.h"
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 #include <util/crc16.h>
@@ -176,7 +176,7 @@ int main(void)
     *p_tccr1b = 1<<wgm13;
     *p_ocr1a = 0;
     *p_tccr1a |= 1<<com1a1;
-    *p_ddr_ocr1a |= 1<<pocr1a;
+    *p_ddr_ocr1a |= 1<<ocr1a_bit;
     *p_tccr1b |= 1<<cs10;
     *p_icr1 = (1<<8) - 1;
     *p_tccr0a = 1<<wgm01;

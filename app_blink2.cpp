@@ -1,4 +1,10 @@
+/*
+werkt niet
+*/
+
 #include "board.h"
+#include "uart.h"
+#include "timer.h"
 
 class MyTimer0 : public Timer0
 {

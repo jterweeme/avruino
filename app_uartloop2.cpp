@@ -4,6 +4,7 @@ Loop on default UART using interrupt method
 
 #include "board.h"
 #include <avr/sleep.h>
+#include "uart.h"
 
 class MyUart : public DefaultUart
 {

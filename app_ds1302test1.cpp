@@ -1,4 +1,5 @@
 #include "uno.h"
+#include "uart.h"
 
 class App : public Board
 {

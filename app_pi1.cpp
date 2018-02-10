@@ -1,5 +1,10 @@
 #include "board.h"
+
+#if defined (__AVR_ATmega32U4__)
 #include "cdc.h"
+#endif
+
+#include "uart.h"
 #include "stream.h"
 #include <stdio.h>
 
@@ -7,15 +12,24 @@ static const char PI[] = "3.1415926535897932384626433832795028841971693993751058
 
 int main()
 {
+#if defined (__AVR_ATmega32U4__)
     CDC cdc;
     USBStream cout(&cdc);
+    USBIStream cin(&cdc);
+#else
+    DefaultUart s;
+    s.enableTransmit();
+    s.enableRead();
+    UartStream cout(&s);
+    UartIStream cin(&s);
+#endif
     uint16_t i = 0;
 
     while (true)
     {
         while (true)
         {
-            uint8_t byte = cdc.receive();
+            uint8_t byte = cin.get();
 
             if (byte == 255)
                 continue;
@@ -29,7 +43,7 @@ int main()
 
         cout.writeString("\r\nHelaas!\r\n");
         char buf[50];
-        snprintf(buf, 50, "%u\r\n", i);
+        ::snprintf(buf, 50, "%u\r\n", i);
         cout.writeString(buf);
         cout.flush();
         i = 0;

@@ -1,6 +1,7 @@
 #include "analog.h"
 #include "misc.h"
 #include <stdio.h>
+#include "uart.h"
 
 int main()
 {

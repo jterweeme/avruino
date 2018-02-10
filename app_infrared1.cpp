@@ -4,6 +4,7 @@
 #define F_CPU 16000000
 #include <util/delay.h>
 #include "infrared.h"
+#include "uart.h"
 
 inline char nibble(uint8_t n)
 {

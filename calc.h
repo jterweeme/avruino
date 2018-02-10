@@ -1,6 +1,6 @@
 #ifndef _CALC_H_
 #define _CALC_H_
-#include <stdint.h>
+#include "types.h"
 
 class Output
 {

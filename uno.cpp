@@ -2,6 +2,8 @@
 #include "uno.h"
 #include "misc.h"
 #include <avr/interrupt.h>
+#include "timer.h"
+#include "uart.h"
 
 Uart::Uart()
   :

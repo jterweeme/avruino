@@ -3,6 +3,7 @@ Loop on standard UART using polling method
 */
 
 #include "board.h"
+#include "uart.h"
 
 int main()
 {

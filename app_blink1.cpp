@@ -1,18 +1,19 @@
-#include <avr/io.h>
+/*
+LED: D13
+*/
 
-void delay()
-{
-    for (volatile unsigned i = 0; i < 0xffff; i++) { }
-}
+#include "board.h"
 
 int main()
 {
-    DDRC |= 1 << 6;
+    *p_pin13_ddr |= 1<<pin13_bit;
 
     while (true)
     {
-        PORTC ^= 1 << 6;
-        ::delay();
+        *p_pin13_port ^= 1<<pin13_bit;
+
+        for (volatile uint32_t i = 0; i < 0x1ffff; i++) // delay
+            ;
     }
         
     return 0;

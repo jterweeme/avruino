@@ -10,14 +10,15 @@ ChipSelect = D9
 #include "zd2card.h"
 #include <ctype.h>
 #include <stdio.h>
-#include <avr/interrupt.h>
 #include "board.h"
 #include "stream.h"
 #include "int.h"
 
 static Sd2Card *g_sd;
 
-IZR(TIMER0_OVF_vect)
+//IZR(TIMER0_OVF_vect)
+extern "C" void __vector_23() __attribute__ ((signal, used, externally_visible));
+void __vector_23()
 {
     g_sd->tick();
 }
@@ -49,7 +50,7 @@ int main()
 {
     *p_tccr0b = 1<<cs02;
     *p_timsk0 = 1<<toie0;
-    sei();
+    zei();
     Board board;
     Sd2Card sd(&board.pin9);
     g_sd = &sd;

@@ -8,18 +8,21 @@
 #include "board.h"
 #include <util/delay.h>
 
-CapSense::CapSense(volatile uint8_t * const base, uint8_t bit)
+CapSense::CapSense(Pin send, Pin receive, uint16_t threshold)
   :
-    _base(base), _in(base), _mode(base + 1), _out(base + 2), _bit(bit)
+    _send_mode(send.port.direction),
+    _send_bit(send.bit),
+    _base(receive.port.pbase),
+    _in(receive.port.pin),
+    _mode(receive.port.direction),
+    _out(receive.port.out),
+    _bit(receive.bit),
+    _threshold(threshold)
 {
-    _error = 1;
-    _loopTimingFactor = 310;
     _timeout = 2000 * _loopTimingFactor;
-    _autocal = 20000;
-    *p_ddrd |= 1<<4;
+    *_send_mode |= 1<<_send_bit;
     *_mode &= ~(1<<_bit);
     *_out &= ~(1<<_bit);
-    _leastTotal = 0x0fffffff;
 }
 
 int16_t CapSense::senseOneCycle()
@@ -57,9 +60,6 @@ int16_t CapSense::senseOneCycle()
 uint32_t CapSense::senseRaw(uint8_t samples)
 {
     _total = 0;
-
-    if (samples == 0)
-        return 0;
 
     for (uint8_t i = 0; i < samples; i++)
         if (senseOneCycle() < 0)

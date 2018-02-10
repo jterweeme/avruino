@@ -16,12 +16,7 @@ uint8_t USB::getEndpointDirection() const
 
 uint32_t USB::read32() const
 {
-    union
-    {
-        uint32_t value;
-        uint8_t bytes[4];
-    } Data;
-
+    union { uint32_t value; uint8_t bytes[4]; } Data;
     Data.bytes[0] = *p_uedatx;
     Data.bytes[1] = *p_uedatx;
     Data.bytes[2] = *p_uedatx;
@@ -93,7 +88,7 @@ uint8_t USB::waitUntilReady() const
         if (USB_DeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_READYWAIT_DeviceDisconnected;
 
-        if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
+        if (USB_DeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_READYWAIT_BusSuspended;
 
         if (*p_ueconx & 1<<stallrq)
@@ -115,7 +110,7 @@ void USB::clearStatusStage() const
 {
     if (_ctrlReq.bmRequestType & REQDIR_DEVICETOHOST)
     {
-        while ((UEINTX & 1<<RXOUTI) == 0)
+        while ((*p_ueintx & 1<<rxouti) == 0)
             if (state == DEVICE_STATE_UNATTACHED)
                 return;
 
@@ -246,7 +241,7 @@ uint8_t USB::write_Control_Stream_LE(const void* const buffer, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (usbDeviceState_LCL == DEVICE_STATE_Suspended)
+        if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
 
         if (*p_ueintx & 1<<rxstpi)  // setup received?
@@ -279,7 +274,7 @@ uint8_t USB::write_Control_Stream_LE(const void* const buffer, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (usbDeviceState_LCL == DEVICE_STATE_Suspended)
+        if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
     }
 
@@ -303,13 +298,13 @@ uint8_t USB::write_Control_PStream_LE(const void* const Buffer, uint16_t length)
         if (USB_DeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
+        if (USB_DeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
 
         if (*p_ueintx & 1<<rxstpi)  // setup received?
             return ENDPOINT_RWCSTREAM_HostAborted;
 
-        if (UEINTX & 1<<RXOUTI)
+        if (*p_ueintx & 1<<rxouti)
             break;
 
         if (*p_ueintx & 1<<txini)
@@ -336,7 +331,7 @@ uint8_t USB::write_Control_PStream_LE(const void* const Buffer, uint16_t length)
         if (USB_DeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (USB_DeviceState_LCL == DEVICE_STATE_Suspended)
+        if (USB_DeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
     }
 
@@ -503,14 +498,14 @@ void USB::gen()
         *p_udien |= 1<<wakeupe;    // enable int wakeup
         *p_usbcon |= 1<<frzclk;
         *p_pllcsr = 0;
-        state = DEVICE_STATE_Suspended;
+        state = DEVICE_STATE_SUSPENDED;
     }
 
     if (*p_udint & 1<<wakeupi && *p_udien & 1<<wakeupe)
     {
-        PLLCSR = USB_PLL_PSC;
-        PLLCSR = USB_PLL_PSC | 1<<PLLE;   // PLL on
-        while ((PLLCSR & 1<<PLOCK) == 0);   // PLL is ready?
+        *p_pllcsr = USB_PLL_PSC;
+        *p_pllcsr = USB_PLL_PSC | 1<<plle;   // PLL on
+        while ((*p_pllcsr & 1<<plock) == 0);   // PLL is ready?
         *p_usbcon &= ~(1<<frzclk);
         *p_udint &= ~(1<<wakeupi);
         *p_udien &= ~(1<<wakeupe);
@@ -549,7 +544,7 @@ uint8_t USB::readControlStreamLE(void * const buf, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (usbDeviceState_LCL == DEVICE_STATE_Suspended)
+        if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
 
         if (*p_ueintx & 1<<rxstpi)  // setup received?
@@ -575,7 +570,7 @@ uint8_t USB::readControlStreamLE(void * const buf, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_UNATTACHED)
             return ENDPOINT_RWCSTREAM_DeviceDisconnected;
 
-        if (usbDeviceState_LCL == DEVICE_STATE_Suspended)
+        if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
     }
 

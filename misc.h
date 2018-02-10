@@ -1,10 +1,7 @@
 #ifndef _MISC_H_
 #define _MISC_H_
 #include <stdlib.h>
-
-typedef unsigned char uint8_t;
-typedef unsigned int uint16_t;
-typedef unsigned long int uint32_t;
+#include "types.h"
 
 struct freelist
 {
@@ -26,19 +23,19 @@ public:
     static int isdigit(int c) { return c >= '0' && c <= '9' ? 1 : 0; }
 };
 
+#include "storage.h"
+
 inline void * operator new (size_t size) { return Utility::malloc(size); }
 inline void * operator new[] (size_t size) { return Utility::malloc(size); }
 
-#include "storage.h"
+
 
 enum Bits { BIT0, BIT1, BIT2, BIT3, BIT4, BIT5, BIT6, BIT7 };
 
-class Port
+struct Port
 {
-protected:
     volatile uint8_t * const pbase;
     volatile uint8_t * const pin;
-public:
     volatile uint8_t * const direction;
     volatile uint8_t * const out;
     Port(uint8_t *base) : pbase(base), pin(base), direction(base + 1), out(base + 2) { }
@@ -62,83 +59,6 @@ struct Pin  // uses Port class
     inline void toggle() { port.toggleBit(bit); }
     void direction(Direction dir);
     bool read() { return port.read() & 1<<bit; }
-};
-
-class Terminal
-{
-public:
-    virtual void myPutc(char c) { }
-    virtual void puts(const char *s) { while (*s) myPutc(*s++); }
-    void write(char c) { myPutc(c); }
-    void write(const char *s) { puts(s); }
-    virtual void printf(const char *format, ...);
-    virtual uint8_t readByte() { return 0; }
-    void operator<< (const char *s) { puts(s); }
-};
-
-class UartBase : public Terminal
-{
-protected:
-    volatile uint16_t * const brr;
-    volatile uint8_t * const udr;
-    volatile uint8_t * const ucsra;
-    volatile uint8_t * const ucsrb;
-public:
-    enum sra
-    {
-        MUDRE = 1 << 5,
-        MRXC = 1 << 7
-    };
-
-    enum srb
-    {
-        TXEn = 1<<3,
-        RXEn = 1<<4,
-        udrie = 1<<5,
-        txcie = 1<<6,
-        rxcie = 1<<7
-    };
-
-    UartBase(volatile uint16_t *brr, volatile uint8_t *udr, volatile uint8_t *ucsra,
-        volatile uint8_t *ucsrb);
-
-    void myPutc(char c) { while (!(*ucsra & sra::MUDRE)) { } *udr = c; }
-    virtual void onReceive() { }
-    void inline enableTransmit() { *ucsrb |= srb::TXEn; }
-    void inline enableRead() { *ucsrb |= srb::RXEn; }
-    void inline enableReadInterrupt() { *ucsrb |= srb::rxcie; asm volatile ("sei"); }
-    uint8_t readByte() { while (!(*ucsra & sra::MRXC)) { } return *udr; }
-};
-
-class LCD : public Terminal
-{
-protected:
-    Pin * const rs;
-    Pin * const e;
-    Pin * const d4;
-    Pin * const d5;
-    Pin * const d6;
-    Pin * const d7;
-    void lcd_write_4(uint8_t theByte);
-public:
-    static const uint8_t LINEONE = 0x00,
-        LINETWO = 0x40,
-        CLEAR = 0x01,
-        HOME = 0x02,
-        ENTRYMODE = 0x06,
-        OFF = 0x08,
-        ON = 0x0c,
-        RESET = 0x30,
-        FOURBIT = 0x28,
-        SETCURSOR = 0x80,
-        CURSOR_HOME = 0x02;
-
-    LCD(Pin *rs, Pin *e, Pin *d4, Pin *d5, Pin *d6, Pin *d7);
-    void myPutc(char c);
-    void puts(const char *s);
-    void lcd_write_instruction_4d(uint8_t theInstruction);
-    void home();
-    void clear() { lcd_write_instruction_4d(CLEAR); }
 };
 
 class SPIBase
@@ -170,27 +90,6 @@ public:
         spe = 1 << 6,
         spie = 1 << 7
     };
-};
-
-class Uart : public UartBase
-{
-    static Uart *instance;
-public:
-    Uart();
-    static Uart *getInstance() { return instance; }
-    static const uint8_t MYTXEN0 = 3;
-    static const uint8_t MYTXEN1 = 3;
-};
-
-class DefaultUart : public Uart
-{
-public:
-    DefaultUart();
-};
-
-class RTC
-{
-    
 };
 
 struct DS1302_Regs
@@ -261,71 +160,6 @@ public:
     DS1302_Regs get() { return regs; }
 };
 
-template <class T> class Timer
-{
-protected:
-    volatile T * const counter;
-    volatile uint8_t * const tifr;
-    volatile uint8_t * const timsk;
-    volatile uint8_t * const tccra;
-    volatile uint8_t * const tccrb;
-public:
-    static const uint8_t CS0 = 1 << 0;
-    static const uint8_t CS1 = 1 << 1;
-    static const uint8_t CS2 = 1 << 2;
-    static const uint8_t CS_MASK = CS0 | CS1 | CS2;
-
-    enum Prescaler
-    {
-        NO_CLOCK = 0,
-        DIV1 = CS0,
-        DIV8 = CS1,
-        DIV64 = CS0 | CS1,
-        DIV256 = CS2,
-        DIV1024 = CS0 | CS2,
-        EXT1_FALLING = CS1 | CS2,
-        EXT1_RISING = CS0 | CS1 | CS2
-    };
-
-    Timer(T *counter, uint8_t *tifr, uint8_t *timsk, uint8_t *tccra, uint8_t *tccrb)
-        : counter(counter), tifr(tifr), timsk(timsk), tccra(tccra), tccrb(tccrb)
-    { }
-
-    virtual void prescale(Prescaler ps) { *tccrb = (*tccrb & ~CS_MASK) | ps; }
-    virtual void onOverflow() { }
-};
-
-class Timer0 : public Timer<uint8_t>
-{
-protected:
-    static Timer0 *instance;
-public:
-    Timer0();
-    static Timer0 *getInstance() { return instance; }
-};
-
-class Timer1 : public Timer<uint16_t>
-{
-protected:
-    static Timer1 *instance;
-public:
-    Timer1();
-    static Timer1 *getInstance() { return instance; }
-};
-
-class AT45DBXX
-{
-public:
-    AT45DBXX() { }
-};
-
-class Wifi
-{
-    Uart * const uart;
-public:
-    Wifi(Uart *uart) : uart(uart) { }
-};
-
 class WaveShare8Seg
 {
     Pin *ct1;
@@ -343,17 +177,6 @@ class WaveShare8Seg
     Pin *dot;
 public:
     WaveShare8Seg() { }
-};
-
-class SD
-{
-    SPIBase *spiBus;
-public:
-    SD(SPIBase *spiBus) : spiBus(spiBus) { }
-};
-
-class LedMatrix
-{
 };
 
 #endif

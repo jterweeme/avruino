@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include "misc.h"
 #include <stdio.h>
+#include <string.h>
 
 #define ADAPTER_MAC_ADDRESS              {0x02, 0x00, 0x02, 0x00, 0x02, 0x00}
 
@@ -238,26 +239,26 @@ const MyConf PROGMEM myConf =
     },
     {
         sizeof(CDC_Header),
-        DTYPE_CSInterface,
+        DTYPE_CSINTERFACE,
         CDC_DSUBTYPE_CSInterface_Header,
         0x0110,
     },
     {
         sizeof(CDC_ACM),
-        DTYPE_CSInterface,
+        DTYPE_CSINTERFACE,
         CDC_DSUBTYPE_CSInterface_ACM,
         0x00,
     },
     {
         sizeof(CDC_Union),
-        DTYPE_CSInterface,
+        DTYPE_CSINTERFACE,
         CDC_DSUBTYPE_CSInterface_Union,
         0,
         1,
     },
     {
         sizeof(DescEndpoint),
-        DTYPE_Endpoint,
+        DTYPE_ENDPOINT,
         CDC_NOTIFICATION_EPADDR,
         EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA,
         CDC_NOTIFICATION_EPSIZE,
@@ -276,7 +277,7 @@ const MyConf PROGMEM myConf =
     },
     {
         sizeof(DescEndpoint),
-        DTYPE_Endpoint,
+        DTYPE_ENDPOINT,
         CDC_RX_EPADDR,
         EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA,
         CDC_TXRX_EPSIZE,
@@ -284,7 +285,7 @@ const MyConf PROGMEM myConf =
     },
     {
         sizeof(DescEndpoint),
-        DTYPE_Endpoint,
+        DTYPE_ENDPOINT,
         CDC_TX_EPADDR,
         EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA,
         CDC_TXRX_EPSIZE,
@@ -392,7 +393,7 @@ RNDIS::RNDIS() :
     *p_usbcon |= 1<<usbe;
     *p_usbcon &= ~(1<<frzclk);
     *p_pllcsr = 0;
-    state = DEVICE_STATE_Unattached;
+    state = DEVICE_STATE_UNATTACHED;
     confNum = 0;
     _remoteWakeupEn = false;
     USB_Device_CurrentlySelfPowered = false;
@@ -788,28 +789,31 @@ void RNDIS::send()
 
     if (*p_ueintx & 1<<txini)   // in ready?
     {
-        RNDIS_Packet_Message_t rndisHeader;
-        rndisHeader.MessageType = REMOTE_NDIS_PACKET_MSG;
-        rndisHeader.MessageLength = sizeof(RNDIS_Packet_Message_t) + sizeof(frame);
-        rndisHeader.DataOffset = sizeof(RNDIS_Packet_Message_t) - sizeof(RNDIS_Message_Header_t);
-        rndisHeader.DataLength = sizeof(frame);
-        writeStream2(&rndisHeader, sizeof(RNDIS_Packet_Message_t), NULL);
-        writeStream2(frame, rndisHeader.DataLength, NULL);
+        RNDIS_Packet_Message_t packet;
+        memset(&packet, 0, sizeof(packet));
+        packet.MessageType = REMOTE_NDIS_PACKET_MSG;
+        packet.MessageLength = sizeof(packet) + sizeof(frame);
+        packet.DataOffset = sizeof(packet) - sizeof(RNDIS_Message_Header_t);
+        packet.DataLength = sizeof(frame);
+        writeStream2(&packet, sizeof(packet), NULL);
+        writeStream2(frame, packet.DataLength, NULL);
         *p_ueintx &= ~(1<<txini | 1<<fifocon);  // clear in
     }
 }
 
 ISR(TIMER1_OVF_vect)
 {
-    Serial::instance->write("Debug bericht\r\n");
+    //Serial::instance->write("Debug bericht\r\n");
     g_rndis->send();
 }
 
 int main()
 {
+#if 0
     Serial serial;
     serial.init();
     Serial::instance->write("RNDIS app\r\n");
+#endif
     TCCR1B = 1<<CS12 | 1<<CS10;
     TIMSK1 |= 1<<TOIE1;
     RNDIS rndis;

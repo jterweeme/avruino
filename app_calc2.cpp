@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include "misc.h"
 #include <avr/sleep.h>
+#include "uart.h"
 
 Calculator *g_calc;
 Sub sub;

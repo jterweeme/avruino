@@ -1,6 +1,8 @@
 APP = app_usbloop1.elf
-BOARD = leonardo
+BOARD = uno
 USBO = busby.o cdc.o
+POOL1 = nee
+POOL2 = nee
 
 ifeq ($(BOARD), helios)
 PART = m32u4
@@ -8,12 +10,14 @@ MMCU = atmega32u4
 BSP = helios.o misc.o
 BOARDDEF = HELIOS
 USBOPT = $(USBO)
+POOL2 = ja
 else ifeq ($(BOARD), mega)
 PART = m2560
 MMCU = atmega2560
 BSP = mega.o misc.o
 BOARDDEF = MEGA
 USBOPT =
+POOL1 = ja
 else ifeq ($(BOARD), ocho)
 PART = m8
 MMCU = atmega8
@@ -26,38 +30,36 @@ MMCU = atmega32u4
 BSP = leonardo.o misc.o
 BOARDREF = LEONARDO
 USBOPT = $(USBO)
+POOL2 = ja
 else
 PART = m328p
 MMCU = atmega328p
 BSP = uno.o misc.o
 BOARDDEF = UNO
 USBOPT = 
+POOL1 = ja
 endif
 
 TARGETS = app_aditbox.elf app_capsense2.elf app_sdod1.elf app_sdls1.elf \
     app_blink1.elf app_hello.elf app_test1.elf app_timer1.elf app_i2cscan1.elf \
-    app_pcf8563test2.elf app_blink2.elf app_lcdtest1.elf \
+    app_pcf8563test2.elf app_blink2.elf app_lcdtest1.elf app_pi1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex \
     app_optiboot1.hex app_heliosboot1.hex
 
-ifeq ($(BOARD), uno)
-TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf \
-    app_vga1.elf app_vga2.elf app_blink4.hex app_sound1.elf
+ifeq ($(POOL1), ja)
+TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
+    app_vga2.elf app_blink4.hex app_sound1.elf app_analogweb1.elf app_pong1.elf \
+    app_fourinone.elf
 endif
 
-ifeq ($(BOARD), helios)
-TARGETS += app_groen1.elf app_usbtest1.elf app_wifi1.elf \
-    app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf
-endif
-
-ifeq ($(BOARD), leonardo)
+ifeq ($(POOL2), ja)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
-    app_usbsound1.elf app_pi1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
-    app_usbpiano1.elf
+    app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
+    app_usbpiano1.elf app_rndis1.elf
 endif
 
 %.o: %.cpp
@@ -85,6 +87,10 @@ app_usbsound2.hex: app_usbsound2.asm
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o $(BSP)
 app_analog1.elf: app_analog1.o $(BSP)
 app_analog2.elf: app_analog2.o $(BSP)
+
+app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o uip_client.o \
+    uip.o dhcp.o uip_ethernet.o uip_udp.o network.o uip_timer.o $(BSP)
+
 app_blink1.elf: app_blink1.o
 app_blink2.elf: app_blink2.o $(BSP)
 app_blink3.elf: app_blink3.o $(BSP)
@@ -92,6 +98,7 @@ app_calc1.elf: app_calc1.o analog.o button.o tft.o calc.o $(BSP)
 app_calc2.elf: app_calc2.o calc.o $(BSP)
 app_capsense2.elf: app_capsense2.o capsense.o $(USBOPT) $(BSP)
 app_ds1302test1.elf: app_ds1302test1.o $(BSP)
+app_fourinone.elf: app_fourinone.o analog.o
 app_groen1.elf: app_groen1.o
 app_hello.elf: app_hello.o $(BSP)
 app_i2cscan1.elf: app_i2cscan1.o i2c.o $(USBOPT) $(BSP)
@@ -104,8 +111,10 @@ app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o $(USBOPT) $(BSP)
 app_pi1.elf: app_pi1.o $(USBOPT) $(BSP)
+app_pong1.elf: app_pong1.o
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
+app_rndis1.elf: app_rndis1.o busby.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
 app_sdod1.elf: app_sdod1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -133,12 +142,14 @@ app_wifi1.elf: app_wifi1.o misc.o $(USBOPT) $(BSP)
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_analog2.o: app_analog2.cpp misc.h
+app_analogweb1.o: app_analogweb1.cpp
 app_blink1.o: app_blink1.cpp misc.h
 app_blink2.o: app_blink2.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
 app_calc2.o: app_calc2.cpp misc.h
 app_ds1302test1.o: app_ds1302test1.cpp misc.h
+app_fourinone.o: app_fourinone.cpp
 app_groen1.o: app_groen1.cpp
 app_hello.o: app_hello.cpp misc.h
 app_i2cscan1.o: app_i2cscan1.cpp misc.h
@@ -151,6 +162,7 @@ app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
+app_rndis1.o: app_rndis1.cpp busby.h
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
 app_sdod1.o: app_sdod1.cpp zd2card.h

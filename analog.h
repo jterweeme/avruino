@@ -1,6 +1,6 @@
 #ifndef _ANALOG_H_
 #define _ANALOG_H_
-#include <stdint.h>
+#include "types.h"
 #include <avr/io.h>
 
 class AnalogBase

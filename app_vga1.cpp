@@ -1,18 +1,26 @@
 /*
-GND     <-> GND
-RED     <-> D1
-GREEN   <-> D1
-BLUE    <-> D1
-HSYNC   <-> D3
-VSYNC   <-> D10
+RGB: TX0
+HSYNC: OCR2B
+VSYNC: OCR1B
+
+Uno:
+RGB: D1
+HSync: D3
+VSync: D10
+
+Mega:
+RGB: D1
+HSync: D9
+VSync: D12
 */
 
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <stdio.h>
+#include "board.h"
 
-const uint8_t screen_font [8] [256] PROGMEM = 
+static const uint8_t screen_font[8][256] PROGMEM = 
 {
   { 
   0xFF, 0xC0, 0xC0, 0xC9, 0xF7, 0xE3, 0xF7, 0xFF, 0x80, 0xFF, 0x80, 0xF8, 0xE1, 0xE0, 0xC0, 0xB3, 
@@ -177,7 +185,6 @@ Display display;
 
 ISR(TIMER1_OVF_vect)
 {
-    //Display::interrupt();
     display.interrupt();
 }
 
@@ -187,32 +194,28 @@ Display::Display()
         ::sprintf(message[i], "Line %03i - hello!", i);
 
     sei();
-    TIMSK0 = 0;
-    OCR0A = 0;
-    OCR0B = 0;
-    DDRB |= (1<<2);   
-    TCCR1A = 0;
-    TCCR1B = 0;  
-    TCCR1A |= (1<<WGM10) | (1<<WGM11) | (1<<COM1B1);  
-    TCCR1B |= (1<<WGM12) | (1<<WGM13) | 5;
-    OCR1A = 259;
-    OCR1B = 0;
-    TIFR1 = (1<<TOV1);
-    TIMSK1 = (1<<TOIE1);
-    DDRD |= (1<<3);
-    TCCR2A = 0;
-    TCCR2B = 0;
-    TCCR2A |= (1<<WGM20) | (1<<WGM21) | (1<<COM2B1);  
-    TCCR2B |= (1<<WGM22) | 2;
-    OCR2A = 63;
-    OCR2B = 7;
-    TIFR2 = (1<<TOV2);
-    TIMSK2 = (1<<TOIE2);
-    UBRR0 = 0;
-    DDRD |= (1<<4);
-    UCSR0B = 0; 
-    UCSR0C = (1<<UMSEL00) | (1<<UMSEL01) | (1<<UCPHA0) | (1<<UCPOL0);
-    set_sleep_mode (SLEEP_MODE_IDLE);
+    *p_timsk0 = 0;
+    *p_ocr0a = 0;
+    *p_ocr0b = 0;
+    *p_ddr_ocr1b |= 1<<ocr1b_bit;
+    *p_tccr1a = 1<<wgm10 | 1<<wgm11 | 1<<com1b1;  
+    *p_tccr1b = 1<<wgm12 | 1<<wgm13 | 5;
+    *p_ocr1a = 259;
+    *p_ocr1b = 0;
+    *p_tifr1 = 1<<tov1;
+    *p_timsk1 = 1<<toie1;
+    *p_ddr_ocr2b |= 1<<ocr2b_bit;
+    *p_tccr2a = 1<<wgm20 | 1<<wgm21 | 1<<com2b1;
+    *p_tccr2b = 1<<wgm22 | 2;
+    *p_ocr2a = 63;
+    *p_ocr2b = 7;
+    *p_tifr2 = 1<<tov2;
+    *p_timsk2 = 1<<toie2;
+    *p_ubrr0 = 0;
+    //*p_ddrd |= 1<<4;
+    *p_ucsr0b = 0; 
+    *p_ucsr0c = 1<<umsel00 | 1<<umsel01 | 1<<ucpol0; // 1<<ucpha0?
+    set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
 void Display::interrupt()
@@ -226,11 +229,6 @@ ISR(TIMER2_OVF_vect)
 {
 }
 
-//volatile int Display::messageLine;
-//volatile int Display::vLine;
-//volatile uint8_t Display::backPorchLinesToGo;
-//char Display::message[30][20];
-
 void Display::scanLine()
 {    
     if (backPorchLinesToGo)
@@ -242,18 +240,18 @@ void Display::scanLine()
     if (vLine >= 480)
         return;
     
-    const register uint8_t *linePtr = &screen_font[(vLine>>1) & 0x07][0];
+    const register uint8_t *linePtr = &screen_font[vLine>>1 & 0x07][0];
     char *messagePtr = &(message[messageLine][0]);
     uint8_t i = 20;
-    UCSR0B = _BV (TXEN0);
+    *p_ucsr0b = 1<<txen0;
 
     while (i--)
-        UDR0 = pgm_read_byte(linePtr + (*messagePtr++));
+        *p_udr0 = pgm_read_byte(linePtr + (*messagePtr++));
 
-    while (!(UCSR0A & _BV(TXC0))) {
-    }
+    while ((*p_ucsr0a & 1<<txc0) == 0)
+        ;
   
-    UCSR0B = 0;
+    *p_ucsr0b = 0;
     vLine++;  
   
     if ((vLine & 0xF) == 0)
@@ -262,8 +260,6 @@ void Display::scanLine()
 
 int main()
 {
-    //Display display;
-
     while (true)
     {
         sleep_mode();

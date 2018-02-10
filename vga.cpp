@@ -35,7 +35,7 @@ VGA::VGA()
     UBRR0 = 0;
     DDRD |= (1<<4);
     UCSR0B = 0;
-    UCSR0C = (1<<UMSEL00) | (1<<UMSEL01) | (1<<UCPHA0) | (1<<UCPOL0);
+    UCSR0C = 1<<UMSEL00 | 1<<UMSEL01 | 1<<UCPOL0;   // 1<<UCPHA0
     set_sleep_mode (SLEEP_MODE_IDLE);
 }
 

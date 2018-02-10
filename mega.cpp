@@ -1,5 +1,7 @@
 #include "mega.h"
 #include <avr/interrupt.h>
+#include "uart.h"
+#include "timer.h"
 
 Uart::Uart()
   :

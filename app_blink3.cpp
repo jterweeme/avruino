@@ -1,27 +1,18 @@
 #include "board.h"
 
-class App : public Board
-{
-public:
-    App() { pinA4.direction(OUTPUT); }
-    int run();
-};
-
-int App::run()
-{
-    while (true)
-    {
-        pinA4.toggle();
-        Utility::delay(0x7fff);
-    }
-
-    return 0;
-}
-
 int main()
 {
-    App app;
-    return app.run();
+    Board b;
+    b.pin13.direction(OUTPUT);
+
+    while (true)
+    {
+        b.pin13.toggle();
+        
+        for (volatile uint32_t i = 0; i < 0x1ffff; i++)
+            ;
+    }
+    return 0;;
 }
 
 

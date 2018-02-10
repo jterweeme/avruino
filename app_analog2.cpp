@@ -1,5 +1,6 @@
 #include "uno.h"
 #include "analog.h"
+#include "uart.h"
 
 class App : public Board
 {

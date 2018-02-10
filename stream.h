@@ -1,6 +1,6 @@
 #ifndef _STREAM_H_
 #define _STREAM_H_
-#include "misc.h"
+#include "uart.h"
 
 #if defined (__AVR_ATmega32U4__)
 #include "cdc.h"
@@ -15,6 +15,12 @@ public:
     virtual void flush() { }
 };
 
+class istream
+{
+public:
+    virtual int get() { return 0; }
+};
+
 class UartStream : public ostream
 {
 private:
@@ -22,6 +28,15 @@ private:
 public:
     UartStream(UartBase *s) : _serial(s) { }
     void write(char c) { _serial->write(c); }
+};
+
+class UartIStream : public istream
+{
+private:
+    UartBase * const _serial;
+public:
+    UartIStream(UartBase *s) : _serial(s) { }
+    int get() { return _serial->readByte(); }
 };
 
 #if defined (__AVR_ATmega32U4__)
@@ -33,6 +48,15 @@ public:
     USBStream(CDC *cdc) : _cdc(cdc) { }
     void write(char c) { _cdc->sendByte(c); }
     void flush() { _cdc->flush(); }
+};
+
+class USBIStream : public istream
+{
+private:
+    CDC * const _cdc;
+public:
+    USBIStream(CDC *cdc) : _cdc(cdc) { }
+    int get() { return _cdc->receive(); }
 };
 #endif
 

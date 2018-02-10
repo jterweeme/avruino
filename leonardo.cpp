@@ -1,6 +1,7 @@
 #include "board.h"
 #include "misc.h"
 #include <avr/io.h>
+#include "uart.h"
 
 Uart::Uart() : UartBase(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b)
 {
