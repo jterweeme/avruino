@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = leonardo
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -52,14 +52,14 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdod1.elf app_sdls1.elf \
 ifeq ($(POOL1), ja)
 TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
     app_vga2.elf app_blink4.hex app_sound1.elf app_analogweb1.elf app_pong1.elf \
-    app_fourinone.elf
+    app_fourinone.elf app_pirate1.elf
 endif
 
 ifeq ($(POOL2), ja)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
-    app_usbpiano1.elf app_rndis1.elf
+    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf
 endif
 
 %.o: %.cpp
@@ -111,10 +111,12 @@ app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o $(USBOPT) $(BSP)
 app_pi1.elf: app_pi1.o $(USBOPT) $(BSP)
+app_pirate1.elf: app_pirate1.o vgax.o
 app_pong1.elf: app_pong1.o
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
+app_rndis2.elf: app_rndis2.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
 app_sdod1.elf: app_sdod1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -163,6 +165,7 @@ app_ledmatrix2.o: app_ledmatrix2.cpp
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
+app_rndis2.o: app_rndis2.cpp
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
 app_sdod1.o: app_sdod1.cpp zd2card.h
@@ -201,6 +204,7 @@ uno.o: uno.cpp uno.h misc.h
 usbkb.o: usbkb.cpp usbkb.h
 usbsd.o: usbsd.cpp usbsd.h busby.h
 vga.o: vga.cpp vga.h
+vgax.o: vgax.cpp vgax.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)

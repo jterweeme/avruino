@@ -172,6 +172,7 @@ static volatile uint8_t
     * const p_pinc = (volatile uint8_t * const)pinc,
     * const p_ddrc = (volatile uint8_t * const)ddrc,
     * const p_ddrd = (volatile uint8_t * const)ddrd,
+    * const p_ddrf = (volatile uint8_t * const)ddrf,
     * const p_portg = (volatile uint8_t * const)portg,
     * const p_tifr1 = (volatile uint8_t * const)tifr1,
     * const p_tifr2 = (volatile uint8_t * const)tifr2,

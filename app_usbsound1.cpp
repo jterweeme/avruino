@@ -1,3 +1,7 @@
+/*
+buzzer: D5
+*/
+
 #include <avr/pgmspace.h>
 #include "busby.h"
 #include "usbsound.h"

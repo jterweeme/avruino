@@ -1,4 +1,6 @@
 /*
+todo: rename naar app_sdmbr1.cpp
+
 makes a hexdump of the MBR of an SD card, so doesn't use the
 FAT code
 
@@ -10,15 +12,16 @@ ChipSelect = D9
 #include "zd2card.h"
 #include <ctype.h>
 #include <stdio.h>
+#include <avr/interrupt.h>
 #include "board.h"
 #include "stream.h"
 #include "int.h"
 
 static Sd2Card *g_sd;
 
-//IZR(TIMER0_OVF_vect)
-extern "C" void __vector_23() __attribute__ ((signal, used, externally_visible));
-void __vector_23()
+ISR(TIMER0_OVF_vect)
+//extern "C" void __vector_23() __attribute__ ((signal, used, externally_visible));
+//void __vector_23()
 {
     g_sd->tick();
 }
@@ -64,6 +67,8 @@ int main()
     DefaultUart s;
     UartStream cout(&s);
 #endif
+    cout.writeString("Startup\r\n");
+
     while (true)
     {
         hexDump(buf, cout);

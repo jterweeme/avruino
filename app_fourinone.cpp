@@ -13,8 +13,7 @@ JOY2: A3/ADC3
 #include <math.h>
 #include <stdlib.h>
 #include "analog.h"
-
-typedef unsigned char byte;
+#include "board.h"
 
 Analog2 analog;
 
@@ -51,8 +50,8 @@ public:
     static inline void putpixel(uint8_t x, uint8_t y, uint8_t color)
     {
         uint8_t *p=vgaxfb + y*VGAX_BWIDTH + (x>>2);
-        uint8_t bitpos=6-(x & 3)*2;
-        *p=(*p & ~(3 <<bitpos)) | color <<bitpos;
+        uint8_t bitpos = 6 - (x & 3) * 2;
+        *p = (*p & ~(3 <<bitpos)) | color <<bitpos;
     }
   /*
    * getpixel(x, y)
@@ -329,10 +328,6 @@ void VGAX::printSRAM(uint8_t *fnt, uint8_t glyphscount, uint8_t fntheight, uint8
 //HSYNC pin used by TIMER2
 #define HSYNCPIN 3
 
-//These two pin cannot be modified without modify the HSYNC assembler code
-#define COLORPIN0 6
-#define COLORPIN1 7
-
 //VSYNC pin used by TIMER1. Can be 9 or 10
 #define VSYNCPIN 9
 
@@ -359,15 +354,9 @@ ISR(TIMER1_OVF_vect) {
   rlinecnt=0;
 }
 //HSYNC interrupt
-ISR(TIMER2_OVF_vect) {
-  /*
-  NOTE: I prefer to generate the line here, inside the interrupt.
-  Gammon's code generate the line pixels inside main().
-  My versin generate the signal using only interrupts, so inside main() function
-  you can do anything you want. Your code will be interrupted when VGA signal
-  needs to be generated
-  */
-  //generate audio modulation. around 15 clocks
+ISR(TIMER2_OVF_vect)
+{
+#if 1
   asm volatile(                                   //4c to load Z and Y
     "      ld r16, Z                        \n\t" //c1 r16=afreq
     "      cpi %[freq0], 0                  \n\t" //c1 afreq0==0 ?
@@ -407,63 +396,43 @@ ISR(TIMER2_OVF_vect) {
       vskip--;
       return;
   }
+#endif
   if (rlinecnt<60) {   
-    //interrupt jitter fix (needed to keep signal stable)
-    //code from https://github.com/cnlohr/avrcraft/tree/master/terminal
-    //modified from 4 nop align to 8 nop align
     #define DEJITTER_OFFSET 1
     #define DEJITTER_SYNC -3
+#if 1
     asm volatile(
-      "     lds r16, %[timer0]    \n\t" //
-      //"   add r16, %[toffset]   \n\t" //
-      "     subi r16, %[tsync]    \n\t" //
-      "     andi r16, 7           \n\t" //
-      "     call TL               \n\t" //
-      "TL:                        \n\t" //
-      "     pop r31               \n\t" //
-      "     pop r30               \n\t" //
-      "     adiw r30, (LW-TL-5)   \n\t" //
-      "     add r30, r16          \n\t" //
-      //"   adc r31, __zero_reg__ \n\t" //
-      "     ijmp                  \n\t" //
-      "LW:                        \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      "     nop                   \n\t" //
-      //"   nop                   \n\t" //
-      "LBEND:                     \n\t" //
+      "     lds r16, 0x46\n\t"
+      "     subi r16, %[tsync]    \n\t" 
+      "     andi r16, 7           \n\t"
+      "     call TL               \n\t"
+      "TL:                        \n\t" 
+      "     pop r31               \n\t" 
+      "     pop r30               \n\t" 
+      "     adiw r30, (LW-TL-5)   \n\t" 
+      "     add r30, r16          \n\t" 
+      "     ijmp                  \n\t" 
+      "LW:                        \n\t" 
+      "     nop\n\t"
+      "     nop\n\t" 
+      "     nop\n\t" 
+      "     nop\n\t" 
+      "     nop\n\t" 
+      "     nop\n\t" 
+      "     nop\n\t"
     :
-    : [timer0] "i" (&TCNT0),
-      [toffset] "i" ((uint8_t)DEJITTER_OFFSET),
-      [tsync] "i" ((uint8_t)DEJITTER_SYNC)
-    : "r30", "r31", "r16", "r17");
-    /*
-    Output all pixels.
-
-    NOTE: My trick here is to unpack 4 pixels and shift them before writing to
-    PORTD.
-
-    Pixels are packed as 0b11223344 because the first pixel write have no time
-    to perform a shift (ld, out) and must be prealigned to the two upper bits 
-    of PORTD, where the two wires of the VGA DSUB are connected. The second, 
-    the third and the forth pixels are shifted left using mul opcode instead 
-    of a left shift opcode. Shift opcodes are slow and can shift only 1 bit at
-    a time, using 1 clock cycle. mul is faster.
-
-    Instead of using a loop i use the .rept assembler directive to generate an 
-    unrolled loop of 30 iterations.
-    */
+    : [tsync] "i" ((uint8_t)DEJITTER_SYNC)
+    : "r30", "r31", "r16", "r17"
+);
+#endif
+#if 1
     asm volatile (
       "    ldi r20, 4       \n\t" //const for <<2bit
-      #ifdef VGAX_DEV_DEPRECATED
+#ifdef VGAX_DEV_DEPRECATED
       ".rept 14             \n\t" //center line
       "    nop              \n\t" //
       ".endr                \n\t" //
-      #endif
+#endif
       ".rept 30             \n\t" //output 4 pixels for each iteration
       "    ld r16, Z+       \n\t" //
       "    out %[port], r16 \n\t" //write pixel 1
@@ -482,20 +451,19 @@ ISR(TIMER2_OVF_vect) {
       "z" "I" (/*rline*/(uint8_t *)vgaxfb + rlinecnt*VGAX_BWIDTH)
     : "r16", "r17", "r20", "r21", "memory");
 
-    //increment framebuffer line counter after 6 VGA lines
     if (++aline==5) { 
       aline=-1;
       rlinecnt++;
     } else {
-      #ifdef VGAX_DEV_DEPRECATED
-      //small delay to keep the line signal aligned
+#ifdef VGAX_DEV_DEPRECATED
       asm volatile(
         ".rept 17 \n\t" //
         "    nop  \n\t" //
         ".endr    \n\t" //
       :::);
-      #endif
+#endif
     }
+#endif
   } 
 }
 void VGAX::begin(bool enableTone)
@@ -506,36 +474,27 @@ void VGAX::begin(bool enableTone)
     if (enableTone)
         DDRC |= 1<<0;
     
-    TIMSK0=0;
-    TCCR0A=0;
-    TCCR0B=1; //enable 16MHz counter (used to fix the HSYNC interrupt jitter)
-    OCR0A=0;
-    OCR0B=0;
-    TCNT0=0;
-    DDRB |= 1<<1;
-#if VSYNCPIN==10
-    TCCR1A = bit(WGM10) | bit(WGM11) | bit(COM1B1);
-    TCCR1B = bit(WGM12) | bit(WGM13) | bit(CS12) | bit(CS10); //1024 prescaler
-    OCR1A=259; //16666 / 64 uS=260 (less one)
-    OCR1B=0; //64 / 64 uS=1 (less one)
-    TIFR1=bit(TOV1); //clear overflow flag
-    TIMSK1=bit(TOIE1); //interrupt on overflow on TIMER1
-#else
-    TCCR1A = 1<<WGM11 | 1<<COM1A1;
-    TCCR1B = 1<<WGM12 | 1<<WGM13 | 1<<CS12 | 1<<CS10; //1024 prescaler
-    ICR1=259; //16666 / 64 uS=260 (less one)
-    OCR1A=0; //64 / 64 uS=1 (less one)
-    TIFR1 = 1<<TOV1; //clear overflow flag
-    TIMSK1 = 1<<TOIE1; //interrupt on overflow on TIMER1
-#endif
-    DDRD |= 1<<3;
-    TCCR2A = 1<<WGM20 | 1<<WGM21 | 1<<COM2B1; //pin3=COM2B1
-    TCCR2B = 1<<WGM22 | 1<<CS21; //8 prescaler
-    OCR2A = 63; //32 / 0.5 uS=64 (less one)
-    OCR2B = 7; //4 / 0.5 uS=8 (less one)
-    TIFR2 = 1<<TOV2; //clear overflow flag
-    TIMSK2 = 1<<TOIE2; //interrupt on overflow on TIMER2
-    DDRD |= 1<<6 | 1<<7;  
+    *p_timsk0=0;
+    *p_tccr0a=0;
+    *p_tccr0b=1; //enable 16MHz counter (used to fix the HSYNC interrupt jitter)
+    *p_ocr0a=0;
+    *p_ocr0b=0;
+    *p_tcnt0=0;
+    *p_ddr_ocr1a |= 1<<ocr1a_bit;
+    *p_tccr1a = 1<<wgm11 | 1<<com1a1;
+    *p_tccr1b = 1<<wgm12 | 1<<wgm13 | 1<<cs12 | 1<<cs10; //1024 prescaler
+    *p_icr1=259; //16666 / 64 uS=260 (less one)
+    *p_ocr1a=0; //64 / 64 uS=1 (less one)
+    *p_tifr1 = 1<<tov1; //clear overflow flag
+    *p_timsk1 = 1<<toie1; //interrupt on overflow on TIMER1
+    *p_ddr_ocr2b |= 1<<ocr2b_bit;
+    *p_tccr2a = 1<<wgm20 | 1<<wgm21 | 1<<com2b1; //pin3=COM2B1
+    *p_tccr2b = 1<<wgm22 | 1<<cs21; //8 prescaler
+    *p_ocr2a = 63; //32 / 0.5 uS=64 (less one)
+    *p_ocr2b = 7; //4 / 0.5 uS=8 (less one)
+    *p_tifr2 = 1<<tov2; //clear overflow flag
+    *p_timsk2 = 1<<toie2; //interrupt on overflow on TIMER2
+    *p_ddrd |= 1<<6 | 1<<7;
     sei();
 }
 void VGAX::end()
@@ -933,12 +892,12 @@ public:
   }
 };
 
-#define FNT_NANOFONT_HEIGHT 6
-#define FNT_NANOFONT_SYMBOLS_COUNT 95
-#define PADDLE_HEIGHT 8
-#define PADDLE_WIDTH 2
-#define RIGHT_PADDLE_X (VGAX_WIDTH-4)
-#define LEFT_PADDLE_X 2
+static constexpr uint8_t FNT_NANOFONT_HEIGHT = 6;
+static constexpr uint8_t FNT_NANOFONT_SYMBOLS_COUNT = 95;
+static constexpr uint8_t PADDLE_HEIGHT = 8;
+static constexpr uint8_t PADDLE_WIDTH = 2;
+static constexpr uint8_t RIGHT_PADDLE_X = VGAX_WIDTH - 4;
+static constexpr uint8_t LEFT_PADDLE_X = 2;
 #define MAX_Y_VELOCITY 0.1
 
 static VGAX vga;
@@ -1259,7 +1218,7 @@ void drawPaddles()
 
 void drawNet()
 {
-    for(int i=1; i<VGAX_HEIGHT - 4; i += 6) {
+    for (int i=1; i<VGAX_HEIGHT - 4; i += 6) {
         vgaU.draw_column(VGAX_WIDTH/2, i, i + 3, 3);
     }
 }
@@ -1449,7 +1408,7 @@ void ballStart()
          drawBallBreakout(ballX, ballY, 2); 
       }
       if (buttonTwoStatus == 1){
-         state = 0; //*********************************************
+         state = 0;
          buttonTwoStatus = 0; 
          buttonOneStatus = 0; 
          buttonStatus = 0; 
@@ -1512,17 +1471,22 @@ void drawScore()
     if(scoreR == 6) {vgaPrint(str6, 64, 4, 2);}
     if(scoreL == 7) {vgaPrint(str7, 52, 4, 1);} 
     if(scoreR == 7) {vgaPrint(str7, 64, 4, 2);}
-    if(scoreL == 8) {
-       vgaPrint(str8, 52, 4, 1);
-       vgaPrint(str15, 12, 24, 1);
-       ballX = VGAX_WIDTH - 6; 
-       buttonStatus = 0; 
-       while(buttonStatus == 0){
-          processInputs(); 
-          ballY = ((wheelOnePosition / 8) * (VGAX_HEIGHT-PADDLE_HEIGHT-1))/ 128 + 4;
-          drawGameScreen(); 
-       }
+
+    if(scoreL == 8)
+    {
+        vgaPrint(str8, 52, 4, 1);
+        vgaPrint(str15, 12, 24, 1);
+        ballX = VGAX_WIDTH - 6; 
+        buttonStatus = 0;
+
+        while(buttonStatus == 0)
+        {
+            processInputs(); 
+            ballY = ((wheelOnePosition / 8) * (VGAX_HEIGHT-PADDLE_HEIGHT-1))/ 128 + 4;
+            drawGameScreen(); 
+        }
     }
+
     if(scoreR == 8) {
        vgaPrint(str8, 64, 4, 2);
        vgaPrint(str16, 66, 24, 2);
@@ -1617,17 +1581,17 @@ static void drawBombBomber()
 
 static void drawBombBomberard()
 {
-    if (padPosition != padPositionOld) {
-      vgaU.draw_column(padPositionOld, VGAX_HEIGHT-4, VGAX_HEIGHT-7, 0); 
-      vgaU.draw_row(VGAX_HEIGHT-4, padPositionOld-2, padPositionOld+3, 0); 
-      vgaU.draw_row(VGAX_HEIGHT-3, padPositionOld-5, padPositionOld+6, 0); 
-      vgaU.draw_row(VGAX_HEIGHT-2, padPositionOld-5, padPositionOld+6, 0); 
-     
-      vgaU.draw_column(padPosition, VGAX_HEIGHT-4, VGAX_HEIGHT-7, 3); 
-      vgaU.draw_row(VGAX_HEIGHT-4, padPosition-2, padPosition+3, 3); 
-      vgaU.draw_row(VGAX_HEIGHT-3, padPosition-5, padPosition+6, 3); 
-      vgaU.draw_row(VGAX_HEIGHT-2, padPosition-5, padPosition+6, 3); 
-   }
+    if (padPosition != padPositionOld)
+    {
+        vgaU.draw_column(padPositionOld, VGAX_HEIGHT-4, VGAX_HEIGHT-7, 0);
+        vgaU.draw_row(VGAX_HEIGHT-4, padPositionOld-2, padPositionOld+3, 0);
+        vgaU.draw_row(VGAX_HEIGHT-3, padPositionOld-5, padPositionOld+6, 0);
+        vgaU.draw_row(VGAX_HEIGHT-2, padPositionOld-5, padPositionOld+6, 0);
+        vgaU.draw_column(padPosition, VGAX_HEIGHT-4, VGAX_HEIGHT-7, 3);
+        vgaU.draw_row(VGAX_HEIGHT-4, padPosition-2, padPosition+3, 3);
+        vgaU.draw_row(VGAX_HEIGHT-3, padPosition-5, padPosition+6, 3);
+        vgaU.draw_row(VGAX_HEIGHT-2, padPosition-5, padPosition+6, 3);
+    }
 }
 
 static void drawShotBomber()
@@ -1921,7 +1885,7 @@ void breakout()
               speedY = - abs(speedY); 
            }
         }
-        else if (ballX > 1 && ballX + 1 < 99 && ballY > 1) // *********** ball hits a brick *******************
+        else if (ballX > 1 && ballX + 1 < 99 && ballY > 1) // ball hits a brick
         {
            vgaTone(440,30);
             if ((hitScore == 1) | (hitScore == 3))
@@ -1943,13 +1907,15 @@ static void bomber()
     {  
         if (padPosition > speedX - 2 - lives && padPosition < speedX + 2 + lives)
         { // plane is hit ------------------
-           speedX = -10; 
-           score += 8;
-           vga.tone(110);
-           vga.delay(60); 
-           vga.noTone();
-         }
-         if (padPosition > (bombX - 2 ) && padPosition < (bombX + 2)) {
+            speedX = -10; 
+            score += 8;
+            vga.tone(110);
+            vga.delay(60); 
+            vga.noTone();
+        }
+
+        if (padPosition > (bombX - 2 ) && padPosition < (bombX + 2))
+        {
             ballVx = speedY + 4;
             bombX0 = speedX;
             angle = speedT - 0.1*lives + random(-100,100)/1000.;
@@ -1959,10 +1925,11 @@ static void bomber()
             vga.tone(165);
             vga.delay(60); 
             vga.noTone(); 
-          }
-     }     
+        }
+    }
             
-     if(speedX > VGAX_WIDTH || speedX < 0) {
+    if(speedX > VGAX_WIDTH || speedX < 0)
+    {
         score += -3 - lives; 
         speedT = random(200)/1000.0 + 0.2 + 0.2*lives;
         speedY = random(VGAX_HEIGHT*2/3*100)/100.0 + 2;
@@ -1983,7 +1950,7 @@ static void bomber()
         bombX = bombX0 + angle*iDel;            
         ballFY = ballVx + 0.6*angleDeg*iDel + 0.08*iDel*iDel/(60 - 20*lives);
         if(ballFY > VGAX_HEIGHT - 5 || bombX < 0 || bombX > VGAX_WIDTH){
-          if(bombX >= padPosition - 6 && bombX < padPosition + 6){ // ---------------- Bomber has been hit -------------------------------------------
+          if(bombX >= padPosition - 6 && bombX < padPosition + 6){ // Bomber has been hit
              vgaPrint(str510, 50, 10, 1); 
              bomberHitSoundBomber(); 
              vgaPrint(str59, 50, 10, 0); 
@@ -2029,8 +1996,8 @@ static void bomber()
           lives++; 
     }
 
-    planeX = byte(speedX);
-    planeY = byte(speedY); 
+    planeX = uint8_t(speedX);
+    planeY = uint8_t(speedY); 
     padPosition = int((((1024 - wheelOnePosition) / 8) * (VGAX_WIDTH - 12))/ 128 + 6);
 
     if (state == 1)

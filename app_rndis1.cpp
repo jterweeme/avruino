@@ -661,7 +661,7 @@ void RNDIS::ProcessRNDISControlMessage()
         SET_Response->MessageLength     = sizeof(RNDIS_Set_Complete_t);
         SET_Response->RequestId         = SET_Message->RequestId;
 
-        void* SetData = &RNDISMessageBuffer[sizeof(RNDIS_Message_Header_t) +
+        void *SetData = &RNDISMessageBuffer[sizeof(RNDIS_Message_Header_t) +
                                                    SET_Message->InformationBufferOffset];
 
         if (ProcessNDISSet(SET_Oid, SetData, SET_Message->InformationBufferLength))
