@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <avr/boot.h>
 #include <math.h>
+#include "busby.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -16,6 +17,7 @@
 #include <util/delay.h>
 
 static constexpr uint8_t
+#ifndef _BUSBY_H_
     FIXED_NUM_CONFIGURATIONS = 1,
     ENDPOINT_DIR_MASK   = 0x80,
     ENDPOINT_DIR_OUT    = 0x00,
@@ -25,6 +27,7 @@ static constexpr uint8_t
     EP_TYPE_ISOCHRONOUS = 0x01,
     EP_TYPE_BULK        = 0x02,
     EP_TYPE_INTERRUPT   = 0x03,
+#endif
     USB_MODE_None   = 0,
     USB_MODE_Device = 1,
     USB_MODE_Host   = 2,
@@ -120,6 +123,7 @@ struct USB_Request_Header_t
 } ATTR_PACKED;
 
 static constexpr uint8_t
+#ifndef _BUSBY_H_
     REQ_GetStatus           = 0,
     REQ_ClearFeature        = 1,
     REQ_SetFeature          = 3,
@@ -131,8 +135,11 @@ static constexpr uint8_t
     REQ_GetInterface        = 10,
     REQ_SetInterface        = 11,
     REQ_SynchFrame          = 12,
+#endif
     FEATURE_SEL_EndpointHalt       = 0x00,
+#ifndef _BUSBY_H_
     FEATURE_SEL_DeviceRemoteWakeup = 0x01,
+#endif
     FEATURE_SEL_TestMode           = 0x02,
     USB_INT_VBUSTI = 0,
     USB_INT_WAKEUPI = 2,
@@ -264,18 +271,24 @@ static inline bool USB_INT_HasOccurred(const uint8_t Interrupt)
     }
 }
 
+
 static constexpr uint8_t
+
     DEVICE_STATE_Unattached = 0,
     DEVICE_STATE_Powered = 1,
+#ifndef _BUSBY_H_
     DEVICE_STATE_Default = 2,
+#endif
     DEVICE_STATE_Addressed = 3,
+#ifndef _BUSBY_H_
     DEVICE_STATE_Configured = 4,
+#endif
     DEVICE_STATE_Suspended = 5;
 
 
 
-
 static constexpr uint8_t
+#ifndef _BUSBY_H_
     USB_CONFIG_ATTR_RESERVED         = 0x80,
     USB_CONFIG_ATTR_SELFPOWERED      = 0x40,
     USB_CONFIG_ATTR_REMOTEWAKEUP     = 0x20,
@@ -297,6 +310,7 @@ static constexpr uint8_t
     DTYPE_InterfaceAssociation      = 0x0B,
     DTYPE_CSInterface               = 0x24,
     DTYPE_CSEndpoint                = 0x25,
+#endif
     USB_CSCP_NoDeviceClass          = 0x00,
     USB_CSCP_NoDeviceSubclass       = 0x00,
     USB_CSCP_NoDeviceProtocol       = 0x00,
@@ -510,14 +524,14 @@ bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number,
 #define ENDPOINT_CONTROLEP_DEFAULT_SIZE     8
 #define ENDPOINT_TOTAL_ENDPOINTS        7
 
-enum Endpoint_WaitUntilReady_ErrorCodes_t
-{
+#ifndef _BUSBY_H_
+static constexpr uint8_t
     ENDPOINT_READYWAIT_NoError = 0,
     ENDPOINT_READYWAIT_EndpointStalled = 1,
     ENDPOINT_READYWAIT_DeviceDisconnected      = 2,
     ENDPOINT_READYWAIT_BusSuspended            = 3,
-    ENDPOINT_READYWAIT_Timeout                 = 4,
-};
+    ENDPOINT_READYWAIT_Timeout                 = 4;
+#endif
 
 #define FEATURE_SELFPOWERED_ENABLED     (1 << 0)
 #define FEATURE_REMOTE_WAKEUP_ENABLED   (1 << 1)
@@ -1014,6 +1028,7 @@ uint8_t USB_Host_ClearEndpointStall(const uint8_t EndpointAddress);
 uint8_t USB_Host_SetInterfaceAltSetting(const uint8_t InterfaceIndex, const uint8_t AltSetting);
 
 static constexpr uint8_t
+#ifndef _BUSBY_H_
     ENDPOINT_RWSTREAM_NoError = 0,
     ENDPOINT_RWSTREAM_EndpointStalled    = 1,
     ENDPOINT_RWSTREAM_DeviceDisconnected = 2,
@@ -1024,6 +1039,7 @@ static constexpr uint8_t
     ENDPOINT_RWCSTREAM_HostAborted        = 1,
     ENDPOINT_RWCSTREAM_DeviceDisconnected = 2,
     ENDPOINT_RWCSTREAM_BusSuspended       = 3,
+#endif
     CDC_CONTROL_LINE_OUT_DTR =        (1 << 0),
     CDC_CONTROL_LINE_OUT_RTS =        (1 << 1),
     CDC_CONTROL_LINE_IN_DCD =         (1 << 0),
@@ -2413,7 +2429,7 @@ static void USB_Device_GetInternalSerialDescriptor(void)
 		uint16_t                UnicodeString[INTERNAL_SERIAL_LENGTH_BITS / 4];
 	} SignatureDescriptor;
 
-	SignatureDescriptor.Header.Type = DTYPE_String;
+	SignatureDescriptor.Header.Type = DTYPE_STRING;
 	SignatureDescriptor.Header.Size = USB_STRING_LEN(INTERNAL_SERIAL_LENGTH_BITS / 4);
 	USB_Device_GetSerialString(SignatureDescriptor.UnicodeString);
 	Endpoint_ClearSETUP();
@@ -2642,7 +2658,7 @@ static void USB_Device_GetDescriptor(void)
 	const void* DescriptorPointer;
 	uint16_t    DescriptorSize;
 
-    if (USB_ControlRequest.wValue == ((DTYPE_String << 8) | USE_INTERNAL_SERIAL))
+    if (USB_ControlRequest.wValue == ((DTYPE_STRING << 8) | USE_INTERNAL_SERIAL))
     {
         USB_Device_GetInternalSerialDescriptor();
         return;
@@ -3043,7 +3059,7 @@ void USB_Device_ProcessControlRequest(void)
 
 		switch (USB_ControlRequest.bRequest)
 		{
-			case REQ_GetStatus:
+			case REQ_GETSTATUS:
 				if ((bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_DEVICE)) ||
 					(bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_STANDARD | REQREC_ENDPOINT)))
 				{
@@ -3051,7 +3067,7 @@ void USB_Device_ProcessControlRequest(void)
 				}
 
 				break;
-			case REQ_ClearFeature:
+			case REQ_CLEARFEATURE:
 			case REQ_SetFeature:
 				if ((bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE)) ||
 					(bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_ENDPOINT)))
@@ -3078,7 +3094,7 @@ void USB_Device_ProcessControlRequest(void)
 				  USB_Device_GetConfiguration();
 
 				break;
-			case REQ_SetConfiguration:
+			case REQ_SETCONFIGURATION:
 				if (bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_STANDARD | REQREC_DEVICE))
 				  USB_Device_SetConfiguration();
 
@@ -3260,94 +3276,6 @@ int16_t DHCP_ProcessDHCPPacket(void* IPHeaderInStart,
 
         #define TCP_APP_CLOSECONNECTION(Connection)  do { Connection->State = TCP_Connection_Closing;  } while (0)
 
-enum TCP_PortStates_t
-{   
-    TCP_Port_Closed            = 0,
-    TCP_Port_Open              = 1,
-};
-
-enum TCP_ConnectionStates_t
-{
-    TCP_Connection_Listen      = 0, /**< Listening for a connection from a host */
-    TCP_Connection_SYNSent     = 1, /**< Unused */
-    TCP_Connection_SYNReceived = 2, /**< SYN received, waiting for ACK */
-    TCP_Connection_Established = 3, /**< Connection established in both directions */
-    TCP_Connection_FINWait1    = 4, /**< Closing, waiting for ACK */
-    TCP_Connection_FINWait2    = 5, /**< Closing, waiting for FIN ACK */
-    TCP_Connection_CloseWait   = 6, /**< Closing, waiting for ACK */
-    TCP_Connection_Closing     = 7, /**< Unused */
-    TCP_Connection_LastACK     = 8, /**< Unused */
-    TCP_Connection_TimeWait    = 9, /**< Unused */
-    TCP_Connection_Closed      = 10, /**< Connection closed in both directions */
-};
-
-typedef struct
-{
-    uint16_t               Length; /**< Length of data in the TCP application buffer */
-    uint8_t                Data[TCP_WINDOW_SIZE]; /**< TCP application data buffer */
-    bool                   Direction;
-    bool                   Ready;
-    bool                   InUse;
-} TCP_ConnectionBuffer_t;
-
-typedef struct
-{
-    uint32_t               SequenceNumberIn;
-    uint32_t               SequenceNumberOut;
-    TCP_ConnectionBuffer_t Buffer; /**< Connection application data buffer */
-} TCP_ConnectionInfo_t;
-
-        typedef struct
-        {
-            uint16_t               Port; /**< Connection port number on the device */
-            uint16_t               RemotePort; /**< Connection port number on the host */
-            IP_Address_t           RemoteAddress; /**<n protocol IP address of the host */
-            TCP_ConnectionInfo_t   Info; /**< Cormation, including application buffer */
-            uint8_t                State; /**< from the \ref TCP_ConnectionStates_t enum */
-        } TCP_ConnectionState_t;
-
-        /** Type define for a TCP port state. */
-        typedef struct
-        {
-            uint16_t               Port; /**< TCP port number on the device */
-            uint8_t                State; /**<  value from the \ref TCP_PortStates_t enum */
-            void                   (*ApplicationHandler) (TCP_ConnectionState_t* ConnectionState,
-                                                          TCP_ConnectionBuffer_t* Buffer);
-        } TCP_PortState_t;
-
-        typedef struct
-        {
-            uint16_t               SourcePort; /**< Source port of the TCP packet */
-            uint16_t               DestinationPort; /**< Destination port of the TCP packet */
-            uint32_t               SequenceNumber; /**< Data sequence number of the packet */
-            uint32_t               AcknowledgmentNumber; /**< Dent number of the packet */
-            unsigned               Reserved   : 4; /**< Reserved, must be all 0 */
-            unsigned               DataOffset : 4; /**< Offset e header, in 4 byte chunks */
-            uint8_t                Flags; /**< TCP packet flags */
-            uint16_t               WindowSize; /**< Current dataining in reception buffer) */
-            uint16_t               Checksum; /**< TCP checksum */
-            uint16_t               UrgentPointer; /**< Urgent data pointer */
-        } TCP_Header_t;
-
-        void TCP_Init(void);
-        
-        bool TCP_SetPortState(const uint16_t Port,
-                                       const uint8_t State,
-                           void (*Handler)(TCP_ConnectionState_t*, TCP_ConnectionBuffer_t*));
-        uint8_t               TCP_GetPortState(const uint16_t Port);
-
-        uint8_t               TCP_GetConnectionState(const uint16_t Port,
-                                                     const IP_Address_t* RemoteAddress,
-                                                     const uint16_t RemotePort);
-        TCP_ConnectionInfo_t* TCP_GetConnectionInfo(const uint16_t Port,
-                                                    const IP_Address_t* RemoteAddress,
-                                                    const uint16_t RemotePort);
-        int16_t               TCP_ProcessTCPPacket(void* IPHeaderInStart,
-                                                   void* TCPHeaderInStart,
-                                                   void* TCPHeaderOutStart);
-
-
-#define  HTTP_REPLY_BLOCK_SIZE     128
 #define BROADCAST_MAC_ADDRESS            {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 #define MAC_COMPARE(MAC1, MAC2)          (memcmp(MAC1, MAC2, sizeof(MAC_Address_t)) == 0)
 #define ETHERNET_VER2_MINSIZE            0x0600
@@ -3434,11 +3362,6 @@ static int16_t IP_ProcessIPPacket(void* InDataStart, void* OutDataStart)
         RetSize = ICMP_ProcessICMPPacket(&((uint8_t*)InDataStart)[HeaderLengthBytes],
                                          &((uint8_t*)OutDataStart)[sizeof(IP_Header_t)]);
         break;
-    case PROTOCOL_TCP:
-        RetSize = TCP_ProcessTCPPacket(InDataStart,
-                                       &((uint8_t*)InDataStart)[HeaderLengthBytes],
-                                       &((uint8_t*)OutDataStart)[sizeof(IP_Header_t)]);
-        break;
     case PROTOCOL_UDP:
         RetSize = UDP_ProcessUDPPacket(InDataStart,
                                        &((uint8_t*)InDataStart)[HeaderLengthBytes],
@@ -3482,493 +3405,9 @@ void DecodeICMPHeader(void* InDataStart)
 {
 }
 
-void DecodeTCPHeader(void* InDataStart)
-{
-}
-
 void DecodeUDPHeader(void* InDataStart)
 {
 }
-
-static TCP_PortState_t        PortStateTable[MAX_OPEN_TCP_PORTS];
-static TCP_ConnectionState_t  ConnectionStateTable[MAX_TCP_CONNECTIONS];
-
-static uint16_t TCP_Checksum16(void* TCPHeaderOutStart,
-                               const IP_Address_t* SourceAddress,
-                               const IP_Address_t* DestinationAddress,
-                               uint16_t TCPOutSize)
-{
-    uint32_t Checksum = 0;
-    Checksum += ((uint16_t*)SourceAddress)[0];
-    Checksum += ((uint16_t*)SourceAddress)[1];
-    Checksum += ((uint16_t*)DestinationAddress)[0];
-    Checksum += ((uint16_t*)DestinationAddress)[1];
-    Checksum += SWAPENDIAN_16(PROTOCOL_TCP);
-    Checksum += SWAPENDIAN_16(TCPOutSize);
-
-    for (uint16_t CurrWord = 0; CurrWord < (TCPOutSize >> 1); CurrWord++)
-      Checksum += ((uint16_t*)TCPHeaderOutStart)[CurrWord];
-
-    if (TCPOutSize & 0x01)
-      Checksum += (((uint16_t*)TCPHeaderOutStart)[TCPOutSize >> 1] & 0x00FF);
-
-    while (Checksum & 0xFFFF0000)
-      Checksum = ((Checksum & 0xFFFF) + (Checksum >> 16));
-
-    return ~Checksum;
-}
-
-static void TCP_Task(void)
-{
-    /* Run each application in sequence, to process incoming and generate outgoing packets */
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        /* Find the corresponding port entry in the port table */
-        for (uint8_t PTableEntry = 0; PTableEntry < MAX_OPEN_TCP_PORTS; PTableEntry++)
-        {
-            /* Run the application handler for the port */
-            if ((PortStateTable[PTableEntry].Port  == ConnectionStateTable[CSTableEntry].Port) &&
-                (PortStateTable[PTableEntry].State == TCP_Port_Open))
-            {
-                PortStateTable[PTableEntry].ApplicationHandler(&ConnectionStateTable[CSTableEntry],
-                                          &ConnectionStateTable[CSTableEntry].Info.Buffer);
-            }
-        }
-    }
-
-    /* Bail out early if there is already a frame waiting to be sent in the Ethernet OUT buffer */
-    if (FrameOUT.FrameLength)
-      return;
-
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        /* For each completely received packet, pass it along to the listening application */
-        if ((ConnectionStateTable[CSTableEntry].Info.Buffer.Direction == TCP_PACKETDIR_OUT) &&
-            (ConnectionStateTable[CSTableEntry].Info.Buffer.Ready))
-        {
-            Ethernet_Frame_Header_t* FrameOUTHeader = (Ethernet_Frame_Header_t*)&FrameOUT.FrameData;
-            IP_Header_t*             IPHeaderOUT    = (IP_Header_t*)&FrameOUT.FrameData[sizeof(Ethernet_Frame_Header_t)];
-            TCP_Header_t*            TCPHeaderOUT   = (TCP_Header_t*)&FrameOUT.FrameData[sizeof(Ethernet_Frame_Header_t) +
-                                                                                         sizeof(IP_Header_t)];
-            void*                    TCPDataOUT     = &FrameOUT.FrameData[sizeof(Ethernet_Frame_Header_t) +
-                                                                          sizeof(IP_Header_t) +
-                                                                          sizeof(TCP_Header_t)];
-
-            uint16_t PacketSize = ConnectionStateTable[CSTableEntry].Info.Buffer.Length;
-
-            /* Fill out the TCP data */
-            TCPHeaderOUT->SourcePort           = ConnectionStateTable[CSTableEntry].Port;
-            TCPHeaderOUT->DestinationPort      = ConnectionStateTable[CSTableEntry].RemotePort;
-            TCPHeaderOUT->SequenceNumber       = SWAPENDIAN_32(ConnectionStateTable[CSTableEntry].Info.SequenceNumberOut);
-            TCPHeaderOUT->AcknowledgmentNumber = SWAPENDIAN_32(ConnectionStateTable[CSTableEntry].Info.SequenceNumberIn);
-            TCPHeaderOUT->DataOffset           = (sizeof(TCP_Header_t) / sizeof(uint32_t));
-            TCPHeaderOUT->WindowSize           = SWAPENDIAN_16(TCP_WINDOW_SIZE);
-
-            TCPHeaderOUT->Flags                = TCP_FLAG_ACK;
-            TCPHeaderOUT->UrgentPointer        = 0;
-            TCPHeaderOUT->Checksum             = 0;
-            TCPHeaderOUT->Reserved             = 0;
-            memcpy(TCPDataOUT, ConnectionStateTable[CSTableEntry].Info.Buffer.Data, PacketSize);
-            ConnectionStateTable[CSTableEntry].Info.SequenceNumberOut += PacketSize;
-
-            TCPHeaderOUT->Checksum  = TCP_Checksum16(TCPHeaderOUT, &ServerIPAddress,
-                                     &ConnectionStateTable[CSTableEntry].RemoteAddress,
-                                                  (sizeof(TCP_Header_t) + PacketSize));
-
-            PacketSize += sizeof(TCP_Header_t);
-            IPHeaderOUT->TotalLength        = SWAPENDIAN_16(sizeof(IP_Header_t) + PacketSize);
-            IPHeaderOUT->TypeOfService      = 0;
-            IPHeaderOUT->HeaderLength       = (sizeof(IP_Header_t) / sizeof(uint32_t));
-            IPHeaderOUT->Version            = 4;
-            IPHeaderOUT->Flags              = 0;
-            IPHeaderOUT->FragmentOffset     = 0;
-            IPHeaderOUT->Identification     = 0;
-            IPHeaderOUT->HeaderChecksum     = 0;
-            IPHeaderOUT->Protocol           = PROTOCOL_TCP;
-            IPHeaderOUT->TTL                = DEFAULT_TTL;
-            IPHeaderOUT->SourceAddress      = ServerIPAddress;
-            IPHeaderOUT->DestinationAddress = ConnectionStateTable[CSTableEntry].RemoteAddress;
-            IPHeaderOUT->HeaderChecksum = Ethernet_Checksum16(IPHeaderOUT, sizeof(IP_Header_t));
-            PacketSize += sizeof(IP_Header_t);
-            FrameOUTHeader->Source          = ServerMACAddress;
-            FrameOUTHeader->Destination = (MAC_Address_t){{0x02, 0x00, 0x02, 0x00, 0x02, 0x00}};
-            FrameOUTHeader->EtherType = SWAPENDIAN_16(ETHERTYPE_IPV4);
-            PacketSize += sizeof(Ethernet_Frame_Header_t);
-            FrameOUT.FrameLength            = PacketSize;
-            ConnectionStateTable[CSTableEntry].Info.Buffer.Ready = false;
-            break;
-        }
-    }
-}
-
-void TCP_Init(void)
-{
-    for (uint8_t PTableEntry = 0; PTableEntry < MAX_OPEN_TCP_PORTS; PTableEntry++)
-        PortStateTable[PTableEntry].State = TCP_Port_Closed;
-
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-        ConnectionStateTable[CSTableEntry].State = TCP_Connection_Closed;
-}
-
-bool TCP_SetPortState(const uint16_t Port,
-                      const uint8_t State,
-                      void (*Handler)(TCP_ConnectionState_t*, TCP_ConnectionBuffer_t*))
-{
-    for (uint8_t PTableEntry = 0; PTableEntry < MAX_OPEN_TCP_PORTS; PTableEntry++)
-    {
-        if (PortStateTable[PTableEntry].Port == Port)
-        {
-            PortStateTable[PTableEntry].State = State;
-            PortStateTable[PTableEntry].ApplicationHandler = Handler;
-            return true;
-        }
-    }
-
-    if (State == TCP_Port_Open)
-    {
-        for (uint8_t PTableEntry = 0; PTableEntry < MAX_OPEN_TCP_PORTS; PTableEntry++)
-        {
-            if (PortStateTable[PTableEntry].State == TCP_Port_Closed)
-            {
-                PortStateTable[PTableEntry].Port  = Port;
-                PortStateTable[PTableEntry].State = State;
-                PortStateTable[PTableEntry].ApplicationHandler = Handler;
-                return true;
-            }
-        }
-
-        return false;
-    }
-    else
-    {
-        return true;
-    }
-}
-
-uint8_t TCP_GetPortState(const uint16_t Port)
-{
-    /* Note, Port number should be specified in BIG endian to simplify network code */
-
-    for (uint8_t PTableEntry = 0; PTableEntry < MAX_OPEN_TCP_PORTS; PTableEntry++)
-    {
-        /* Find existing entry for the port in the table, return the port status if found */
-        if (PortStateTable[PTableEntry].Port == Port)
-            return PortStateTable[PTableEntry].State;
-    }
-
-    /* Port not in table, assume closed */
-    return TCP_Port_Closed;
-}
-
-bool TCP_SetConnectionState(const uint16_t Port,
-                            const IP_Address_t* RemoteAddress,
-                            const uint16_t RemotePort,
-                            const uint8_t State)
-{
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        if ((ConnectionStateTable[CSTableEntry].Port == Port) &&
-             IP_COMPARE(&ConnectionStateTable[CSTableEntry].RemoteAddress, RemoteAddress) &&
-             ConnectionStateTable[CSTableEntry].RemotePort == RemotePort)
-        {
-            ConnectionStateTable[CSTableEntry].State = State;
-            return true;
-        }
-    }
-
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        if (ConnectionStateTable[CSTableEntry].State == TCP_Connection_Closed)
-        {
-            ConnectionStateTable[CSTableEntry].Port          = Port;
-            ConnectionStateTable[CSTableEntry].RemoteAddress = *RemoteAddress;
-            ConnectionStateTable[CSTableEntry].RemotePort    = RemotePort;
-            ConnectionStateTable[CSTableEntry].State         = State;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-uint8_t TCP_GetConnectionState(const uint16_t Port, const IP_Address_t* RemoteAddress,
-                               const uint16_t RemotePort)
-{
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        if ((ConnectionStateTable[CSTableEntry].Port == Port) &&
-             IP_COMPARE(&ConnectionStateTable[CSTableEntry].RemoteAddress, RemoteAddress) &&
-             ConnectionStateTable[CSTableEntry].RemotePort == RemotePort)
-
-        {
-            return ConnectionStateTable[CSTableEntry].State;
-        }
-    }
-
-    return TCP_Connection_Closed;
-}
-
-TCP_ConnectionInfo_t* TCP_GetConnectionInfo(const uint16_t Port,
-                                            const IP_Address_t* RemoteAddress,
-                                            const uint16_t RemotePort)
-{
-    for (uint8_t CSTableEntry = 0; CSTableEntry < MAX_TCP_CONNECTIONS; CSTableEntry++)
-    {
-        if ((ConnectionStateTable[CSTableEntry].Port == Port) &&
-             IP_COMPARE(&ConnectionStateTable[CSTableEntry].RemoteAddress, RemoteAddress) &&
-             ConnectionStateTable[CSTableEntry].RemotePort == RemotePort)
-        {
-            return &ConnectionStateTable[CSTableEntry].Info;
-        }
-    }
-
-    return NULL;
-}
-
-int16_t TCP_ProcessTCPPacket(void* IPHeaderInStart, void* TCPHeaderInStart,
-                             void* TCPHeaderOutStart)
-{
-    g_serial.writeString("Process TCP Packet\r\n");
-    IP_Header_t*  IPHeaderIN   = (IP_Header_t*)IPHeaderInStart;
-    TCP_Header_t* TCPHeaderIN  = (TCP_Header_t*)TCPHeaderInStart;
-    TCP_Header_t* TCPHeaderOUT = (TCP_Header_t*)TCPHeaderOutStart;
-    TCP_ConnectionInfo_t* ConnectionInfo;
-    DecodeTCPHeader(TCPHeaderInStart);
-    bool PacketResponse = false;
-
-    /* Check if the destination port is open and allows incoming connections */
-    if (TCP_GetPortState(TCPHeaderIN->DestinationPort) == TCP_Port_Open)
-    {
-        g_serial.writeString("Port open\r\n");
-        /* Detect SYN from host to start a connection */
-        if (TCPHeaderIN->Flags & TCP_FLAG_SYN)
-          TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress, TCPHeaderIN->SourcePort, TCP_Connection_Listen);
-
-        /* Detect RST from host to abort existing connection */
-        if (TCPHeaderIN->Flags & TCP_FLAG_RST)
-        {
-            g_serial.writeString("IN RST\r\n");
-
-            if (TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                       TCPHeaderIN->SourcePort, TCP_Connection_Closed))
-            {
-                TCPHeaderOUT->Flags = TCP_FLAG_RST | TCP_FLAG_ACK;
-                PacketResponse = true;
-            }
-        }
-        else
-        {
-            /* Process the incoming TCP packet based on the current
-                connection state for the sender and port */
-            switch (TCP_GetConnectionState(TCPHeaderIN->DestinationPort,
-                &IPHeaderIN->SourceAddress, TCPHeaderIN->SourcePort))
-            {
-            case TCP_Connection_Listen:
-                if (TCPHeaderIN->Flags == TCP_FLAG_SYN)
-                {
-                    if (TCP_SetConnectionState(TCPHeaderIN->DestinationPort,
-                            &IPHeaderIN->SourceAddress,
-                            TCPHeaderIN->SourcePort, TCP_Connection_SYNReceived))
-                    {
-                        g_serial.writeString("SetConnectionState success\r\n");
-                        TCPHeaderOUT->Flags = (TCP_FLAG_SYN | TCP_FLAG_ACK);
-
-                        ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort,
-                                    &IPHeaderIN->SourceAddress, TCPHeaderIN->SourcePort);
-
-                        ConnectionInfo->SequenceNumberIn  = (SWAPENDIAN_32(TCPHeaderIN->SequenceNumber) + 1);
-                        ConnectionInfo->SequenceNumberOut = 0;
-                        ConnectionInfo->Buffer.InUse      = false;
-                    }
-                    else
-                    {
-                            g_serial.writeString("SetConnectionState failed\r\n");
-                            TCPHeaderOUT->Flags = TCP_FLAG_RST;
-                    }
-
-                    PacketResponse      = true;
-                }
-
-                break;
-            case TCP_Connection_SYNReceived:
-                if (TCPHeaderIN->Flags == TCP_FLAG_ACK)
-                {
-                    /* ACK during the connection process completes the connection to a peer */
-                    TCP_SetConnectionState(TCPHeaderIN->DestinationPort,
-                        &IPHeaderIN->SourceAddress,
-                        TCPHeaderIN->SourcePort, TCP_Connection_Established);
-
-                    ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort,
-                        &IPHeaderIN->SourceAddress,
-                        TCPHeaderIN->SourcePort);
-
-                    ConnectionInfo->SequenceNumberOut++;
-                }
-
-                break;
-            case TCP_Connection_Established:
-                if (TCPHeaderIN->Flags == (TCP_FLAG_FIN | TCP_FLAG_ACK))
-                {
-                    TCPHeaderOUT->Flags = (TCP_FLAG_FIN | TCP_FLAG_ACK);
-                    PacketResponse      = true;
-
-                    TCP_SetConnectionState(TCPHeaderIN->DestinationPort,
-                        &IPHeaderIN->SourceAddress,
-                        TCPHeaderIN->SourcePort, TCP_Connection_CloseWait);
-
-                    ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort,
-                        &IPHeaderIN->SourceAddress,
-                        TCPHeaderIN->SourcePort);
-
-                    ConnectionInfo->SequenceNumberIn++;
-                    ConnectionInfo->SequenceNumberOut++;
-                }
-                else if ((TCPHeaderIN->Flags == TCP_FLAG_ACK) ||
-                    (TCPHeaderIN->Flags == (TCP_FLAG_ACK | TCP_FLAG_PSH)))
-                {
-                    ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort,
-                        &IPHeaderIN->SourceAddress, TCPHeaderIN->SourcePort);
-
-                    if ((ConnectionInfo->Buffer.InUse == false) &&
-                        (ConnectionInfo->Buffer.Ready == false))
-                    {
-                            ConnectionInfo->Buffer.Direction = TCP_PACKETDIR_IN;
-                            ConnectionInfo->Buffer.InUse     = true;
-                            ConnectionInfo->Buffer.Length    = 0;
-                        }
-
-                        if ((ConnectionInfo->Buffer.Direction == TCP_PACKETDIR_IN) &&
-                            (ConnectionInfo->Buffer.Length != TCP_WINDOW_SIZE))
-                        {
-                            uint16_t IPOffset   = (IPHeaderIN->HeaderLength * sizeof(uint32_t));
-                            uint16_t TCPOffset  = (TCPHeaderIN->DataOffset * sizeof(uint32_t));
-                            uint16_t DataLength = (SWAPENDIAN_16(IPHeaderIN->TotalLength) - IPOffset - TCPOffset);
-
-                            memcpy(&ConnectionInfo->Buffer.Data[ConnectionInfo->Buffer.Length],
-                                   &((uint8_t*)TCPHeaderInStart)[TCPOffset],
-                                   DataLength);
-
-                            ConnectionInfo->SequenceNumberIn += DataLength;
-                            ConnectionInfo->Buffer.Length    += DataLength;
-
-                            if ((!(TCP_WINDOW_SIZE - ConnectionInfo->Buffer.Length)) || (TCPHeaderIN->Flags & TCP_FLAG_PSH))
-                            {
-                                ConnectionInfo->Buffer.InUse = false;
-                                ConnectionInfo->Buffer.Ready = true;
-
-                                TCPHeaderOUT->Flags = TCP_FLAG_ACK;
-                                PacketResponse      = true;
-                            }
-                        }
-                        else
-                        {
-                            return NO_PROCESS;
-                        }
-                    }
-
-                    break;
-                case TCP_Connection_Closing:
-                        ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                                               TCPHeaderIN->SourcePort);
-
-                        TCPHeaderOUT->Flags = (TCP_FLAG_ACK | TCP_FLAG_FIN);
-                        PacketResponse      = true;
-
-                        ConnectionInfo->Buffer.InUse = false;
-
-                        TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                               TCPHeaderIN->SourcePort, TCP_Connection_FINWait1);
-
-                    break;
-                case TCP_Connection_FINWait1:
-                    if (TCPHeaderIN->Flags == (TCP_FLAG_FIN | TCP_FLAG_ACK))
-                    {
-                        ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                                               TCPHeaderIN->SourcePort);
-
-                        TCPHeaderOUT->Flags = TCP_FLAG_ACK;
-                        PacketResponse      = true;
-
-                        ConnectionInfo->SequenceNumberIn++;
-                        ConnectionInfo->SequenceNumberOut++;
-
-                        TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                               TCPHeaderIN->SourcePort, TCP_Connection_Closed);
-                    }
-
-                    else if (TCPHeaderIN->Flags == TCP_FLAG_ACK)
-                    {
-                        TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                               TCPHeaderIN->SourcePort, TCP_Connection_FINWait2);
-                    }
-
-                    break;
-                case TCP_Connection_FINWait2:
-                    if (TCPHeaderIN->Flags == (TCP_FLAG_FIN | TCP_FLAG_ACK))
-                    {
-                        ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                                               TCPHeaderIN->SourcePort);
-
-                        TCPHeaderOUT->Flags = TCP_FLAG_ACK;
-                        PacketResponse      = true;
-
-                        ConnectionInfo->SequenceNumberIn++;
-                        ConnectionInfo->SequenceNumberOut++;
-
-                        TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                               TCPHeaderIN->SourcePort, TCP_Connection_Closed);
-                    }
-
-                    break;
-                case TCP_Connection_CloseWait:
-                    if (TCPHeaderIN->Flags == TCP_FLAG_ACK)
-                    {
-                        TCP_SetConnectionState(TCPHeaderIN->DestinationPort, &IPHeaderIN->SourceAddress,
-                                               TCPHeaderIN->SourcePort, TCP_Connection_Closed);
-                    }
-
-                    break;
-            }
-        }
-    }
-    else
-    {
-        TCPHeaderOUT->Flags = (TCP_FLAG_RST | TCP_FLAG_ACK);
-        PacketResponse      = true;
-    }
-
-    if (PacketResponse)
-    {
-        ConnectionInfo = TCP_GetConnectionInfo(TCPHeaderIN->DestinationPort,
-            &IPHeaderIN->SourceAddress, TCPHeaderIN->SourcePort);
-
-        TCPHeaderOUT->SourcePort           = TCPHeaderIN->DestinationPort;
-        TCPHeaderOUT->DestinationPort      = TCPHeaderIN->SourcePort;
-        TCPHeaderOUT->SequenceNumber       = SWAPENDIAN_32(ConnectionInfo->SequenceNumberOut);
-        TCPHeaderOUT->AcknowledgmentNumber = SWAPENDIAN_32(ConnectionInfo->SequenceNumberIn);
-        TCPHeaderOUT->DataOffset           = (sizeof(TCP_Header_t) / sizeof(uint32_t));
-
-        if (!(ConnectionInfo->Buffer.InUse))
-          TCPHeaderOUT->WindowSize         = SWAPENDIAN_16(TCP_WINDOW_SIZE);
-        else
-          TCPHeaderOUT->WindowSize = SWAPENDIAN_16(TCP_WINDOW_SIZE - ConnectionInfo->Buffer.Length);
-
-        TCPHeaderOUT->UrgentPointer        = 0;
-        TCPHeaderOUT->Checksum             = 0;
-        TCPHeaderOUT->Reserved             = 0;
-
-        TCPHeaderOUT->Checksum             = TCP_Checksum16(TCPHeaderOUT, &IPHeaderIN->DestinationAddress,
-                                                            &IPHeaderIN->SourceAddress, sizeof(TCP_Header_t));
-
-        return sizeof(TCP_Header_t);
-    }
-
-    return NO_RESPONSE;
-}
-
-
-
-
 
 int16_t ARP_ProcessARPPacket(void* InDataStart,
                              void* OutDataStart)
@@ -4114,124 +3553,6 @@ int16_t UDP_ProcessUDPPacket(void* IPHeaderInStart, void* UDPHeaderInStart,
     return NO_RESPONSE;
 }
 
-/** HTTP server response header, for transmission before the page contents. This indicates to the host that a page exists at the
- *  given location, and gives extra connection information.
- */
-const char PROGMEM HTTP200Header[] = "HTTP/1.1 200 OK\r\n"
-                                     "Server: LUFA RNDIS\r\n"
-                                     "Content-type: text/html\r\n"
-                                     "Connection: close\r\n\r\n";
-
-/** HTTP server response header, for transmission before a resource not found error. This indicates to the host that the given
- *  given URL is invalid, and gives extra error information.
- */
-const char PROGMEM HTTP404Header[] = "HTTP/1.1 404 Not Found\r\n"
-                                     "Server: LUFA RNDIS\r\n"
-                                     "Connection: close\r\n\r\n";
-
-const char PROGMEM HTTPPage[]   =
-        "<html>"
-        "   <head>"
-        "       <title>"
-        "           LUFA Webserver Demo"
-        "       </title>"
-        "   </head>"
-        "   <body>"
-        "       <h1>Hello from your USB AVR!</h1>"
-        "       <p>"
-        "           Hello! Welcome to the LUFA RNDIS Demo Webserver test page, running on your USB AVR via the LUFA library. This demonstrates the HTTP webserver, TCP/IP stack and RNDIS demo all running atop the LUFA USB stack."
-        "           <br /><br />"
-        "           <small>Project Information: <a href=\"http://www.lufa-lib.org\">http://www.lufa-lib.org</a>.</small>"
-        "           <hr />"
-        "           <i>LUFA Version: </i>" LUFA_VERSION_STRING
-        "       </p>"
-        "   </body>"
-        "</html>";
-
-
-
-
-static bool IsHTTPCommand(uint8_t* RequestHeader, const char* Command)
-{
-    return (strncmp((char*)RequestHeader, Command, strlen(Command)) == 0);
-}
-
-static void Webserver_ApplicationCallback(TCP_ConnectionState_t* const ConnectionState,
-                                   TCP_ConnectionBuffer_t* const Buffer)
-{
-    char*          BufferDataStr = (char*)Buffer->Data;
-    static uint8_t PageBlock     = 0;
-
-    /* Check to see if a packet has been received on the HTTP port from a remote host */
-    if (TCP_APP_HAS_RECEIVED_PACKET(Buffer))
-    {
-        if (IsHTTPCommand(Buffer->Data, "GET"))
-        {
-            if (IsHTTPCommand(Buffer->Data, "GET / "))
-            {
-                PageBlock = 0;
-                strcpy_P(BufferDataStr, HTTP200Header);
-                TCP_APP_SEND_BUFFER(Buffer, strlen(BufferDataStr));
-                TCP_APP_CAPTURE_BUFFER(Buffer);
-            }
-            else
-            {
-                /* Copy the HTTP 404 response header into the packet buffer */
-                strcpy_P(BufferDataStr, HTTP404Header);
-
-                /* Send the buffer contents to the host */
-                TCP_APP_SEND_BUFFER(Buffer, strlen(BufferDataStr));
-
-                /* All data sent, close the connection */
-                TCP_APP_CLOSECONNECTION(ConnectionState);
-            }
-        }
-        else if (IsHTTPCommand(Buffer->Data, "HEAD"))
-        {
-            if (IsHTTPCommand(Buffer->Data, "HEAD / "))
-            {
-                strcpy_P(BufferDataStr, HTTP200Header);
-                TCP_APP_SEND_BUFFER(Buffer, strlen(BufferDataStr));
-            }
-            else
-            {
-                strcpy_P(BufferDataStr, HTTP404Header);
-                TCP_APP_SEND_BUFFER(Buffer, strlen(BufferDataStr));
-            }
-
-            TCP_APP_CLOSECONNECTION(ConnectionState);
-        }
-        else if (IsHTTPCommand(Buffer->Data, "TRACE"))
-        {
-            TCP_APP_SEND_BUFFER(Buffer, Buffer->Length);
-            TCP_APP_CLOSECONNECTION(ConnectionState);
-        }
-        else
-        {
-            TCP_APP_CLEAR_BUFFER(Buffer);
-        }
-    }
-    else if (TCP_APP_HAVE_CAPTURED_BUFFER(Buffer))
-    {
-        uint16_t RemLength = strlen_P(&HTTPPage[PageBlock * HTTP_REPLY_BLOCK_SIZE]);
-        uint16_t Length;
-        Length = MIN(RemLength, HTTP_REPLY_BLOCK_SIZE);
-        strncpy_P(BufferDataStr, &HTTPPage[PageBlock * HTTP_REPLY_BLOCK_SIZE], Length);
-        TCP_APP_SEND_BUFFER(Buffer, Length);
-
-        if (PageBlock++ == (sizeof(HTTPPage) / HTTP_REPLY_BLOCK_SIZE))
-        {
-            TCP_APP_RELEASE_BUFFER(Buffer);
-            TCP_APP_CLOSECONNECTION(ConnectionState);
-        }
-    }
-}
-
-static void Webserver_Init(void)
-{
-    TCP_SetPortState(TCP_PORT_HTTP, TCP_Port_Open, Webserver_ApplicationCallback);
-}
-
 int16_t ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart)
 {
     ICMP_Header_t* ICMPHeaderIN  = (ICMP_Header_t*)InDataStart;
@@ -4332,7 +3653,7 @@ struct USB_Descriptor_Device_t
 
 static const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 {
-    {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_Device},
+    {.Size = sizeof(USB_Descriptor_Device_t), .Type = DTYPE_DEVICE},
     0x0110,
     CDC_CSCP_CDCClass,
     CDC_CSCP_NoSpecificSubclass,
@@ -4351,22 +3672,23 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 {
     .Config =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Configuration_Header_t), .Type = DTYPE_Configuration},
+            .Header =
+            {
+                .Size = sizeof(USB_Descriptor_Configuration_Header_t),
+                .Type = DTYPE_CONFIGURATION
+            },
 
             .TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
             .TotalInterfaces        = 2,
-
             .ConfigurationNumber    = 1,
             .ConfigurationStrIndex  = 0,
-
             .ConfigAttributes       = (USB_CONFIG_ATTR_RESERVED | USB_CONFIG_ATTR_SELFPOWERED),
-
             .MaxPowerConsumption    = USB_CONFIG_POWER_MA(100)
         },
 
     .CDC_CCI_Interface =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
+            .Header = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_INTERFACE},
 
             .InterfaceNumber        = INTERFACE_ID_CDC_CCI,
             .AlternateSetting       = 0,
@@ -4380,7 +3702,11 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .CDC_Functional_Header =
         {
-            .Header                 = {.Size = sizeof(USB_CDC_Descriptor_FunctionalHeader_t), .Type = DTYPE_CSInterface},
+            .Header =
+            {
+                .Size = sizeof(USB_CDC_Descriptor_FunctionalHeader_t),
+                .Type = DTYPE_CSINTERFACE
+            },
             .Subtype                = CDC_DSUBTYPE_CSInterface_Header,
 
             .CDCSpecification       = 0x0110,
@@ -4388,7 +3714,8 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .CDC_Functional_ACM =
         {
-            .Header                 = {.Size = sizeof(USB_CDC_Descriptor_FunctionalACM_t), .Type = DTYPE_CSInterface},
+            .Header =
+            {.Size = sizeof(USB_CDC_Descriptor_FunctionalACM_t), .Type = DTYPE_CSINTERFACE},
             .Subtype                = CDC_DSUBTYPE_CSInterface_ACM,
 
             .Capabilities           = 0x00,
@@ -4396,7 +3723,8 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .CDC_Functional_Union =
         {
-            .Header                 = {.Size = sizeof(USB_CDC_Descriptor_FunctionalUnion_t), .Type = DTYPE_CSInterface},
+            .Header =
+            {.Size = sizeof(USB_CDC_Descriptor_FunctionalUnion_t), .Type = DTYPE_CSINTERFACE},
             .Subtype                = CDC_DSUBTYPE_CSInterface_Union,
 
             .MasterInterfaceNumber  = INTERFACE_ID_CDC_CCI,
@@ -4404,7 +3732,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
         },
     .CDC_NotificationEndpoint =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+            .Header = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_ENDPOINT},
 
             .EndpointAddress        = CDC_NOTIFICATION_EPADDR,
             .Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
@@ -4414,7 +3742,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .CDC_DCI_Interface =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
+            .Header = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_INTERFACE},
 
             .InterfaceNumber        = INTERFACE_ID_CDC_DCI,
             .AlternateSetting       = 0,
@@ -4430,7 +3758,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .RNDIS_DataOutEndpoint =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+            .Header = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_ENDPOINT},
 
             .EndpointAddress        = CDC_RX_EPADDR,
             .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
@@ -4440,7 +3768,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 
     .RNDIS_DataInEndpoint =
         {
-            .Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+            .Header = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_ENDPOINT},
 
             .EndpointAddress        = CDC_TX_EPADDR,
             .Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
@@ -4449,31 +3777,33 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
         }
 };
 
+#ifndef _BUSBY_H_
 template <size_t S> struct DescString
 {
     uint8_t size;
     uint8_t type;
     wchar_t UnicodeString[S];
 };
+#endif
 
 static const DescString<2> PROGMEM LanguageString =
 {
     USB_STRING_LEN(1),
-    DTYPE_String,
+    DTYPE_STRING,
     (wchar_t)0x0409
 };
 
 static const DescString<12> PROGMEM ManufacturerString =
 {
     USB_STRING_LEN(11),
-    DTYPE_String,
+    DTYPE_STRING,
     L"Dean Camera"
 };
 
 static const DescString<16> PROGMEM ProductString =
 {
     USB_STRING_LEN(15),
-    DTYPE_String,
+    DTYPE_STRING,
     L"LUFA RNDIS Demo"
 };
 
@@ -4489,15 +3819,15 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 
     switch (DescriptorType)
     {
-    case DTYPE_Device:
+    case DTYPE_DEVICE:
         Address = &DeviceDescriptor;
         Size    = sizeof(USB_Descriptor_Device_t);
         break;
-    case DTYPE_Configuration:
+    case DTYPE_CONFIGURATION:
         Address = &ConfigurationDescriptor;
         Size    = sizeof(USB_Descriptor_Configuration_t);
         break;
-    case DTYPE_String:
+    case DTYPE_STRING:
         switch (DescriptorNumber)
         {
             case STRING_ID_Language:
@@ -4526,14 +3856,11 @@ int main(void)
     g_serial.init();
     g_serial.writeString("Startup\r\n");
     USB_Init();
-	TCP_Init();
-	Webserver_Init();
 	sei();
 
 	for (;;)
 	{
         Ethernet_Task();
-        TCP_Task();
         RNDIS_Task();
         USB_USBTask();
 	}

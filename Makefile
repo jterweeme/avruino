@@ -59,7 +59,7 @@ ifeq ($(POOL2), ja)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
-    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf
+    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf app_rndis3.elf
 endif
 
 %.o: %.cpp
@@ -117,6 +117,7 @@ app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
+app_rndis3.elf: app_rndis3.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
 app_sdod1.elf: app_sdod1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -166,6 +167,7 @@ app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
+app_rndis3.o: app_rndis3.cpp
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
 app_sdod1.o: app_sdod1.cpp zd2card.h
