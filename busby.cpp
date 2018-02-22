@@ -453,6 +453,7 @@ void USB::com()
     selectEndpoint(prevSelectedEndp);
 }
 
+#if 0
 extern "C" void __vector_11() __attribute__ ((signal, used, externally_visible));
 void __vector_11()
 {
@@ -464,6 +465,7 @@ void __vector_10()
 {
     USB::instance->gen();
 }
+#endif
 
 void USB::gen()
 {   

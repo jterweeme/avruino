@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include "board.h"
 
+//#define BUSBY_INT
+
 static constexpr uint8_t
     ENDPOINT_DIR_MASK = 0x80,
     ENDPOINT_DIR_OUT = 0x00,
@@ -47,6 +49,10 @@ static constexpr uint8_t
     ENDPOINT_RWSTREAM_BusSuspended = 3,
     ENDPOINT_RWSTREAM_Timeout = 4,
     ENDPOINT_RWSTREAM_IncompleteTransfer = 5,
+    ENDPOINT_RWCSTREAM_NoError = 0,
+    ENDPOINT_RWCSTREAM_HostAborted = 1,
+    ENDPOINT_RWCSTREAM_DeviceDisconnected = 2,
+    ENDPOINT_RWCSTREAM_BusSuspended = 3,
     REQ_GETSTATUS = 0,
     REQ_CLEARFEATURE = 1,
     REQ_SetFeature = 3,
@@ -61,10 +67,6 @@ static constexpr uint8_t
     ENDPOINT_READYWAIT_DeviceDisconnected = 2,
     ENDPOINT_READYWAIT_BusSuspended = 3,
     ENDPOINT_READYWAIT_Timeout = 4,
-    ENDPOINT_RWCSTREAM_NoError = 0,
-    ENDPOINT_RWCSTREAM_HostAborted = 1,
-    ENDPOINT_RWCSTREAM_DeviceDisconnected = 2,
-    ENDPOINT_RWCSTREAM_BusSuspended = 3,
     STRING_ID_LANGUAGE = 0,
     STRING_ID_MANUFACTURER = 1,
     STRING_ID_PRODUCT = 2,

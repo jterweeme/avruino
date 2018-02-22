@@ -7,7 +7,7 @@
 
 #define ADAPTER_MAC_ADDRESS              {0x02, 0x00, 0x02, 0x00, 0x02, 0x00}
 
-#define ETHERNET_FRAME_SIZE_MAX               1500
+#define ETHERNET_FRAME_SIZE_MAX               200
 
 #define REMOTE_NDIS_MEDIA_STATE_CONNECTED     0x00000000UL
 
@@ -17,62 +17,52 @@
 #define REMOTE_NDIS_VERSION_MINOR             0x00
 #define REMOTE_NDIS_VERSION_MAJOR             0x01
 
-#define REMOTE_NDIS_INITIALIZE_CMPLT          0x80000002UL
-#define REMOTE_NDIS_QUERY_CMPLT               0x80000004UL
-#define REMOTE_NDIS_SET_CMPLT                 0x80000005UL
-#define REMOTE_NDIS_RESET_CMPLT               0x80000006UL
-#define REMOTE_NDIS_KEEPALIVE_CMPLT           0x80000008UL
-
-#define REMOTE_NDIS_STATUS_SUCCESS            0x00000000UL
-#define REMOTE_NDIS_STATUS_FAILURE            0xC0000001UL
-#define REMOTE_NDIS_STATUS_INVALID_DATA       0xC0010015UL
-#define REMOTE_NDIS_STATUS_NOT_SUPPORTED      0xC00000BBUL
-#define REMOTE_NDIS_STATUS_MEDIA_CONNECT      0x4001000BUL
-#define REMOTE_NDIS_STATUS_MEDIA_DISCONNECT   0x4001000CUL
-
-#define REMOTE_NDIS_INITIALIZE_MSG            0x00000002UL
-#define REMOTE_NDIS_HALT_MSG                  0x00000003UL
-#define REMOTE_NDIS_QUERY_MSG                 0x00000004UL
-#define REMOTE_NDIS_SET_MSG                   0x00000005UL
-#define REMOTE_NDIS_RESET_MSG                 0x00000006UL
-#define REMOTE_NDIS_KEEPALIVE_MSG             0x00000008UL
-
-#define REMOTE_NDIS_PACKET_MSG                0x00000001UL
-#define REMOTE_NDIS_INITIALIZE_MSG            0x00000002UL
-#define REMOTE_NDIS_HALT_MSG                  0x00000003UL
-#define REMOTE_NDIS_QUERY_MSG                 0x00000004UL
-#define REMOTE_NDIS_SET_MSG                   0x00000005UL
-#define REMOTE_NDIS_RESET_MSG                 0x00000006UL
-#define REMOTE_NDIS_INDICATE_STATUS_MSG       0x00000007UL
-#define REMOTE_NDIS_KEEPALIVE_MSG             0x00000008UL
-
-#define OID_GEN_SUPPORTED_LIST                0x00010101UL
-#define OID_GEN_HARDWARE_STATUS               0x00010102UL
-#define OID_GEN_MEDIA_SUPPORTED               0x00010103UL
-#define OID_GEN_MEDIA_IN_USE                  0x00010104UL
-#define OID_GEN_MAXIMUM_FRAME_SIZE            0x00010106UL
-#define OID_GEN_MAXIMUM_TOTAL_SIZE            0x00010111UL
-#define OID_GEN_LINK_SPEED                    0x00010107UL
-#define OID_GEN_TRANSMIT_BLOCK_SIZE           0x0001010AUL
-#define OID_GEN_RECEIVE_BLOCK_SIZE            0x0001010BUL
-#define OID_GEN_VENDOR_ID                     0x0001010CUL
-#define OID_GEN_VENDOR_DESCRIPTION            0x0001010DUL
-#define OID_GEN_CURRENT_PACKET_FILTER         0x0001010EUL
-#define OID_GEN_MAXIMUM_TOTAL_SIZE            0x00010111UL
-#define OID_GEN_MEDIA_CONNECT_STATUS          0x00010114UL
-#define OID_GEN_PHYSICAL_MEDIUM               0x00010202UL
-#define OID_GEN_XMIT_OK                       0x00020101UL
-#define OID_GEN_RCV_OK                        0x00020102UL
-#define OID_GEN_XMIT_ERROR                    0x00020103UL
-#define OID_GEN_RCV_ERROR                     0x00020104UL
-#define OID_GEN_RCV_NO_BUFFER                 0x00020105UL
-#define OID_802_3_PERMANENT_ADDRESS           0x01010101UL
-#define OID_802_3_CURRENT_ADDRESS             0x01010102UL
-#define OID_802_3_MULTICAST_LIST              0x01010103UL
-#define OID_802_3_MAXIMUM_LIST_SIZE           0x01010104UL
-#define OID_802_3_RCV_ERROR_ALIGNMENT         0x01020101UL
-#define OID_802_3_XMIT_ONE_COLLISION          0x01020102UL
-#define OID_802_3_XMIT_MORE_COLLISIONS        0x01020103UL
+static constexpr uint32_t
+REMOTE_NDIS_INITIALIZE_CMPLT        = 0x80000002,
+REMOTE_NDIS_QUERY_CMPLT             = 0x80000004,
+REMOTE_NDIS_SET_CMPLT               = 0x80000005,
+REMOTE_NDIS_RESET_CMPLT             = 0x80000006,
+REMOTE_NDIS_KEEPALIVE_CMPLT         = 0x80000008,
+REMOTE_NDIS_STATUS_SUCCESS          = 0x00000000,
+REMOTE_NDIS_STATUS_FAILURE          = 0xC0000001,
+REMOTE_NDIS_STATUS_INVALID_DATA     = 0xC0010015,
+REMOTE_NDIS_STATUS_NOT_SUPPORTED    = 0xC00000BB,
+REMOTE_NDIS_STATUS_MEDIA_CONNECT    = 0x4001000B,
+REMOTE_NDIS_STATUS_MEDIA_DISCONNECT = 0x4001000C,
+REMOTE_NDIS_INITIALIZE_MSG          = 0x00000002,
+REMOTE_NDIS_HALT_MSG                = 0x00000003,
+REMOTE_NDIS_QUERY_MSG               = 0x00000004,
+REMOTE_NDIS_SET_MSG                 = 0x00000005,
+REMOTE_NDIS_RESET_MSG               = 0x00000006,
+REMOTE_NDIS_KEEPALIVE_MSG           = 0x00000008,
+REMOTE_NDIS_PACKET_MSG              = 0x00000001,
+REMOTE_NDIS_INDICATE_STATUS_MSG     = 0x00000007,
+OID_GEN_SUPPORTED_LIST              = 0x00010101,
+OID_GEN_HARDWARE_STATUS             = 0x00010102,
+OID_GEN_MEDIA_SUPPORTED             = 0x00010103,
+OID_GEN_MEDIA_IN_USE                = 0x00010104,
+OID_GEN_MAXIMUM_FRAME_SIZE          = 0x00010106,
+OID_GEN_MAXIMUM_TOTAL_SIZE          = 0x00010111,
+OID_GEN_LINK_SPEED                  = 0x00010107,
+OID_GEN_TRANSMIT_BLOCK_SIZE         = 0x0001010A,
+OID_GEN_RECEIVE_BLOCK_SIZE          = 0x0001010B,
+OID_GEN_VENDOR_ID                   = 0x0001010C,
+OID_GEN_VENDOR_DESCRIPTION          = 0x0001010D,
+OID_GEN_CURRENT_PACKET_FILTER       = 0x0001010E,
+OID_GEN_MEDIA_CONNECT_STATUS        = 0x00010114,
+OID_GEN_PHYSICAL_MEDIUM             = 0x00010202,
+OID_GEN_XMIT_OK                     = 0x00020101,
+OID_GEN_RCV_OK                      = 0x00020102,
+OID_GEN_XMIT_ERROR                  = 0x00020103,
+OID_GEN_RCV_ERROR                   = 0x00020104,
+OID_GEN_RCV_NO_BUFFER               = 0x00020105,
+OID_802_3_PERMANENT_ADDRESS         = 0x01010101,
+OID_802_3_CURRENT_ADDRESS           = 0x01010102,
+OID_802_3_MULTICAST_LIST            = 0x01010103,
+OID_802_3_MAXIMUM_LIST_SIZE         = 0x01010104,
+OID_802_3_RCV_ERROR_ALIGNMENT       = 0x01020101,
+OID_802_3_XMIT_ONE_COLLISION        = 0x01020102,
+OID_802_3_XMIT_MORE_COLLISIONS      = 0x01020103;
 
 uint8_t  CurrRNDISState;
 
@@ -89,6 +79,24 @@ enum NDIS_Hardware_Status_t
     NDIS_HardwareStatus_NotReady
 };
 
+struct MacAddr
+{
+    uint8_t octets[6];
+}
+__attribute__ ((packed));
+
+struct Frame
+{
+    uint8_t data[ETHERNET_FRAME_SIZE_MAX];
+    uint16_t len;
+};
+
+struct EthFrameHeader
+{
+    MacAddr dest;
+    MacAddr src;
+    uint16_t ethType;
+};
 
 static constexpr uint8_t
     RNDIS_REQ_SendEncapsulatedCommand = 0x00,
@@ -214,7 +222,7 @@ static const DescDev PROGMEM DeviceDescriptor =
     FIXED_NUM_CONFIGURATIONS
 };
 
-const MyConf PROGMEM myConf =
+static const MyConf PROGMEM myConf =
 {
     {
         sizeof(DescConf),
@@ -357,14 +365,14 @@ struct RNDIS_Query_Message_t
 }
 __attribute__ ((packed));
 
-uint32_t CurrPacketFilter = 0;
-
-uint8_t RNDISMessageBuffer[108 + sizeof(RNDIS_Query_Complete_t)];
-RNDIS_Message_Header_t *MessageHeader = (RNDIS_Message_Header_t *)&RNDISMessageBuffer;
+static uint32_t CurrPacketFilter = 0;
+static uint8_t RNDISMessageBuffer[108 + sizeof(RNDIS_Query_Complete_t)];
+static RNDIS_Message_Header_t *MessageHeader = (RNDIS_Message_Header_t *)&RNDISMessageBuffer;
 
 class RNDIS : public USB
 {
 private:
+    bool responseReady = false;
     void ProcessRNDISControlMessage();
     Endpoint _txpoint;
     Endpoint _rxpoint;
@@ -372,10 +380,17 @@ private:
     void customCtrl();
     void configure();
     uint16_t getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddr);
+    void processEthPacket();
+    int16_t processARPPacket(void *inStart, void *outStart);
 public:
+    void ethTask();
+    void rndisTask();
     void send();
     RNDIS();
 };
+
+static Frame frameIN;
+static Frame frameOUT;
 
 RNDIS::RNDIS() :
     _txpoint(CDC_TX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1),
@@ -437,14 +452,8 @@ struct RNDIS_Initialize_Complete_t
     uint32_t AFListSize;
 } __attribute__ ((packed));
 
-struct MAC_Address_t
-{
-    uint8_t Octets[6]; /**< Individual bytes of a MAC address */
-}
-__attribute__ ((packed));
-
-const MAC_Address_t PROGMEM AdapterMACAddress     = {ADAPTER_MAC_ADDRESS};
-const char PROGMEM AdapterVendorDescription[]     = "LUFA RNDIS Adapter";
+static const MacAddr PROGMEM AdapterMACAddress     = {ADAPTER_MAC_ADDRESS};
+static const char PROGMEM AdapterVendorDescription[]     = "LUFA RNDIS Adapter";
 
 
 bool ProcessNDISQuery(const uint32_t OId, void* QueryData, uint16_t QuerySize,
@@ -493,8 +502,8 @@ bool ProcessNDISQuery(const uint32_t OId, void* QueryData, uint16_t QuerySize,
         return true;
     case OID_802_3_PERMANENT_ADDRESS:
     case OID_802_3_CURRENT_ADDRESS:
-        *ResponseSize = sizeof(MAC_Address_t);
-        memcpy_P(ResponseData, &AdapterMACAddress, sizeof(MAC_Address_t));
+        *ResponseSize = sizeof(MacAddr);
+        memcpy_P(ResponseData, &AdapterMACAddress, sizeof(MacAddr));
         return true;
     case OID_802_3_MAXIMUM_LIST_SIZE:
         *ResponseSize = sizeof(uint32_t);
@@ -543,6 +552,123 @@ struct RNDIS_Set_Complete_t
     uint32_t Status;
 } __attribute__ ((packed));
 
+struct IPAddr
+{
+    uint8_t octets[4];
+};
+
+static const MacAddr serverMac = {{0,1,0,1,0,1}};
+static const IPAddr serverIP = {{10,0,0,2}};
+static const MacAddr bcastMac = {{0xff,0xff,0xff,0xff,0xff,0xff}};
+
+#define MAC_COMPARE(MAC1, MAC2)          (memcmp(MAC1, MAC2, sizeof(MacAddr)) == 0)
+#define IP_COMPARE(IP1, IP2)    (memcmp(IP1, IP2, sizeof(IPAddr)) == 0)
+
+#define SWAPENDIAN_16(x)   (uint16_t)((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+
+static constexpr uint16_t ETHERNET_VER2_MINSIZE = 0x0600;
+
+struct ARPHdr
+{
+    uint16_t hwType;
+    uint16_t protocolType;
+    uint8_t hlen;
+    uint8_t plen;
+    uint16_t operation;
+    MacAddr sha;
+    IPAddr spa;
+    MacAddr tha;
+    IPAddr tpa;
+};
+
+static constexpr uint16_t
+    ETHERTYPE_IPV4             = 0x0800,
+    ETHERTYPE_ARP              = 0x0806,
+    ETHERTYPE_RARP             = 0x8035,
+    ETHERTYPE_APPLETALK        = 0x809b,
+    ETHERTYPE_APPLETALKARP     = 0x80f3,
+    ETHERTYPE_IEEE8021Q        = 0x8100,
+    ETHERTYPE_NOVELLIPX        = 0x8137,
+    ETHERTYPE_NOVELL           = 0x8138,
+    ETHERTYPE_IPV6             = 0x86DD,
+    ETHERTYPE_COBRANET         = 0x8819,
+    ETHERTYPE_PROVIDERBRIDGING = 0x88a8,
+    ETHERTYPE_MPLSUNICAST      = 0x8847,
+    ETHERTYPE_MPLSMULTICAST    = 0x8848,
+    ETHERTYPE_PPPoEDISCOVERY   = 0x8863,
+    ETHERTYPE_PPPoESESSION     = 0x8864,
+    ETHERTYPE_EAPOVERLAN       = 0x888E,
+    ETHERTYPE_HYPERSCSI        = 0x889A,
+    ETHERTYPE_ATAOVERETHERNET  = 0x88A2,
+    ETHERTYPE_ETHERCAT         = 0x88A4,
+    ETHERTYPE_SERCOSIII        = 0x88CD,
+    ETHERTYPE_CESoE            = 0x88D8,
+    ETHERTYPE_MACSECURITY      = 0x88E5,
+    ETHERTYPE_FIBRECHANNEL     = 0x8906,
+    ETHERTYPE_QINQ             = 0x9100,
+    ETHERTYPE_VLLT             = 0xCAFE;
+
+static constexpr uint8_t
+    ARP_OPERATION_REQUEST = 1,
+    ARP_OPERATION_REPLY = 2;
+
+int16_t RNDIS::processARPPacket(void *inStart, void *outStart)
+{
+    ARPHdr *inHdr = (ARPHdr *)inStart;
+    ARPHdr *outHdr = (ARPHdr *)outStart;
+
+    if ((SWAPENDIAN_16(inHdr->protocolType) == ETHERTYPE_IPV4) &&
+        (SWAPENDIAN_16(inHdr->operation) == ARP_OPERATION_REQUEST))
+    {
+        if (IP_COMPARE(&inHdr->tpa, &serverIP) || MAC_COMPARE(&inHdr->tha, &serverMac))
+        {
+            outHdr->hwType = inHdr->hwType;
+            outHdr->protocolType = inHdr->protocolType;
+            outHdr->hlen = inHdr->hlen;
+            outHdr->plen = inHdr->plen;
+            outHdr->operation = SWAPENDIAN_16(ARP_OPERATION_REPLY);
+            outHdr->tha = inHdr->sha;
+            outHdr->tpa = inHdr->spa;
+            outHdr->sha = serverMac;
+            outHdr->spa = serverIP;
+            return sizeof(ARPHdr);
+        }
+    }
+
+    return 0;
+}
+
+void RNDIS::processEthPacket()
+{
+    EthFrameHeader *inHeader = (EthFrameHeader *)&frameIN.data;
+    EthFrameHeader *outHeader = (EthFrameHeader *)&frameOUT.data;
+    int16_t retSize = 0;
+
+    if ((MAC_COMPARE(&inHeader->dest, &serverMac) ||
+        MAC_COMPARE(&inHeader->dest, &bcastMac)) &&
+        (SWAPENDIAN_16(frameIN.len) > ETHERNET_VER2_MINSIZE))
+    {
+        switch (SWAPENDIAN_16(inHeader->ethType))
+        {
+        case ETHERTYPE_ARP:
+            retSize = processARPPacket(&frameIN.data[sizeof(EthFrameHeader)],
+                        &frameOUT.data[sizeof(EthFrameHeader)]);
+            break;
+        }
+
+        if (retSize > 0)
+        {
+            outHeader->src = serverMac;
+            outHeader->dest = inHeader->src;
+            outHeader->ethType = inHeader->ethType;
+            frameOUT.len = sizeof(EthFrameHeader) + retSize;
+        }
+    }
+
+    if (retSize != -1)
+        frameIN.len = 0;
+}
+
 bool ProcessNDISSet(uint32_t OId, void* SetData, uint16_t SetSize)
 {
     switch (OId)
@@ -584,18 +710,17 @@ struct RNDIS_KeepAlive_Complete_t
 
 void RNDIS::ProcessRNDISControlMessage()
 {
-#if 0
-    char buf[50];
-    snprintf(buf, 50, "%lu\r\n", MessageHeader->MessageType);
-    Serial::instance->write(buf);
-#endif
     switch (MessageHeader->MessageType)
     {
     case REMOTE_NDIS_INITIALIZE_MSG:
     {
         ResponseReady = true;
-        RNDIS_Initialize_Message_t *INITIALIZE_Message = (RNDIS_Initialize_Message_t*)&RNDISMessageBuffer;
-        RNDIS_Initialize_Complete_t* INITIALIZE_Response = (RNDIS_Initialize_Complete_t*)&RNDISMessageBuffer;
+
+        RNDIS_Initialize_Message_t *
+        INITIALIZE_Message = (RNDIS_Initialize_Message_t*)&RNDISMessageBuffer;
+
+        RNDIS_Initialize_Complete_t *
+        INITIALIZE_Response = (RNDIS_Initialize_Complete_t*)&RNDISMessageBuffer;
 
         INITIALIZE_Response->MessageType           = REMOTE_NDIS_INITIALIZE_CMPLT;
         INITIALIZE_Response->MessageLength         = sizeof(RNDIS_Initialize_Complete_t);
@@ -681,26 +806,26 @@ void RNDIS::ProcessRNDISControlMessage()
     }
         break;
     case REMOTE_NDIS_KEEPALIVE_MSG:
+    {
         ResponseReady = true;
 
-        RNDIS_KeepAlive_Message_t *KEEPALIVE_Message = (RNDIS_KeepAlive_Message_t*)&RNDISMessageBuffer;
-        RNDIS_KeepAlive_Complete_t *KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&RNDISMessageBuffer;
+        RNDIS_KeepAlive_Message_t *
+        KEEPALIVE_Message = (RNDIS_KeepAlive_Message_t*)&RNDISMessageBuffer;
+
+        RNDIS_KeepAlive_Complete_t *
+        KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&RNDISMessageBuffer;
 
         KEEPALIVE_Response->MessageType     = REMOTE_NDIS_KEEPALIVE_CMPLT;
         KEEPALIVE_Response->MessageLength   = sizeof(RNDIS_KeepAlive_Complete_t);
         KEEPALIVE_Response->RequestId       = KEEPALIVE_Message->RequestId;
         KEEPALIVE_Response->Status          = REMOTE_NDIS_STATUS_SUCCESS;
+    }
         break;
     }
 }
 
 void RNDIS::customCtrl()
 {
-#if 0
-    char buf[50];
-    snprintf(buf, 50, "%u\r\n", _ctrlReq.bRequest);
-    Serial::instance->write(buf);
-#endif
     switch (_ctrlReq.bRequest)
     {
     case RNDIS_REQ_SendEncapsulatedCommand:
@@ -779,8 +904,6 @@ void RNDIS::configure()
     configureEndpoint(_notif);
 }
 
-static RNDIS *g_rndis;
-
 uint8_t frame[63] = {"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
 
 void RNDIS::send()
@@ -801,30 +924,44 @@ void RNDIS::send()
     }
 }
 
-ISR(TIMER1_OVF_vect)
+void RNDIS::rndisTask()
 {
-    //Serial::instance->write("Debug bericht\r\n");
-    g_rndis->send();
+    _notif.select();
+
+    
+}
+
+void RNDIS::ethTask()
+{
+    if (frameIN.len)
+        processEthPacket();
 }
 
 int main()
 {
-#if 0
-    Serial serial;
-    serial.init();
-    Serial::instance->write("RNDIS app\r\n");
-#endif
-    TCCR1B = 1<<CS12 | 1<<CS10;
-    TIMSK1 |= 1<<TOIE1;
     RNDIS rndis;
-    g_rndis = &rndis;
     sei();
 
     while (true)
-        ;
+    {
+        rndis.ethTask();
+    }
 
     return 0;
 }
 
+#ifndef BUSBY_INT
+extern "C" void __vector_11() __attribute__ ((signal, used, externally_visible));
+void __vector_11()
+{
+    USB::instance->com();
+}
+
+extern "C" void __vector_10() __attribute__ ((signal, used, externally_visible));
+void __vector_10()
+{
+    USB::instance->gen();
+}
+#endif
 
 
