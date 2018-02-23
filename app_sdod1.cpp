@@ -20,8 +20,6 @@ ChipSelect = D9
 static Sd2Card *g_sd;
 
 ISR(TIMER0_OVF_vect)
-//extern "C" void __vector_23() __attribute__ ((signal, used, externally_visible));
-//void __vector_23()
 {
     g_sd->tick();
 }
