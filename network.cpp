@@ -4,7 +4,10 @@
 #include <string.h>
 #include "board.h"
 
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #include <util/delay.h>
 
 #define CSACTIVE (PORTB &= ~(1<<0))

@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = leonardo
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee

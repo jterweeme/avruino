@@ -7,8 +7,8 @@ werkt met mega
 #include "uip_ethernet.h"
 #include "uip_server.h"
 #include "uip_client.h"
-#include <avr/interrupt.h>
 #include "misc.h"
+#include "board.h"
 #include <stdio.h>
 
 #define F_CPU 16000000UL
@@ -16,7 +16,8 @@ werkt met mega
 
 static uint32_t g_millis = 0;
 
-ISR(TIMER0_OVF_vect)
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
 {
     g_millis++;
 }
@@ -38,9 +39,9 @@ int main()
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
     UIPServer server = UIPServer(80);
-    TCCR0B = CS02; // | CS00;
-    TIMSK0 |= 1<<TOIE0;
-    sei();
+    *p_tccr0b = 1<<cs02; // | CS00;
+    *p_timsk0 |= 1<<toie0;
+    zei();
 
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     IPAddrezz myIP(192,168,178,32);

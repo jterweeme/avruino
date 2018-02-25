@@ -332,6 +332,10 @@ struct Board
         pinMOSI {portB, BIT2},
         pinMISO {portB, BIT3};
 };
+
+#define TIMER0_COMPB __vector_22()
+#define TIMER0_OVF __vector_23()
+
 #endif
 
 

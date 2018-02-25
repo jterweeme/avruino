@@ -8,17 +8,20 @@ ChipSelect = D9
 */
 
 #include "zd2card.h"
-#include <ctype.h>
-#include <avr/interrupt.h>
 #include "board.h"
 #include "stream.h"
-#include "int.h"
 
 static Sd2Card *g_sd;
 
-ISR(TIMER0_OVF_vect)
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
 {
     g_sd->tick();
+}
+
+static inline bool izprint(uint8_t c)
+{
+    return c >= 0x20 && c <= 0x7e ? true : false;
 }
 
 static inline char nibble(uint8_t n)
@@ -39,7 +42,7 @@ static void hexDump(uint8_t *point, ostream &os)
 
         for (uint8_t j = 0; j < 16; j++)
         {
-            if (isprint(point[i + j]))
+            if (izprint(point[i + j]))
                 os.write(point[i + j]);
             else
                 os.write('.');
@@ -82,4 +85,19 @@ int main()
     return 0;
 }
 
+#if defined (__AVR_ATmega32U4__)
+#ifndef BUSBY_INT
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
+{
+    USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
+{
+    USB::instance->gen();
+}
+#endif
+#endif
 
