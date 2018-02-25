@@ -41,6 +41,7 @@ Timer1::Timer1()
 static volatile unsigned long timer0_millis = 0;
 static unsigned char timer0_fract = 0;
 
+#if 0
 unsigned long millis()
 {
     unsigned long m;
@@ -50,6 +51,7 @@ unsigned long millis()
     SREG = oldSREG;
     return m;
 }
+#endif
 
 Timer1 *Timer1::instance;
 Timer0 *Timer0::instance;

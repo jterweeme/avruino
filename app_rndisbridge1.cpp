@@ -15,6 +15,7 @@
 
 #include <util/delay.h>
 #include "bogota.h"
+#include "network.h"
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,
@@ -298,14 +299,9 @@ public:
     void customCtrl();
     void configure();
     void rndisTask();
-    void ethTask();
     void ProcessRNDISControlMessage();
-    int16_t ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart);
-    int16_t IP_ProcessIPPacket(void* InDataStart, void* OutDataStart);
-    void Ethernet_ProcessPacket();
     bool ProcessNDISSet(uint32_t OId, void* SetData, uint16_t SetSize);
     uint16_t Ethernet_Checksum16(void* Data, uint16_t Bytes);
-    int16_t ARP_ProcessARPPacket(void *inStart, void *outStart);
     bool ResponseReady = false;
     uint16_t getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddr);
     void usbTask();
@@ -861,139 +857,6 @@ uint16_t RNDIS::Ethernet_Checksum16(void* Data, uint16_t Bytes)
     return ~Checksum;
 }
 
-int16_t RNDIS::IP_ProcessIPPacket(void* InDataStart, void* OutDataStart)
-{
-    IP_Header_t* IPHeaderIN  = (IP_Header_t*)InDataStart;
-    IP_Header_t* IPHeaderOUT = (IP_Header_t*)OutDataStart;
-    uint16_t HeaderLengthBytes = (IPHeaderIN->HeaderLength * sizeof(uint32_t));
-    int16_t RetSize = 0;
-
-    if (!(IP_COMPARE(&IPHeaderIN->DestinationAddress, &ServerIPAddress)) &&
-        !(IP_COMPARE(&IPHeaderIN->DestinationAddress, &BroadcastIPAddress)))
-    {
-        return 0;
-    }
-
-    switch (IPHeaderIN->Protocol)
-    {
-    case PROTOCOL_ICMP:
-        RetSize = ICMP_ProcessICMPPacket(&((uint8_t*)InDataStart)[HeaderLengthBytes],
-                                         &((uint8_t*)OutDataStart)[sizeof(IP_Header_t)]);
-        break;
-    }
-
-    if (RetSize > 0)
-    {
-        IPHeaderOUT->TotalLength = SWAPENDIAN_16(sizeof(IP_Header_t) + RetSize);
-        IPHeaderOUT->TypeOfService = 0;
-        IPHeaderOUT->HeaderLength = (sizeof(IP_Header_t) / sizeof(uint32_t));
-        IPHeaderOUT->Version = 4;
-        IPHeaderOUT->Flags = 0;
-        IPHeaderOUT->FragmentOffset = 0;
-        IPHeaderOUT->Identification = 0;
-        IPHeaderOUT->HeaderChecksum = 0;
-        IPHeaderOUT->Protocol = IPHeaderIN->Protocol;
-        IPHeaderOUT->TTL = DEFAULT_TTL;
-        IPHeaderOUT->SourceAddress = IPHeaderIN->DestinationAddress;
-        IPHeaderOUT->DestinationAddress = IPHeaderIN->SourceAddress;
-        IPHeaderOUT->HeaderChecksum = Ethernet_Checksum16(IPHeaderOUT, sizeof(IP_Header_t));
-        return sizeof(IP_Header_t) + RetSize;
-    }
-
-    return RetSize;
-}
-
-int16_t RNDIS::ARP_ProcessARPPacket(void *inStart, void *outStart)
-{
-    ARP_Header_t *ARPHeaderIN = (ARP_Header_t*)inStart;
-    ARP_Header_t *ARPHeaderOUT = (ARP_Header_t*)outStart;
-
-    if ((SWAPENDIAN_16(ARPHeaderIN->ProtocolType) == ETHERTYPE_IPV4) &&
-        (SWAPENDIAN_16(ARPHeaderIN->Operation) == ARP_OPERATION_REQUEST))
-    {
-        if (IP_COMPARE(&ARPHeaderIN->TPA, &ServerIPAddress) ||
-            MAC_COMPARE(&ARPHeaderIN->THA, &serverMac))
-        {
-            ARPHeaderOUT->HardwareType = ARPHeaderIN->HardwareType;
-            ARPHeaderOUT->ProtocolType = ARPHeaderIN->ProtocolType;
-            ARPHeaderOUT->HLEN = ARPHeaderIN->HLEN;
-            ARPHeaderOUT->PLEN = ARPHeaderIN->PLEN;
-            ARPHeaderOUT->Operation = SWAPENDIAN_16(ARP_OPERATION_REPLY);
-            ARPHeaderOUT->THA = ARPHeaderIN->SHA;
-            ARPHeaderOUT->TPA = ARPHeaderIN->SPA;
-            ARPHeaderOUT->SHA = serverMac;
-            ARPHeaderOUT->SPA = ServerIPAddress;
-            return sizeof(ARP_Header_t);
-        }
-    }
-
-    return 0;
-}
-
-int16_t RNDIS::ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart)
-{
-    ICMP_Header_t *ICMPHeaderIN = (ICMP_Header_t*)InDataStart;
-    ICMP_Header_t *ICMPHeaderOUT = (ICMP_Header_t*)OutDataStart;
-
-    if (ICMPHeaderIN->Type == ICMP_TYPE_ECHOREQUEST)
-    {
-        ICMPHeaderOUT->Type = ICMP_TYPE_ECHOREPLY;
-        ICMPHeaderOUT->Code = 0;
-        ICMPHeaderOUT->Checksum = 0;
-        ICMPHeaderOUT->Id = ICMPHeaderIN->Id;
-        ICMPHeaderOUT->Sequence = ICMPHeaderIN->Sequence;
-
-        intptr_t DataSize = frameIN.FrameLength - ((((intptr_t)InDataStart +
-            sizeof(ICMP_Header_t)) - (intptr_t)frameIN.FrameData));
-
-        memmove(&((uint8_t*)OutDataStart)[sizeof(ICMP_Header_t)],
-                &((uint8_t*)InDataStart)[sizeof(ICMP_Header_t)],
-                DataSize);
-
-        ICMPHeaderOUT->Checksum = Ethernet_Checksum16(ICMPHeaderOUT,
-            (DataSize + sizeof(ICMP_Header_t)));
-
-        return (DataSize + sizeof(ICMP_Header_t));
-    }
-
-    return 0;
-}
-
-void RNDIS::Ethernet_ProcessPacket()
-{
-    Ethernet_Frame_Header_t *inHeader = (Ethernet_Frame_Header_t*)&frameIN.FrameData;
-    Ethernet_Frame_Header_t *FrameOUTHeader = (Ethernet_Frame_Header_t*)&frameOUT.FrameData;
-    int16_t retSize = 0;
-
-    if ((MAC_COMPARE(&inHeader->Destination, &serverMac) ||
-         MAC_COMPARE(&inHeader->Destination, &BroadcastMACAddress)) &&
-        (SWAPENDIAN_16(frameIN.FrameLength) > ETHERNET_VER2_MINSIZE))
-    {
-        switch (SWAPENDIAN_16(inHeader->EtherType))
-        {
-        case ETHERTYPE_ARP:
-            retSize = ARP_ProcessARPPacket(&frameIN.FrameData[sizeof(Ethernet_Frame_Header_t)],
-                                 &frameOUT.FrameData[sizeof(Ethernet_Frame_Header_t)]);
-            break;
-        case ETHERTYPE_IPV4:
-            retSize = IP_ProcessIPPacket(&frameIN.FrameData[sizeof(Ethernet_Frame_Header_t)],
-                                   &frameOUT.FrameData[sizeof(Ethernet_Frame_Header_t)]);
-            break;
-        }
-
-        if (retSize > 0)
-        {
-            FrameOUTHeader->Source = serverMac;
-            FrameOUTHeader->Destination = inHeader->Source;
-            FrameOUTHeader->EtherType = inHeader->EtherType;
-            frameOUT.FrameLength = (sizeof(Ethernet_Frame_Header_t) + retSize);
-        }
-    }
-
-    if (retSize != -1)
-        frameIN.FrameLength = 0;
-}
-
 static const DescDev PROGMEM DeviceDescriptor =
 {
     sizeof(DescDev),
@@ -1230,15 +1093,6 @@ void RNDIS::rndisTask()
 	}
 }
 
-void RNDIS::ethTask()
-{
-	if (state != DEVICE_STATE_Configured)
-        return;
-
-	if (frameIN.FrameLength)
-		Ethernet_ProcessPacket();
-}
-
 void RNDIS::usbTask()
 {
     if (state == DEVICE_STATE_UNATTACHED)
@@ -1270,7 +1124,6 @@ int main(void)
 
     while (true)
     {
-        rndis.ethTask();
         rndis.rndisTask();
         rndis.usbTask();
     }

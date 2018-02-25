@@ -1,6 +1,4 @@
 /*
-todo: rename naar app_sdmbr1.cpp
-
 makes a hexdump of the MBR of an SD card, so doesn't use the
 FAT code
 
@@ -11,7 +9,6 @@ ChipSelect = D9
 
 #include "zd2card.h"
 #include <ctype.h>
-#include <stdio.h>
 #include <avr/interrupt.h>
 #include "board.h"
 #include "stream.h"
@@ -24,15 +21,20 @@ ISR(TIMER0_OVF_vect)
     g_sd->tick();
 }
 
+static inline char nibble(uint8_t n)
+{
+    return n <= 9 ? '0' + n : 'A' + n - 10;
+}
+
 static void hexDump(uint8_t *point, ostream &os)
 {
     for (uint16_t i = 0; i < 512; i += 16)
     {
         for (uint8_t j = 0; j < 16; j++)
         {
-            char wbuf[10];  // write buffer
-            snprintf(wbuf, 10, "%02x ", point[i + j]);
-            os.write(wbuf);
+            os.write(nibble(point[i + j] >> 4));
+            os.write(nibble(point[i + j] & 0x0f));
+            os.write(' ');
         }
 
         for (uint8_t j = 0; j < 16; j++)

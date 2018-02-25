@@ -2,6 +2,7 @@
 #include "util.h"
 #include <avr/io.h>
 #include <string.h>
+#include "board.h"
 
 #define F_CPU 16000000UL
 #include <util/delay.h>
@@ -17,101 +18,41 @@ struct memblock Enc28J60Network::receivePkt;
 
 void Enc28J60Network::init(uint8_t* macaddr)
 {
-  MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
-  // initialize I/O
-  // ss as output:
-#if 0
-  pinMode(ENC28J60_CONTROL_CS, OUTPUT);
-  CSPASSIVE; // ss=0
-#else
-    DDRB |= 1<<PB0;
-    PORTB |= 1<<PB0;
-#endif
-
-#if 0
-  pinMode(SPI_MOSI, OUTPUT);
-  pinMode(SPI_SCK, OUTPUT);
-  pinMode(SPI_MISO, INPUT);
-  pinMode(SPI_SS, OUTPUT);
-
-  digitalWrite(SPI_MOSI, LOW);
-  digitalWrite(SPI_SCK, LOW);
-#else
-    DDRB |= 1<<2 | 1<<1 | 1<<PB0;
-    DDRB &= ~(1<<3);
-    PORTB &= ~(1<<2);   //mosi
-    PORTB &= ~(1<<1);   //sck
-#endif
-  SPCR = (1<<SPE)|(1<<MSTR);
-  SPSR |= (1<<SPI2X);
-  writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
-  _delay_ms(50);
-  // check CLKRDY bit to see if reset is complete
-  // The CLKRDY does not work. See Rev. B4 Silicon Errata point. Just wait.
-  //while(!(readReg(ESTAT) & ESTAT_CLKRDY));
-  // do bank 0 stuff
-  // initialize receive buffer
-  // 16-bit transfers, must write low byte first
-  // set receive buffer start address
-  nextPacketPtr = RXSTART_INIT;
-  // Rx start
-  writeRegPair(ERXSTL, RXSTART_INIT);
-  // set receive pointer address
-  writeRegPair(ERXRDPTL, RXSTART_INIT);
-  // RX end
-  writeRegPair(ERXNDL, RXSTOP_INIT);
-  // TX start
-  //writeRegPair(ETXSTL, TXSTART_INIT);
-  // TX end
-  //writeRegPair(ETXNDL, TXSTOP_INIT);
-  // do bank 1 stuff, packet filter:
-  // For broadcast packets we allow only ARP packtets
-  // All other packets should be unicast only for our mac (MAADR)
-  //
-  // The pattern to match on is therefore
-  // Type     ETH.DST
-  // ARP      BROADCAST
-  // 06 08 -- ff ff ff ff ff ff -> ip checksum for theses bytes=f7f9
-  // in binary these poitions are:11 0000 0011 1111
-  // This is hex 303F->EPMM0=0x3f,EPMM1=0x30
-  //TODO define specific pattern to receive dhcp-broadcast packages instead of setting ERFCON_BCEN!
-  writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN);
-  writeRegPair(EPMM0, 0x303f);
-  writeRegPair(EPMCSL, 0xf7f9);
-  //
-  //
-  // do bank 2 stuff
-  // enable MAC receive
-  // and bring MAC out of reset (writes 0x00 to MACON2)
-  writeRegPair(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
-  // enable automatic padding to 60bytes and CRC operations
-  writeOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN);
-  // set inter-frame gap (non-back-to-back)
-  writeRegPair(MAIPGL, 0x0C12);
-  // set inter-frame gap (back-to-back)
-  writeReg(MABBIPG, 0x12);
-  // Set the maximum packet size which the controller will accept
-  // Do not send packets longer than MAX_FRAMELEN:
-  writeRegPair(MAMXFLL, MAX_FRAMELEN);
-  // do bank 3 stuff
-  // write MAC address
-  // NOTE: MAC address in ENC28J60 is byte-backward
-  writeReg(MAADR5, macaddr[0]);
-  writeReg(MAADR4, macaddr[1]);
-  writeReg(MAADR3, macaddr[2]);
-  writeReg(MAADR2, macaddr[3]);
-  writeReg(MAADR1, macaddr[4]);
-  writeReg(MAADR0, macaddr[5]);
-  // no loopback of transmitted frames
-  phyWrite(PHCON2, PHCON2_HDLDIS);
-  // switch to bank 0
-  setBank(ECON1);
-  // enable interrutps
-  writeOp(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE);
-  // enable packet reception
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
-  //Configure leds
-  phyWrite(PHLCON,0x476);
+    MemoryPool::init();
+    *p_ddr_ss |= 1<<pss;
+    *p_port_ss |= 1<<pss;
+    *p_ddr_mosi |= 1<<pmosi;
+    *p_ddr_sck |= 1<<psck;
+    *p_ddr_miso &= ~(1<<pmiso);
+    *p_port_mosi &= ~(1<<pmosi);
+    *p_port_sck &= ~(1<<psck);
+    *p_spcr = 1<<SPE | 1<<MSTR;
+    *p_spsr |= (1<<SPI2X);
+    writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
+    _delay_ms(50);
+    nextPacketPtr = RXSTART_INIT;
+    writeRegPair(ERXSTL, RXSTART_INIT);
+    writeRegPair(ERXRDPTL, RXSTART_INIT);
+    writeRegPair(ERXNDL, RXSTOP_INIT);
+    writeReg(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN|ERXFCON_BCEN);
+    writeRegPair(EPMM0, 0x303f);
+    writeRegPair(EPMCSL, 0xf7f9);
+    writeRegPair(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
+    writeOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN);
+    writeRegPair(MAIPGL, 0x0C12);
+    writeReg(MABBIPG, 0x12);
+    writeRegPair(MAMXFLL, MAX_FRAMELEN);
+    writeReg(MAADR5, macaddr[0]);
+    writeReg(MAADR4, macaddr[1]);
+    writeReg(MAADR3, macaddr[2]);
+    writeReg(MAADR2, macaddr[3]);
+    writeReg(MAADR1, macaddr[4]);
+    writeReg(MAADR0, macaddr[5]);
+    phyWrite(PHCON2, PHCON2_HDLDIS);
+    setBank(ECON1);
+    writeOp(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE);
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
+    phyWrite(PHLCON,0x476);
 }
 
 memhandle Enc28J60Network::receivePacket()

@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = leonardo
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -40,7 +40,7 @@ USBOPT =
 POOL1 = ja
 endif
 
-TARGETS = app_aditbox.elf app_capsense2.elf app_sdod1.elf app_sdls1.elf \
+TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_blink1.elf app_hello.elf app_test1.elf app_timer1.elf app_i2cscan1.elf \
     app_pcf8563test2.elf app_blink2.elf app_lcdtest1.elf app_pi1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
@@ -59,11 +59,12 @@ ifeq ($(POOL2), ja)
 TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
-    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf app_rndisdhcp1.elf app_rndisping1.elf
+    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf \
+    app_rndisdhcp1.elf app_rndisping1.elf app_rndisbridge1.elf
 endif
 
 %.o: %.cpp
-	avr-g++ -O2 -Wall -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
+	avr-g++ -O2 -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
 
 %.elf: %.o
 	avr-g++ -mmcu=$(MMCU) -o $@ $^
@@ -118,9 +119,10 @@ app_ringtone1.elf: app_ringtone1.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
 app_rndisdhcp1.elf: app_rndisdhcp1.o bogota.o
-app_rndisping1.elf: app_rndisping1.o bogota.o
+app_rndisping1.elf: app_rndisping1.o busby.o
+app_rndisbridge1.elf: app_rndisbridge1.o busby.o network.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
-app_sdod1.elf: app_sdod1.o zd2card.o $(USBOPT) $(BSP)
+app_sdmbr1.elf: app_sdmbr1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
 app_serialusb1.elf: app_serialusb1.o $(USBOPT) $(BSP)
 app_sound1.elf: app_sound1.o
@@ -170,9 +172,10 @@ app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
 app_rndisdhcp1.o: app_rndisdhcp1.cpp bogota.h
 app_rndisping1.o: app_rndisping1.cpp bogota.h
+app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h network.h
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
-app_sdod1.o: app_sdod1.cpp zd2card.h
+app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_sound1.o: app_sound1.cpp
 app_test1.o: app_test1.cpp

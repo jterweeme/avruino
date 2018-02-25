@@ -1,8 +1,24 @@
 #include "cdc.h"
-#include <string.h>
-#include <avr/pgmspace.h>
 #include "misc.h"
-#include <stdio.h>
+
+#define __LPM_classic__(addr) \
+(__extension__({ \
+    uint16_t __addr16 = (uint16_t)(addr); \
+    uint8_t __result; \
+    __asm__ __volatile__ \
+    ( \
+        "lpm" "\n\t" \
+        "mov %0, r0" "\n\t" \
+        : "=r" (__result) \
+        : "z" (__addr16) \
+        : "r0" \
+    ); \
+    __result; \
+}))
+
+#define __LPM(addr) __LPM_classic__(addr)
+#define pgm_read_bite_near(address_short) __LPM((uint16_t)(address_short))
+#define pgm_read_bite(address_short) pgm_read_bite_near(address_short)
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,
@@ -22,14 +38,14 @@ static constexpr uint8_t
     CDC_REQ_SENDBREAK = 0x23,
     CDC_DSUBTYPE_CSInterface_Header = 0x00,
     CDC_DSUBTYPE_CSInterface_ACM = 0x02,
-    CDC_DSUBTYPE_CSInterface_Union            = 0x06,
+    CDC_DSUBTYPE_CSInterface_Union = 0x06,
     CDC_NOTIFICATION_EPADDR = ENDPOINT_DIR_IN | 2,
     CDC_TX_EPADDR = ENDPOINT_DIR_IN | 3,
     CDC_RX_EPADDR = ENDPOINT_DIR_OUT | 4,
     CDC_NOTIFICATION_EPSIZE = 8,
     CDC_TXRX_EPSIZE = 16;
 
-static const DescDev PROGMEM DeviceDescriptor =
+static const DescDev __attribute__ ((__progmem__)) DeviceDescriptor =
 {
     sizeof(DescDev),
     DTYPE_DEVICE,
@@ -89,7 +105,7 @@ struct MyConf
 }
 __attribute__ ((packed));
 
-static const MyConf PROGMEM myConf =
+static const MyConf __attribute__ ((__progmem__)) myConf =
 {
     {
         sizeof(DescConf),
@@ -168,21 +184,21 @@ static const MyConf PROGMEM myConf =
     }
 };
 
-static const DescString<2> PROGMEM languageString =
+static const DescString<2> __attribute__ ((__progmem__)) languageString =
 {
     USB_STRING_LEN(1),
     DTYPE_STRING,
     (wchar_t)0x0409
 };
 
-static const DescString<12> PROGMEM manufacturerString =
+static const DescString<12> __attribute__ ((__progmem__)) manufacturerString =
 {
     USB_STRING_LEN(11),
     DTYPE_STRING,
     L"Dean Camera"
 };
 
-static const DescString<23> PROGMEM productString =
+static const DescString<23> __attribute__ ((__progmem__)) productString =
 {
     USB_STRING_LEN(22),
     DTYPE_STRING,
@@ -209,15 +225,15 @@ uint16_t CDC::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const desc
         {
         case STRING_ID_LANGUAGE:
             addr = &languageString;
-            size = pgm_read_byte(&languageString.size);
+            size = pgm_read_bite(&languageString.size);
             break;
         case STRING_ID_MANUFACTURER:
             addr = &manufacturerString;
-            size = pgm_read_byte(&manufacturerString.size);
+            size = pgm_read_bite(&manufacturerString.size);
             break;
         case STRING_ID_PRODUCT:
             addr = &productString;
-            size = pgm_read_byte(&productString.size);
+            size = pgm_read_bite(&productString.size);
             break;
         }
 
@@ -404,9 +420,19 @@ void CDC::customCtrl()
     }
 }
 
+static inline void *myMemset(void *s, int c, size_t n)
+{
+    uint8_t *p = (uint8_t *)s;
+
+    while (n--)
+        *p++ = (uint8_t)c;
+
+    return s;
+}
+
 void CDC::configure()
 {
-    memset(&_lineEncoding, 0, sizeof(_lineEncoding));
+    myMemset(&_lineEncoding, 0, sizeof(_lineEncoding));
     configureEndpoint(_inpoint);
     configureEndpoint(_outpoint);
     configureEndpoint(_notif);

@@ -64,6 +64,7 @@ int main()
     ZD zd;
     g_zd = &zd;
 
+#if 0
     for (uint32_t i = 0; i < 0xff; i++)
     {
         for (uint32_t j = 0; j < 50; j++)
@@ -71,6 +72,7 @@ int main()
         
         cout.writeString("\r\n");
     }
+#endif
 
     cout.writeString("\r\nAttempt to open SD card\r\n");
     cout.flush();

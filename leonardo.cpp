@@ -55,3 +55,4 @@ SPIBus::SPIBus() : SPIBase((uint8_t *)0x4c)
     *spcr = spcr_bits::spe | spcr_bits::mstr;
 }
 
+

@@ -26,7 +26,7 @@ static constexpr uint8_t
         portb = portb_base + 2,
             portb0 = 0, portb1 = 1, portb2 = 2, portb3 = 3,
             portb4 = 4, portb5 = 5, portb6 = 6, portb7 = 7,
-            pb0 = 0, pb1 = 1, pb2 = 2, pb3 = 3, pb4 = 4, pb5 = 5, pb6 = 6, pb7 = 7,
+        pb0 = 0, pb1 = 1, pb2 = 2, pb3 = 3, pb4 = 4, pb5 = 5, pb6 = 6, pb7 = 7,
     portc_base = 0x26,
         pinc = portc_base,
             pinc0 = 0, pinc1 = 1, pinc2 = 2, pinc3 = 3,
@@ -42,7 +42,7 @@ static constexpr uint8_t
         ddre = porte_base + 1,
         porte = porte_base + 2,
             porte0 = 0,
-            pe0 = 0,
+        pe0 = 0,
     portf_base = 0x2f,
         pinf = portf_base,
             pinf0 = 0, pinf1 = 1, pinf2 = 2, pinf3 = 3,
@@ -59,7 +59,7 @@ static constexpr uint8_t
             ddg0 = 0, ddg1 = 1, ddg2 = 2, ddg3 = 3, ddg4 = 4, ddg5 = 5,
         portg = portg_base + 2,
             portg0 = 0, portg1 = 1, portg2 = 2, portg3 = 3, portg4 = 4, portg5 = 5,
-            pg0 = 0, pg1 = 1, pg2 = 2, pg3 = 3, pg4 = 4, pg5 = 5,
+        pg0 = 0, pg1 = 1, pg2 = 2, pg3 = 3, pg4 = 4, pg5 = 5,
     tifr0 = 0x35, tov0 = 0, ocf0a = 1, ocf0b = 2,
     tifr1 = 0x36, tov1 = 0, ocf1a = 1, ocf1b = 2, ocf1c = 3, icf1 = 5,
     tifr2 = 0x37, tov2 = 0, ocf2a = 1, ocf2b = 2,
@@ -79,6 +79,8 @@ static constexpr uint8_t
     timsk0 = 0x6e, toie0 = 0, ocie0a = 1, ocie0b = 2,
     timsk1 = 0x6f, toie1 = 0, ocie1a = 1, ocie1b = 2, ocie1c = 3, icie1 = 5,
     timsk2 = 0x70, toie2 = 0, ocie2a = 1, ocie2b = 2,
+    timsk3 = 0x71,
+    timsk4 = 0x72,
     adcl = 0x78,
     adch = 0x79,
     adcsra = 0x7a,
@@ -166,6 +168,7 @@ static constexpr uint16_t
     ocr2b_port = ocr2b_port_base + 2;
 
 static volatile uint8_t
+    * const p_pina = (volatile uint8_t * const)pina,
     * const p_pinb = (volatile uint8_t * const)pinb,
     * const p_ddrb = (volatile uint8_t * const)ddrb,
     * const p_portb = (volatile uint8_t * const)portb,
@@ -189,6 +192,8 @@ static volatile uint8_t
     * const p_timsk0 = (volatile uint8_t * const)timsk0,
     * const p_timsk1 = (volatile uint8_t * const)timsk1,
     * const p_timsk2 = (volatile uint8_t * const)timsk2,
+    * const p_timsk3 = (volatile uint8_t * const)timsk3,
+    * const p_timsk4 = (volatile uint8_t * const)timsk4,
     * const p_adcl = (volatile uint8_t * const)adcl,
     * const p_adch = (volatile uint8_t * const)adch,
     * const p_adcsra = (volatile uint8_t * const)adcsra,
@@ -239,7 +244,7 @@ static volatile uint16_t
 struct Board
 {
     Port
-        portA { (uint8_t *)porta_base },
+        portA { p_pina },
         portB { (uint8_t *)portb_base },
         portC { (uint8_t *)portc_base },
         portD { (uint8_t *)portd_base },
