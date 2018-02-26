@@ -1,7 +1,5 @@
 #include "network.h"
 #include "util.h"
-#include <avr/io.h>
-#include <string.h>
 #include "board.h"
 
 #ifndef F_CPU
@@ -9,10 +7,6 @@
 #endif
 
 #include <util/delay.h>
-
-#define CSACTIVE (PORTB &= ~(1<<0))
-#define CSPASSIVE (PORTB |= 1<<0)
-#define waitspi() while(!(SPSR&(1<<SPIF)))
 
 uint16_t Enc28J60Network::nextPacketPtr;
 uint8_t Enc28J60Network::bank=0xff;
@@ -22,15 +16,15 @@ struct memblock Enc28J60Network::receivePkt;
 void Enc28J60Network::init(uint8_t* macaddr)
 {
     MemoryPool::init();
-    *p_ddr_ss |= 1<<pss;
-    *p_port_ss |= 1<<pss;
+    *p_cs_ddr |= 1<<cs_pin;
+    *p_cs_port |= 1<<cs_pin;
     *p_ddr_mosi |= 1<<pmosi;
     *p_ddr_sck |= 1<<psck;
     *p_ddr_miso &= ~(1<<pmiso);
     *p_port_mosi &= ~(1<<pmosi);
     *p_port_sck &= ~(1<<psck);
-    *p_spcr = 1<<SPE | 1<<MSTR;
-    *p_spsr |= (1<<SPI2X);
+    *p_spcr = 1<<spe | 1<<mstr;
+    *p_spsr |= 1<<spi2x;
     writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
     _delay_ms(50);
     nextPacketPtr = RXSTART_INIT;
@@ -60,22 +54,19 @@ void Enc28J60Network::init(uint8_t* macaddr)
 
 memhandle Enc28J60Network::receivePacket()
 {
-  uint8_t rxstat;
-  uint16_t len;
-  // check if a packet has been received and buffered
-  //if( !(readReg(EIR) & EIR_PKTIF) ){
-  // The above does not work. See Rev. B4 Silicon Errata point 6.
-  if (readReg(EPKTCNT) != 0)
+    uint8_t rxstat;
+    uint16_t len;
+
+    if (readReg(EPKTCNT) != 0)
     {
-      uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ? nextPacketPtr+6-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+6;
-      // Set the read pointer to the start of the received packet
-      writeRegPair(ERDPTL, nextPacketPtr);
-      // read the next packet pointer
-      nextPacketPtr = readOp(ENC28J60_READ_BUF_MEM, 0);
-      nextPacketPtr |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
-      // read the packet length (see datasheet page 43)
-      len = readOp(ENC28J60_READ_BUF_MEM, 0);
-      len |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
+        uint16_t readPtr = nextPacketPtr+6 > RXSTOP_INIT ?
+            nextPacketPtr+6-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+6;
+
+        writeRegPair(ERDPTL, nextPacketPtr);
+        nextPacketPtr = readOp(ENC28J60_READ_BUF_MEM, 0);
+        nextPacketPtr |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
+        len = readOp(ENC28J60_READ_BUF_MEM, 0);
+        len |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
       len -= 4; //remove the CRC count
       // read the receive status (see datasheet page 43)
       rxstat = readOp(ENC28J60_READ_BUF_MEM, 0);
@@ -97,16 +88,15 @@ memhandle Enc28J60Network::receivePacket()
   return (NOBLOCK);
 }
 
-void
-Enc28J60Network::setERXRDPT()
+void Enc28J60Network::setERXRDPT()
 {
-  writeRegPair(ERXRDPTL, nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1);
+    writeRegPair(ERXRDPTL, nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1);
 }
 
-memaddress
-Enc28J60Network::blockSize(memhandle handle)
+memaddress Enc28J60Network::blockSize(memhandle handle)
 {
-  return handle == NOBLOCK ? 0 : handle == UIP_RECEIVEBUFFERHANDLE ? receivePkt.size : blocks[handle].size;
+    return handle == NOBLOCK ? 0 : handle == UIP_RECEIVEBUFFERHANDLE ?
+            receivePkt.size : blocks[handle].size;
 }
 
 void
@@ -139,11 +129,13 @@ Enc28J60Network::sendPacket(memhandle handle)
     writeByte(start, data);
 }
 
-uint16_t
-Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
+uint16_t Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
 {
-  memblock *packet = handle == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[handle];
-  memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-RXSTOP_INIT+RXSTART_INIT : packet->begin + position;
+    memblock *packet = handle == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[handle];
+
+    memaddress start = handle == UIP_RECEIVEBUFFERHANDLE &&
+        packet->begin + position > RXSTOP_INIT ?
+        packet->begin + position-RXSTOP_INIT+RXSTART_INIT : packet->begin + position;
 
   writeRegPair(ERDPTL, start);
   
@@ -155,55 +147,63 @@ Enc28J60Network::setReadPtr(memhandle handle, memaddress position, uint16_t len)
 uint16_t
 Enc28J60Network::readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len)
 {
-  len = setReadPtr(handle, position, len);
-  readBuffer(len, buffer);
-  return len;
+    len = setReadPtr(handle, position, len);
+    readBuffer(len, buffer);
+    return len;
 }
 
 uint16_t
 Enc28J60Network::writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len)
 {
-  memblock *packet = &blocks[handle];
-  uint16_t start = packet->begin + position;
+    memblock *packet = &blocks[handle];
+    uint16_t start = packet->begin + position;
+    writeRegPair(EWRPTL, start);
 
-  writeRegPair(EWRPTL, start);
+    if (len > packet->size - position)
+        len = packet->size - position;
 
-  if (len > packet->size - position)
-    len = packet->size - position;
-  writeBuffer(len, buffer);
-  return len;
+    writeBuffer(len, buffer);
+    return len;
 }
 
 uint8_t Enc28J60Network::readByte(uint16_t addr)
 {
-  writeRegPair(ERDPTL, addr);
+    writeRegPair(ERDPTL, addr);
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = ENC28J60_READ_BUF_MEM;
 
-  CSACTIVE;
-  SPDR = ENC28J60_READ_BUF_MEM;
-  waitspi();
-  // read data
-  SPDR = 0x00;
-  waitspi();
-  CSPASSIVE;
-  return (SPDR);
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    *p_spdr = 0x00;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+    
+    *p_cs_port |= 1<<cs_pin;
+    return *p_spdr;
 }
 
 void Enc28J60Network::writeByte(uint16_t addr, uint8_t data)
 {
-  writeRegPair(EWRPTL, addr);
+    writeRegPair(EWRPTL, addr);
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = ENC28J60_WRITE_BUF_MEM;
+    
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
 
-  CSACTIVE;
-  // issue write command
-  SPDR = ENC28J60_WRITE_BUF_MEM;
-  waitspi();
-  // write data
-  SPDR = data;
-  waitspi();
-  CSPASSIVE;
+    *p_spdr = data;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    *p_cs_port |= 1<<cs_pin;
 }
 
 void
-Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle src_pkt, memaddress src_pos, uint16_t len)
+Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos,
+    memhandle src_pkt, memaddress src_pos, uint16_t len)
 {
   memblock *dest = &blocks[dest_pkt];
   memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
@@ -272,76 +272,90 @@ Enc28J60Network::freePacket()
     setERXRDPT();
 }
 
-uint8_t
-Enc28J60Network::readOp(uint8_t op, uint8_t address)
+uint8_t Enc28J60Network::readOp(uint8_t op, uint8_t address)
 {
-  CSACTIVE;
-  // issue read command
-  SPDR = op | (address & ADDR_MASK);
-  waitspi();
-  // read data
-  SPDR = 0x00;
-  waitspi();
-  // do dummy read if needed (for mac and mii, see datasheet page 29)
-  if(address & 0x80)
-  {
-    SPDR = 0x00;
-    waitspi();
-  }
-  // release CS
-  CSPASSIVE;
-  return(SPDR);
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = op | (address & ADDR_MASK);
+
+    while((*p_spsr & 1<<spif) == 0)
+        ;
+
+    *p_spdr = 0x00;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    if (address & 0x80)
+    {
+        *p_spdr = 0x00;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+    }
+
+    *p_cs_port |= 1<<cs_pin;
+    return *p_spdr;
 }
 
-void
-Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data)
+void Enc28J60Network::writeOp(uint8_t op, uint8_t address, uint8_t data)
 {
-  CSACTIVE;
-  // issue write command
-  SPDR = op | (address & ADDR_MASK);
-  waitspi();
-  // write data
-  SPDR = data;
-  waitspi();
-  CSPASSIVE;
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = op | (address & ADDR_MASK);
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    *p_spdr = data;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    *p_cs_port |= 1<<cs_pin;
 }
 
-void
-Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
+void Enc28J60Network::readBuffer(uint16_t len, uint8_t* data)
 {
-  CSACTIVE;
-  // issue read command
-  SPDR = ENC28J60_READ_BUF_MEM;
-  waitspi();
-  while(len)
-  {
-    len--;
-    // read data
-    SPDR = 0x00;
-    waitspi();
-    *data = SPDR;
-    data++;
-  }
-  //*data='\0';
-  CSPASSIVE;
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = ENC28J60_READ_BUF_MEM;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    while(len)
+    {
+        len--;
+        *p_spdr = 0x00;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+
+        *data = *p_spdr;
+        data++;
+    }
+
+    *p_cs_port |= 1<<cs_pin;
 }
 
-void
-Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
+void Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
 {
-  CSACTIVE;
-  // issue write command
-  SPDR = ENC28J60_WRITE_BUF_MEM;
-  waitspi();
-  while(len)
-  {
-    len--;
-    // write data
-    SPDR = *data;
-    data++;
-    waitspi();
-  }
-  CSPASSIVE;
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = ENC28J60_WRITE_BUF_MEM;
+
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    while (len)
+    {
+        len--;
+        *p_spdr = *data;
+        data++;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+
+    }
+
+    *p_cs_port |= 1<<cs_pin;
 }
 
 void
@@ -425,61 +439,70 @@ Enc28J60Network::getrev(void)
   return(readReg(EREVID));
 }
 
-uint16_t
-Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len)
+uint16_t Enc28J60Network::chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len)
 {
-  uint16_t t;
-  len = setReadPtr(handle, pos, len)-1;
-  CSACTIVE;
-  // issue read command
-  SPDR = ENC28J60_READ_BUF_MEM;
-  waitspi();
-  uint16_t i;
-  for (i = 0; i < len; i+=2)
-  {
-    // read data
-    SPDR = 0x00;
-    waitspi();
-    t = SPDR << 8;
-    SPDR = 0x00;
-    waitspi();
-    t += SPDR;
-    sum += t;
-    if(sum < t) {
-      sum++;            /* carry */
-    }
-  }
-  if(i == len) {
-    SPDR = 0x00;
-    waitspi();
-    t = (SPDR << 8) + 0;
-    sum += t;
-    if(sum < t) {
-      sum++;            /* carry */
-    }
-  }
-  CSPASSIVE;
+    uint16_t t;
+    len = setReadPtr(handle, pos, len)-1;
+    *p_cs_port &= ~(1<<cs_pin);
+    *p_spdr = ENC28J60_READ_BUF_MEM;
 
-  /* Return sum in host byte order. */
-  return sum;
+    while ((*p_spsr & 1<<spif) == 0)
+        ;
+
+    uint16_t i;
+
+    for (i = 0; i < len; i+=2)
+    {
+        *p_spdr = 0x00;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+
+        t = *p_spdr << 8;
+        *p_spdr = 0x00;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+
+        t += *p_spdr;
+        sum += t;
+
+        if (sum < t)
+            sum++;
+    }
+
+    if (i == len)
+    {
+        *p_spdr = 0x00;
+
+        while ((*p_spsr & 1<<spif) == 0)
+            ;
+
+        t = (*p_spdr << 8) + 0;
+        sum += t;
+
+        if (sum < t)
+            sum++;
+    }
+    *p_cs_port |= 1<<cs_pin;
+    return sum;
 }
 
-void
-Enc28J60Network::powerOff()
+void Enc28J60Network::powerOff()
 {
-  writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_RXEN);
-  _delay_ms(50);
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_VRPS);
-  _delay_ms(50);
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PWRSV);
+    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_RXEN);
+    _delay_ms(50);
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_VRPS);
+    _delay_ms(50);
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PWRSV);
 }
 
 void Enc28J60Network::powerOn()
 {
-  writeOp(ENC28J60_BIT_FIELD_CLR, ECON2, ECON2_PWRSV);
-  _delay_ms(50);
-  writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
-  _delay_ms(50);
+    writeOp(ENC28J60_BIT_FIELD_CLR, ECON2, ECON2_PWRSV);
+    _delay_ms(50);
+    writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
+    _delay_ms(50);
 }
 
 bool Enc28J60Network::linkStatus()
@@ -493,9 +516,19 @@ static const uint8_t POOLOFFSET = 1;
 
 struct memblock MemoryPool::blocks[MEMPOOL_NUM_MEMBLOCKS+1];
 
+static inline void *myMemset(void *s, int c, size_t n)
+{
+    uint8_t *p = (uint8_t *)s;
+
+    while (n--)
+        *p++ = (uint8_t)c;
+
+    return s;
+}
+
 void MemoryPool::init()
 {
-    memset(&blocks[0], 0, sizeof(blocks));
+    myMemset(&blocks[0], 0, sizeof(blocks));
     blocks[POOLSTART].begin = MEMPOOL_STARTADDRESS;
     blocks[POOLSTART].size = 0; 
     blocks[POOLSTART].nextblock = NOBLOCK;

@@ -1,9 +1,9 @@
 #ifndef _UIPUDP_H_
 #define _UIPUDP_H_
 
-#include "util.h"
 #include "uip.h"
-#include "uip_client.h"
+#include "network.h"
+#include "ipaddrezz.h"
 
 static const uint16_t UIP_UDP_MAXDATALEN = 1500;
 #define UIP_UDP_PHYH_LEN UIP_LLH_LEN+UIP_IPUDPH_LEN

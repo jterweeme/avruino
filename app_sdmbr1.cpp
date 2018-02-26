@@ -13,12 +13,6 @@ ChipSelect = D9
 
 static Sd2Card *g_sd;
 
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    g_sd->tick();
-}
-
 static inline bool izprint(uint8_t c)
 {
     return c >= 0x20 && c <= 0x7e ? true : false;
@@ -36,7 +30,7 @@ static void hexDump(uint8_t *point, ostream &os)
         for (uint8_t j = 0; j < 16; j++)
         {
             os.write(nibble(point[i + j] >> 4));
-            os.write(nibble(point[i + j] & 0x0f));
+            os.write(nibble(point[i + j] & 0xf));
             os.write(' ');
         }
 
@@ -85,8 +79,13 @@ int main()
     return 0;
 }
 
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
+{
+    g_sd->tick();
+}
+
 #if defined (__AVR_ATmega32U4__)
-#ifndef BUSBY_INT
 extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
 void USB_COM
 {
@@ -99,5 +98,6 @@ void USB_GEN
     USB::instance->gen();
 }
 #endif
-#endif
+
+
 

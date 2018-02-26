@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = leonardo
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -46,12 +46,12 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_blink3.elf app_megaboot4.hex \
+    app_blink3.elf app_megaboot4.hex app_analogweb1.elf \
     app_optiboot1.hex app_heliosboot1.hex
 
 ifeq ($(POOL1), ja)
 TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
-    app_vga2.elf app_blink4.hex app_sound1.elf app_analogweb1.elf app_pong1.elf \
+    app_vga2.elf app_blink4.hex app_sound1.elf app_pong1.elf \
     app_fourinone.elf app_pirate1.elf
 endif
 

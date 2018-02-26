@@ -1,31 +1,19 @@
 /*
-Mega eth CS: D53
+Mega eth CS: D53/SS
+Uno eth CS: D10/SS
 
 werkt met mega
 */
 
-#include "uip_ethernet.h"
 #include "uip_server.h"
-#include "uip_client.h"
 #include "misc.h"
 #include "board.h"
-#include <stdio.h>
 
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #include <util/delay.h>
-
-static uint32_t g_millis = 0;
-
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    g_millis++;
-}
-
-uint32_t millis()
-{
-    return g_millis;
-}
 
 static inline char nibble(uint8_t n)
 {
@@ -38,15 +26,17 @@ int main()
 {
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
-    UIPServer server = UIPServer(80);
+    UIPEthernetClass eth;
+    UIPServer server = UIPServer(&eth, 80);
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
 
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddrezz myIP(192,168,178,32);
+    IPAddrezz myIP(192,168,200,56);
+    
     UIPEthernet.begin(mac, myIP);
-    uint32_t ip = UIPEthernet.localIP();
+    //uint32_t ip = UIPEthernet.localIP();
     server.begin();
 
     while (true)
@@ -72,15 +62,14 @@ int main()
                         client.write("<!DOCTYPE HTML>\r\n");
                         client.write("<html>\r\n");
 
-                        for (int analogChannel = 0; analogChannel < 6; analogChannel++)
+                        for (uint8_t analogChannel = 0; analogChannel < 6; analogChannel++)
                         {
                             client.write("analog input ");
-                            char buf[100];
-                            snprintf(buf, 100, "%u", analogChannel);
-                            client.write(buf);
+                            client.write(nibble(analogChannel & 0xf));
                             client.write(" is ");
-                            snprintf(buf, 100, "%u", g_count++);
-                            client.write(buf);
+                            uint8_t count = g_count++;
+                            client.write(nibble(count >> 4 & 0xf));
+                            client.write(nibble(count & 0xf));
                             client.write("<br />\r\n");
                         }
 
@@ -103,7 +92,11 @@ int main()
     return 0;
 }
 
-
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
+{
+    UIPEthernet.tick2();
+}
 
 
 

@@ -28,7 +28,6 @@ static inline char convertCase(char c)
     return c;
 }
 
-
 int main()
 {
     CDC usb;
@@ -47,7 +46,6 @@ int main()
     return 0;
 }
 
-#ifndef BUSBY_INT
 extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
 void USB_COM
 {
@@ -59,6 +57,5 @@ void USB_GEN
 {
     USB::instance->gen();
 }
-#endif
 
 

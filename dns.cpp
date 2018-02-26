@@ -6,7 +6,10 @@
 #include "dns.h"
 #include <string.h>
 
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #include <util/delay.h>
 
 #define SOCKET_NONE	255
@@ -106,6 +109,8 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddrezz& aResult)
         return 0;
     }
 }
+
+const IPAddrezz INADDR_NUNE(0,0,0,0);
 
 int DNSClient::getHostByName(const char* aHostname, IPAddrezz& aResult)
 {

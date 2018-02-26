@@ -7,7 +7,7 @@
 #define UIP_ARPTAB_SIZE 8
 #endif
 
-static const uint8_t UIP_ARP_MAXAGE = 120;
+static constexpr uint8_t UIP_ARP_MAXAGE = 120;
 
 struct arp_hdr
 {
@@ -31,7 +31,7 @@ struct ethip_hdr
     uint16_t srcipaddr[2], destipaddr[2];
 };
 
-static const uint8_t ARP_REQUEST = 1, ARP_REPLY = 2, ARP_HWTYPE_ETH = 1;
+static constexpr uint8_t ARP_REQUEST = 1, ARP_REPLY = 2, ARP_HWTYPE_ETH = 1;
 
 struct arp_entry
 {

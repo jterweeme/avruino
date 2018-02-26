@@ -355,13 +355,6 @@ void USBSound::connect()
     *p_tccr3b = 1<<wgm32 | 1<<cs30;
 }
 
-//ISR(TIMER0_COMPA_vect)
-extern "C" void __vector_21() __attribute__ ((signal, used, externally_visible));
-void __vector_21()
-{
-    g_usbSound->sampleCallback();
-}
-
 void USBSound::sampleCallback()
 {
     uint8_t prevEp = getCurrentEndpoint();
@@ -393,5 +386,25 @@ int main()
 
     return 0;
 }
+
+extern "C" void TIMER0_COMPA __attribute__ ((signal, used, externally_visible));
+void TIMER0_COMPA
+{
+    g_usbSound->sampleCallback();
+}
+
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
+{
+    USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
+{
+    USB::instance->gen();
+}
+
+
 
 

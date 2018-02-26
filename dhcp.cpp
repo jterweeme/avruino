@@ -3,7 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #include <util/delay.h>
 
 int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTimeout)

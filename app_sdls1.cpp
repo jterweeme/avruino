@@ -1,21 +1,20 @@
 /*
 directory listing sd card FAT formatted
 
-works
+UNO: CS <-> D9
+
+werkt met UNO
 */
 
 #include "fatty.h"
 #include "misc.h"
-#include <avr/interrupt.h>
-#include <stdio.h>
 #include "stream.h"
-#include "int.h"
 
 static ZD *g_zd;
 
-IZR(TIMER0_OVF_vect)
+static inline char nibble(uint8_t n)
 {
-    g_zd->tick();
+    return n <= 9 ? '0' + n : 'A' + n - 10;
 }
 
 void printDirectory(Fyle dir, int numTabs, ostream &os)
@@ -40,9 +39,16 @@ void printDirectory(Fyle dir, int numTabs, ostream &os)
         else
         {
             os.writeString("\t\t");
-            char buf[50];
-            ::snprintf(buf, 50, "%lu\r\n", entry.size());
-            os.writeString(buf);
+            uint32_t size = entry.size();
+            os.write(nibble(size >> 28 & 0xf));
+            os.write(nibble(size >> 24 & 0xf));
+            os.write(nibble(size >> 20 & 0xf));
+            os.write(nibble(size >> 16 & 0xf));
+            os.write(nibble(size >> 12 & 0xf));
+            os.write(nibble(size >> 8 & 0xf));
+            os.write(nibble(size >> 4 & 0xf));
+            os.write(nibble(size & 0xf));
+            os.writeString("\r\n");
         }
         entry.close();
     }
@@ -52,7 +58,7 @@ int main()
 {
     *p_tccr0b = 1<<cs02;
     *p_timsk0 |= 1<<toie0;
-    sei();
+    zei();
     Fyle myFile;
 #if defined (__AVR_ATmega32U4__)
     CDC cdc;
@@ -94,5 +100,10 @@ int main()
     return 0;
 }
 
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
+{
+    g_zd->tick();
+}
 
 

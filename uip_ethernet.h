@@ -1,13 +1,16 @@
-#ifndef UIPETHERNET_H
-#define UIPETHERNET_H
+#ifndef _UIPETHERNET_H_
+#define _UIPETHERNET_H_
 #include "util.h"
+#include "types.h"
+#include "ipaddrezz.h"
 #include "dhcp.h"
 #include "network.h"
-#include "uip_client.h"
-#include "uip_server.h"
-#include "uip_udp.h"
+//#include "uip_client.h"
+//#include "uip_server.h"
+//#include "uip_udp.h"
 
-static const uint8_t UIPETHERNET_FREEPACKET = 1,
+static constexpr uint8_t
+    UIPETHERNET_FREEPACKET = 1,
     UIPETHERNET_SENDPACKET = 2,
     UIPETHERNET_BUFFERREAD = 4;
 
@@ -41,6 +44,7 @@ public:
     IPAddrezz subnetMask();
     IPAddrezz gatewayIP();
     IPAddrezz dnsServerIP();
+    void tick2();
 private:
     static memhandle in_packet;
     static memhandle uip_packet;

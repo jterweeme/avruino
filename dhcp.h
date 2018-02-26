@@ -5,7 +5,7 @@
 #define _DHCP_H_
 
 #include "uip_udp.h"
-#include "uip_client.h"
+//#include "uip_client.h"
 #include <string.h>
 
 #define STATE_DHCP_START 0

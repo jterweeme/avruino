@@ -284,6 +284,13 @@ struct Board
         pinA5 {portC, BIT5};
 };
 
+#define TIMER2_COMPA __vector_7()
+#define TIMER2_COMPB __vector_8()
+#define TIMER1_CAPT __vector_10()
+#define TIMER0_COMPA __vector_14()
+#define TIMER0_COMPB __vector_15()
+#define TIMER0_OVF __vector_16()
+
 #define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
 #define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )
 #define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
@@ -292,7 +299,7 @@ struct Board
 static const uint8_t FRACT_MAX = 1000 >> 3;
 static volatile unsigned long timer0_overflow_count = 0;
 
-unsigned long millis();
+//unsigned long millis();
 
 #endif
 

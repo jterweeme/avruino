@@ -1,10 +1,16 @@
 #include "uip_ethernet.h"
 #include "uip.h"
 #include "arp.h"
+#include "uip_client.h"
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
-extern uint32_t millis();
+static uint32_t g_millis = 0;
+
+uint32_t millis()
+{
+    return g_millis;
+}
 
 memhandle UIPEthernetClass::in_packet(NOBLOCK);
 memhandle UIPEthernetClass::uip_packet(NOBLOCK);
@@ -37,6 +43,11 @@ int UIPEthernetClass::begin(const uint8_t* mac)
 #else
     return 0;
 #endif
+}
+
+void UIPEthernetClass::tick2()
+{
+    g_millis++;
 }
 
 void UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip)
@@ -248,18 +259,14 @@ void UIPEthernetClass::init(const uint8_t* mac) {
 void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
     IPAddrezz gateway, IPAddrezz subnet)
 {
-  uip_ipaddr_t ipaddr;
-
-  uip_ip_addr(ipaddr, ip);
-  uip_sethostaddr(ipaddr);
-
-  uip_ip_addr(ipaddr, gateway);
-  uip_setdraddr(ipaddr);
-
-  uip_ip_addr(ipaddr, subnet);
-  uip_setnetmask(ipaddr);
-
-  _dnsServerAddress = dns;
+    uip_ipaddr_t ipaddr;
+    uip_ip_addr(ipaddr, ip);
+    uip_sethostaddr(ipaddr);
+    uip_ip_addr(ipaddr, gateway);
+    uip_setdraddr(ipaddr);
+    uip_ip_addr(ipaddr, subnet);
+    uip_setnetmask(ipaddr);
+    _dnsServerAddress = dns;
 }
 
 UIPEthernetClass UIPEthernet;

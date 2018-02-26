@@ -375,18 +375,16 @@ int main()
     return 0;
 }
 
-#ifndef BUSBY_INT
-extern "C" void __vector_11() __attribute__ ((signal, used, externally_visible));
-void __vector_11()
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
 {
     USB::instance->com();
 }
 
-extern "C" void __vector_10() __attribute__ ((signal, used, externally_visible));
-void __vector_10()
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
 {
     USB::instance->gen();
 }
-#endif
 
 

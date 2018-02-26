@@ -1,4 +1,3 @@
-#include <avr/io.h>
 #include "st7783.h"
 
 #ifndef F_CPU

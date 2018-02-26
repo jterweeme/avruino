@@ -3,6 +3,7 @@
 
 #include "util.h"
 #include "uip.h"
+#include "board.h"
 
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
@@ -287,47 +288,66 @@ public:
     static memaddress blockSize(memhandle);
 };
 
+static constexpr uint8_t
+#if defined (__AVR_ATmega32U4__)
+    cs_port_base = pin10_base,
+    cs_pin = pin10_bit,
+#else
+    cs_port_base = ss_port_base,
+    cs_pin = pss,
+#endif
+    cs_ddr = cs_port_base + 1,
+    cs_port = cs_port_base + 2;
+
+static volatile uint8_t * const p_cs_ddr = (volatile uint8_t * const)cs_ddr;
+static volatile uint8_t * const p_cs_port = (volatile uint8_t * const)cs_port;
 
 class Enc28J60Network : public MemoryPool
 {
 private:
-  static uint16_t nextPacketPtr;
-  static uint8_t bank;
-  static struct memblock receivePkt;
-  static uint8_t readOp(uint8_t op, uint8_t address);
-  static void writeOp(uint8_t op, uint8_t address, uint8_t data);
-  static uint16_t setReadPtr(memhandle handle, memaddress position, uint16_t len);
-  static void setERXRDPT();
-  static void readBuffer(uint16_t len, uint8_t* data);
-  static void writeBuffer(uint16_t len, uint8_t* data);
-  static uint8_t readByte(uint16_t addr);
-  static void writeByte(uint16_t addr, uint8_t data);
-  static void setBank(uint8_t address);
-  static uint8_t readReg(uint8_t address);
-  static void writeReg(uint8_t address, uint8_t data);
-  static void writeRegPair(uint8_t address, uint16_t data);
-  static void phyWrite(uint8_t address, uint16_t data);
-  static uint16_t phyRead(uint8_t address);
-  static void clkout(uint8_t clk);
-  friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
+    static uint16_t nextPacketPtr;
+    static uint8_t bank;
+    static struct memblock receivePkt;
+    static uint8_t readOp(uint8_t op, uint8_t address);
+    static void writeOp(uint8_t op, uint8_t address, uint8_t data);
+    static uint16_t setReadPtr(memhandle handle, memaddress position, uint16_t len);
+    static void setERXRDPT();
+    static void readBuffer(uint16_t len, uint8_t* data);
+    static void writeBuffer(uint16_t len, uint8_t* data);
+    static uint8_t readByte(uint16_t addr);
+    static void writeByte(uint16_t addr, uint8_t data);
+    static void setBank(uint8_t address);
+    static uint8_t readReg(uint8_t address);
+    static void writeReg(uint8_t address, uint8_t data);
+    static void writeRegPair(uint8_t address, uint16_t data);
+    static void phyWrite(uint8_t address, uint16_t data);
+    static uint16_t phyRead(uint8_t address);
+    static void clkout(uint8_t clk);
+    friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 public:
-  uint8_t getrev(void);
-  void powerOn();
-  void powerOff();
-  bool linkStatus();
-  static void init(uint8_t* macaddr);
-  static memhandle receivePacket();
-  static void freePacket();
-  static memaddress blockSize(memhandle handle);
-  static void sendPacket(memhandle handle);
-  static uint16_t readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len);
-  static uint16_t writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len);
-  static void copyPacket(memhandle dest, memaddress dest_pos, memhandle src, memaddress src_pos, uint16_t len);
-  static uint16_t chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len);
+    uint8_t getrev(void);
+    void powerOn();
+    void powerOff();
+    bool linkStatus();
+    static void init(uint8_t* macaddr);
+    static memhandle receivePacket();
+    static void freePacket();
+    static memaddress blockSize(memhandle handle);
+    static void sendPacket(memhandle handle);
+
+    static uint16_t readPacket(memhandle handle, memaddress position,
+        uint8_t* buffer, uint16_t len);
+
+    static uint16_t writePacket(memhandle handle, memaddress position,
+        uint8_t* buffer, uint16_t len);
+
+    static void copyPacket(memhandle dest, memaddress dest_pos, memhandle src,
+        memaddress src_pos, uint16_t len);
+
+    static uint16_t chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len);
 };
 
-extern Enc28J60Network Enc28J60;
-#endif /* Enc28J60NetworkClass_H_ */
+#endif
 
 
 

@@ -33,10 +33,10 @@ bool IPAddrezz::operator==(const uint8_t* addr)
 
 uip_userdata_t UIPClient::all_data[UIP_CONNS];
 
-UIPClient::UIPClient() : data(NULL) { }
+UIPClient::UIPClient(UIPEthernetClass * const eth) : _eth(eth), data(NULL) { }
 
-UIPClient::UIPClient(uip_userdata_t* conn_data) :
-    data(conn_data)
+UIPClient::UIPClient(UIPEthernetClass * const eth, uip_userdata_t* conn_data)
+    : _eth(eth), data(conn_data)
 {
 }
 
@@ -171,9 +171,10 @@ ready:
 
 int UIPClient::available()
 {
-  if (*this)
-    return _available(data);
-  return 0;
+    if (*this)
+        return _available(data);
+
+    return 0;
 }
 
 int UIPClient::_available(uip_userdata_t *u)
@@ -383,22 +384,21 @@ uip_userdata_t *UIPClient::_allocateData()
 
 uint8_t UIPClient::_currentBlock(memhandle* block)
 {
-  for (uint8_t i = 1; i < UIP_SOCKET_NUMPACKETS; i++)
-    {
-      if (block[i] == NOBLOCK)
-        return i-1;
-    }
-  return UIP_SOCKET_NUMPACKETS-1;
+    for (uint8_t i = 1; i < UIP_SOCKET_NUMPACKETS; i++)
+        if (block[i] == NOBLOCK)
+            return i - 1;
+
+    return UIP_SOCKET_NUMPACKETS-1;
 }
 
 void UIPClient::_eatBlock(memhandle* block)
 {
-  Enc28J60Network::freeBlock(block[0]);
-  for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
-    {
-      block[i] = block[i+1];
-    }
-  block[UIP_SOCKET_NUMPACKETS-1] = NOBLOCK;
+    Enc28J60Network::freeBlock(block[0]);
+
+    for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
+        block[i] = block[i+1];
+    
+    block[UIP_SOCKET_NUMPACKETS-1] = NOBLOCK;
 }
 
 void UIPClient::_flushBlocks(memhandle* block)
