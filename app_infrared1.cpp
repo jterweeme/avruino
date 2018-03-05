@@ -6,11 +6,6 @@
 #include "infrared.h"
 #include "uart.h"
 
-inline char nibble(uint8_t n)
-{
-    return n <= 9 ? '0' + n : 'A' + n - 10;
-}
-
 int main()
 {
     int RECV_PIN = 10;

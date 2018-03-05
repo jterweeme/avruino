@@ -1,13 +1,6 @@
 #include <string.h>
 #include <avr/pgmspace.h>
-#include <stdio.h>
 #include <avr/interrupt.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <avr/boot.h>
-#include <math.h>
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -15,6 +8,7 @@
 
 #include <util/delay.h>
 #include "bogota.h"
+#include "busby.h"
 #include "network.h"
 
 static constexpr uint8_t
@@ -58,46 +52,46 @@ static constexpr uint8_t
     NDIS_HardwareStatus_Closing = 3,
     NDIS_HardwareStatus_NotReady = 4;
 
-typedef struct
+struct USB_CDC_Descriptor_FunctionalHeader_t
 {
     uint8_t size;
     uint8_t type;
     uint8_t  Subtype;
     uint16_t CDCSpecification;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalHeader_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_StdDescriptor_FunctionalHeader_t
 {
     uint8_t  bFunctionLength;
     uint8_t  bDescriptorType;
     uint8_t  bDescriptorSubType;
     uint16_t bcdCDC;
-} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalHeader_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_Descriptor_FunctionalACM_t
 {
     uint8_t size;
     uint8_t type;
     uint8_t Subtype;
     uint8_t Capabilities;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalACM_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_StdDescriptor_FunctionalACM_t
 {
     uint8_t bFunctionLength;
     uint8_t bDescriptorType;
     uint8_t bDescriptorSubType;
     uint8_t bmCapabilities;
-} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalACM_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_Descriptor_FunctionalUnion_t
 {
     uint8_t size;
     uint8_t type;
     uint8_t Subtype;
     uint8_t MasterInterfaceNumber;
     uint8_t SlaveInterfaceNumber;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalUnion_t;
+} __attribute__ ((packed));
 
 struct USB_CDC_StdDescriptor_FunctionalUnion_t
 {
@@ -106,7 +100,7 @@ struct USB_CDC_StdDescriptor_FunctionalUnion_t
     uint8_t bDescriptorSubType;
     uint8_t bMasterInterface;
     uint8_t bSlaveInterface0;
-} ATTR_PACKED;
+} __attribute__ ((packed));
 
 static constexpr uint32_t
     REMOTE_NDIS_PACKET_MSG = 0x00000001UL,
@@ -177,15 +171,15 @@ static constexpr uint32_t
 struct MacAddr
 {
     uint8_t Octets[6];
-} ATTR_PACKED;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_Message_Header_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
-} ATTR_PACKED RNDIS_Message_Header_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_Packet_Message_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
@@ -198,7 +192,7 @@ typedef struct
     uint32_t PerPacketInfoLength;
     uint32_t VcHandle;
     uint32_t Reserved;
-} ATTR_PACKED RNDIS_Packet_Message_t;
+} __attribute__ ((packed));
 
 typedef struct
 {
@@ -208,7 +202,7 @@ typedef struct
     uint32_t MajorVersion;
     uint32_t MinorVersion;
     uint32_t MaxTransferSize;
-} ATTR_PACKED RNDIS_Initialize_Message_t;
+} __attribute__ ((packed)) RNDIS_Initialize_Message_t;
 
 typedef struct
 {
@@ -225,14 +219,14 @@ typedef struct
     uint32_t PacketAlignmentFactor;
     uint32_t AFListOffset;
     uint32_t AFListSize;
-} ATTR_PACKED RNDIS_Initialize_Complete_t;
+} __attribute__ ((packed)) RNDIS_Initialize_Complete_t;
 
 typedef struct
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t RequestId;
-} ATTR_PACKED RNDIS_KeepAlive_Message_t;
+} __attribute__ ((packed)) RNDIS_KeepAlive_Message_t;
 
 typedef struct
 {
@@ -240,7 +234,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} ATTR_PACKED RNDIS_KeepAlive_Complete_t;
+} __attribute__ ((packed)) RNDIS_KeepAlive_Complete_t;
 
 typedef struct
 {
@@ -248,7 +242,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t Status;
     uint32_t AddressingReset;
-} ATTR_PACKED RNDIS_Reset_Complete_t;
+} __attribute__ ((packed)) RNDIS_Reset_Complete_t;
 
 typedef struct
 {
@@ -259,7 +253,7 @@ typedef struct
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
     uint32_t DeviceVcHandle;
-} ATTR_PACKED RNDIS_Set_Message_t;
+} __attribute__ ((packed)) RNDIS_Set_Message_t;
 
 typedef struct
 {
@@ -267,7 +261,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} ATTR_PACKED RNDIS_Set_Complete_t;
+} __attribute__ ((packed)) RNDIS_Set_Complete_t;
 
 typedef struct
 {
@@ -278,7 +272,7 @@ typedef struct
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
     uint32_t DeviceVcHandle;
-} ATTR_PACKED RNDIS_Query_Message_t;
+} __attribute__ ((packed)) RNDIS_Query_Message_t;
 
 typedef struct
 {
@@ -288,12 +282,14 @@ typedef struct
     uint32_t Status;
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
-} ATTR_PACKED RNDIS_Query_Complete_t;
+} __attribute__ ((packed)) RNDIS_Query_Complete_t;
 
 Busby *Busby::instance;
 
 class RNDIS : public USB
 {
+private:
+    Enc28J60Network _eth;
 public:
     RNDIS();
     void customCtrl();
@@ -312,9 +308,11 @@ public:
 
 RNDIS::RNDIS()
 {
+    uint8_t mac[6] = {1,1,1,1,1,1};
+    _eth.init(mac);
     USB_OTGPAD_Off();
 
-    if (!(USB_Options & USB_OPT_REG_DISABLED))
+    if ((USB_Options & USB_OPT_REG_DISABLED) == 0)
         UHWCON |= 1<<UVREGE;
     else
         UHWCON &= ~(1<<UVREGE);
@@ -325,9 +323,9 @@ RNDIS::RNDIS()
     USBCON &= ~(1<<VBUSTE);
     UDIEN = 0;
     USBINT = 0;
-    UDINT  = 0;
-    USBCON &= ~(1 << USBE);
-    USBCON |=  (1 << USBE);
+    UDINT = 0;
+    USBCON &= ~(1<<USBE);
+    USBCON |= 1<<USBE;
     USBCON &= ~(1<<FRZCLK);
     PLLCSR = 0;
     state = DEVICE_STATE_UNATTACHED;
@@ -735,83 +733,6 @@ typedef struct
 #define DEFAULT_TTL                      128
 #define IP_COMPARE(IP1, IP2)             (memcmp(IP1, IP2, sizeof(IP_Address_t)) == 0)
 
-typedef struct
-{
-    unsigned     HeaderLength   : 4;
-    unsigned     Version        : 4;
-    uint8_t      TypeOfService;
-    uint16_t     TotalLength;
-    uint16_t     Identification;
-    unsigned     FragmentOffset : 13;
-    unsigned     Flags          : 3; /**< Fradicate if a packet is fragmented */
-    uint8_t      TTL; /**< Maximum allowable hops to reach the packet destination */
-    uint8_t      Protocol; /**< Encapsulated protocol type */
-    uint16_t     HeaderChecksum; /**< Ethernet checksum of the IP header */
-    IP_Address_t SourceAddress; /**< Source protocol IP address of the packet */
-    IP_Address_t DestinationAddress; /**< Destination protocol IP address of the packet */
-} IP_Header_t;
-
-struct ARP_Header_t
-{
-    uint16_t HardwareType;
-    uint16_t ProtocolType;
-    uint8_t HLEN;
-    uint8_t PLEN;
-    uint16_t Operation;
-    MacAddr SHA;
-    IP_Address_t SPA;
-    MacAddr THA;
-    IP_Address_t TPA;
-};
-
-static constexpr uint8_t
-    ARP_OPERATION_REQUEST = 1,
-    ARP_OPERATION_REPLY = 2,
-    ICMP_TYPE_ECHOREPLY = 0,
-    ICMP_TYPE_DESTINATIONUNREACHABLE = 3,
-    ICMP_TYPE_SOURCEQUENCH = 4,
-    ICMP_TYPE_REDIRECTMESSAGE = 5,
-    ICMP_TYPE_ECHOREQUEST = 8,
-    ICMP_TYPE_TIMEEXCEEDED = 11,
-    UDP_PORT_DHCP_REQUEST = 67,
-    UDP_PORT_DHCP_REPLY = 68,
-    UDP_PORT_DNS = 53,
-    DHCP_OP_BOOTREQUEST = 0x01,
-    DHCP_OP_BOOTREPLY = 0x02,
-    DHCP_HTYPE_ETHERNET = 0x01,
-    DHCP_OPTION_SUBNETMASK = 1,
-    DHCP_OPTION_LEASETIME = 51,
-    DHCP_OPTION_MESSAGETYPE = 53,
-    DHCP_OPTION_DHCPSERVER = 54,
-    DHCP_OPTION_PAD = 0,
-    DHCP_OPTION_END = 255,
-    DHCP_MESSAGETYPE_DISCOVER = 1,
-    DHCP_MESSAGETYPE_OFFER = 2,
-    DHCP_MESSAGETYPE_REQUEST = 3,
-    DHCP_MESSAGETYPE_DECLINE = 4,
-    DHCP_MESSAGETYPE_ACK = 5,
-    DHCP_MESSAGETYPE_NACK = 6,
-    DHCP_MESSAGETYPE_RELEASE = 7;
-
-struct ICMP_Header_t
-{
-    uint8_t Type;
-    uint8_t Code;
-    uint16_t Checksum;
-    uint16_t Id;
-    uint16_t Sequence;
-};
-
-typedef struct
-{
-    uint16_t SourcePort;
-    uint16_t DestinationPort;
-    uint16_t Length;
-    uint16_t Checksum;
-} UDP_Header_t;
-
-static constexpr uint32_t DHCP_MAGIC_COOKIE = 0x63825363;
-
 static constexpr uint16_t ETHERNET_VER2_MINSIZE = 0x0600;
 
 struct Frame
@@ -882,7 +803,7 @@ struct USB_Descriptor_Configuration_t
     USB_CDC_Descriptor_FunctionalHeader_t CDC_Functional_Header;
     USB_CDC_Descriptor_FunctionalACM_t    CDC_Functional_ACM;
     USB_CDC_Descriptor_FunctionalUnion_t  CDC_Functional_Union;
-    DescEndpoint             CDC_NotificationEndpoint;
+    DescEndpoint CDC_NotificationEndpoint;
     DescIface CDC_DCI_Interface;
     DescEndpoint RNDIS_DataOutEndpoint;
     DescEndpoint RNDIS_DataInEndpoint;
@@ -1066,9 +987,37 @@ void RNDIS::rndisTask()
 				return;
 			}
 
-			readStream(frameIN.FrameData, RNDISPacketHeader.DataLength, NULL);
+			//readStream(frameIN.FrameData, RNDISPacketHeader.DataLength, NULL);
+#if 0
+            uint8_t *dataStream = (uint8_t *)buf;
+            uint16_t bytesInTransfer = 0;
+            uint8_t errorCode = waitUntilReady();
+
+            if (errorCode)
+                return errorCode;
+
+            while (len)
+            {
+                if ((*p_ueintx & 1<<rwal) == 0)    // read-write allowed?
+                {
+                    *p_ueintx &= ~(1<<rxouti | 1<<fifocon);    // clear out
+                    errorCode = waitUntilReady();
+
+                    if (errorCode)
+                        return errorCode;
+                }
+                else
+                {
+                    *dataStream = read8();
+                    dataStream += 1;
+                    len--;
+                    bytesInTransfer++;
+                }
+            }
+
 			Endpoint_ClearOUT();
 			frameIN.FrameLength = RNDISPacketHeader.DataLength;
+#endif
 		}
 
 		Endpoint_SelectEndpoint(CDC_TX_EPADDR);
@@ -1076,7 +1025,7 @@ void RNDIS::rndisTask()
 		if ((UEINTX & 1<<TXINI) && frameOUT.FrameLength)
 		{
 			memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
-			RNDISPacketHeader.MessageType   = REMOTE_NDIS_PACKET_MSG;
+			RNDISPacketHeader.MessageType = REMOTE_NDIS_PACKET_MSG;
 
 			RNDISPacketHeader.MessageLength = (sizeof(RNDIS_Packet_Message_t) +
                 frameOUT.FrameLength);
@@ -1084,7 +1033,7 @@ void RNDIS::rndisTask()
 			RNDISPacketHeader.DataOffset = (sizeof(RNDIS_Packet_Message_t) -
                 sizeof(RNDIS_Message_Header_t));
 
-			RNDISPacketHeader.DataLength    = frameOUT.FrameLength;
+			RNDISPacketHeader.DataLength = frameOUT.FrameLength;
 			writeStream2(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 			writeStream2(frameOUT.FrameData, RNDISPacketHeader.DataLength, NULL);
 			Endpoint_ClearIN();
@@ -1099,23 +1048,26 @@ void RNDIS::usbTask()
         return;
 
     uint8_t PrevEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(0);
+    selectEndpoint(0);
 
     if (UEINTX & 1<<RXSTPI)
         procCtrlReq();
 
-    Endpoint_SelectEndpoint(PrevEndpoint);
+    selectEndpoint(PrevEndpoint);
 }
 
-ISR(USB_GEN_vect, ISR_BLOCK)
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
+{
+    USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
 {
     USB::instance->gen();
 }
 
-ISR(USB_COM_vect, ISR_BLOCK)
-{
-    USB::instance->com();
-}
 
 int main(void)
 {

@@ -1,13 +1,8 @@
 #ifndef _UIPETHERNET_H_
 #define _UIPETHERNET_H_
-#include "util.h"
-#include "types.h"
 #include "ipaddrezz.h"
 #include "dhcp.h"
-#include "network.h"
-//#include "uip_client.h"
-//#include "uip_server.h"
-//#include "uip_udp.h"
+#include "enc28j60.h"
 
 static constexpr uint8_t
     UIPETHERNET_FREEPACKET = 1,
@@ -32,7 +27,10 @@ static constexpr uint8_t
 
 class UIPEthernetClass
 {
+private:
+    Enc28J60Network _nw;
 public:
+    static UIPEthernetClass *instance;
     UIPEthernetClass();
     int begin(const uint8_t* mac);
     void begin(const uint8_t* mac, IPAddrezz ip);
@@ -53,25 +51,22 @@ private:
     static IPAddrezz _dnsServerAddress;
     static DhcpClass* _dhcp;
     static unsigned long periodic_timer;
-    static void init(const uint8_t* mac);
-    static void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
-    static void tick();
-    static bool network_send();
+    void init(const uint8_t* mac);
+    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
+    void tick();
+    bool network_send();
     friend class UIPServer;
     friend class UIPClient;
     friend class UIPUDP;
-    static uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
-    static uint16_t ipchksum(void);
-    static uint16_t upper_layer_chksum(uint8_t proto);
+    uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
+    uint16_t ipchksum(void);
+    uint16_t upper_layer_chksum(uint8_t proto);
     friend uint16_t uip_ipchksum(void);
     friend uint16_t uip_tcpchksum(void);
     friend uint16_t uip_udpchksum(void);
     friend void uipclient_appcall(void);
     friend void uipudp_appcall(void);
 };
-
-extern UIPEthernetClass UIPEthernet;
-
 #endif
 
 

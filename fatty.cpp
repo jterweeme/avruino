@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+ZD *ZD::instance;
+
 Fyle::Fyle(SdFile f, const char *n)
 {
     _file = (SdFile *)malloc(sizeof(SdFile));

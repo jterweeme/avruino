@@ -26,7 +26,7 @@
 #include <avr/pgmspace.h>
 #include "zd2card.h"
 #include <string.h>
-//#include "uno.h"
+#include "stream.h"
 
 uint8_t const BOOTSIG0 = 0X55;
 uint8_t const BOOTSIG1 = 0XAA;
@@ -909,12 +909,15 @@ public:
     char *name() { return _name; }
     bool isDirectory() { return _file && _file->isDir(); }
     Fyle openNextFile(uint8_t mode = O_RDONLY);
-    void rewindDirectory(void);
+    void rewindDirectory();
 };
 
 class ZD
 {
 private:
+    int fileOpenMode;
+    friend class Fyle;
+    friend bool callback_openPath(SdFile&, char *, bool, void *);
     Port _portB;
     Pin _pin9;
     Sd2Card card;
@@ -922,8 +925,9 @@ private:
     SdFile root;
     SdFile getParentDir(const char *filepath, int *indx);
 public:
-    ZD() : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(&_pin9) { }
-    ZD(Pin *cs) : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(cs) { }
+    static ZD *instance;
+    ZD() : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(&_pin9) { instance = this; }
+    ZD(Pin *cs) : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(cs) { instance = this; }
     bool begin();
     Fyle open(const char *filename, uint8_t mode = FILE_READ);
     bool exists(char *filepath);
@@ -931,12 +935,17 @@ public:
     bool remove(char *filepath);
     bool rmdir(char *filepath);
     inline void tick() { card.tick(); }
-private:
-    int fileOpenMode;
-    friend class Fyle;
-    friend bool callback_openPath(SdFile&, char *, bool, void *);
 };
 
+class FyleIfstream : public ifstream
+{
+private:
+    Fyle _fyle;
+public:
+    void open(const char *fn) { _fyle = ZD::instance->open(fn); }
+    void close() { _fyle.close(); }
+    int get() { return _fyle.read(); }
+};
 
 #endif
 

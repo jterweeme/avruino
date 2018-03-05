@@ -1,20 +1,103 @@
-#include <string.h>
 #include <avr/pgmspace.h>
-#include <stdio.h>
-#include <avr/interrupt.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <avr/boot.h>
-#include <math.h>
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
-#include "bogota.h"
+#include "busby.h"
+
+#define SWAPENDIAN_16(x)   (uint16_t)((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
+
+#define USB_OPT_REG_DISABLED               (1 << 1)
+#define USB_OPT_REG_ENABLED                (0 << 1)
+#define USB_OPT_REG_KEEP_ENABLED           (1 << 3)
+#define USB_OPT_MANUAL_PLL                 (1 << 2)
+#define USB_OPT_AUTO_PLL                   (0 << 2)
+#define USB_STREAM_TIMEOUT_MS       100
+
+#define USB_DEVICE_OPT_LOWSPEED            (1 << 0)
+#define USB_DEVICE_OPT_FULLSPEED               (0 << 0)
+
+#define USE_STATIC_OPTIONS (USB_DEVICE_OPT_FULLSPEED | USB_OPT_REG_ENABLED | USB_OPT_AUTO_PLL)
+#define USB_Options USE_STATIC_OPTIONS
+
+#define FIXED_CONTROL_ENDPOINT_SIZE      8
+#define USB_Device_ControlEndpointSize FIXED_CONTROL_ENDPOINT_SIZE
+
+static inline uint8_t Endpoint_BytesToEPSizeMask(const uint16_t Bytes)
+{
+    uint8_t MaskVal = 0;
+    uint16_t CheckBytes = 8;
+
+    while (CheckBytes < Bytes)
+    {
+        MaskVal++;
+        CheckBytes <<= 1;
+    }
+
+    return MaskVal << EPSIZE0;
+}
+
+static inline void Endpoint_SelectEndpoint(const uint8_t Address)
+{
+    UENUM = (Address & ENDPOINT_EPNUM_MASK);
+}
+
+static bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number, const uint8_t UECFG0XData,
+                                    const uint8_t UECFG1XData)
+{
+    for (uint8_t EPNum = Number; EPNum < ENDPOINT_TOTAL_ENDPOINTS; EPNum++)
+    {
+        uint8_t UECFG0XTemp;
+        uint8_t UECFG1XTemp;
+        uint8_t UEIENXTemp;
+
+        Endpoint_SelectEndpoint(EPNum);
+
+        if (EPNum == Number)
+        {
+            UECFG0XTemp = UECFG0XData;
+            UECFG1XTemp = UECFG1XData;
+            UEIENXTemp  = 0;
+        }
+        else
+        {
+            UECFG0XTemp = UECFG0X;
+            UECFG1XTemp = UECFG1X;
+            UEIENXTemp  = UEIENX;
+        }
+
+        if (!(UECFG1XTemp & (1 << ALLOC)))
+            continue;
+
+        UECONX &= ~(1<<EPEN);
+        UECFG1X &= ~(1 << ALLOC);
+        UECONX |= 1<<EPEN;
+        UECFG0X = UECFG0XTemp;
+        UECFG1X = UECFG1XTemp;
+        UEIENX = UEIENXTemp;
+
+        if ((UESTA0X & 1<<CFGOK) == 0)
+            return false;
+    }
+
+    Endpoint_SelectEndpoint(Number);
+    return true;
+}
+
+static inline bool Endpoint_ConfigureEndpoint(const uint8_t Address,
+                         const uint8_t Type, const uint16_t Size, const uint8_t Banks)
+{
+    uint8_t Number = (Address & ENDPOINT_EPNUM_MASK);
+
+    if (Number >= ENDPOINT_TOTAL_ENDPOINTS)
+        return false;
+
+    return Endpoint_ConfigureEndpoint_Prv(Number,
+                        ((Type << EPTYPE0) | ((Address & ENDPOINT_DIR_IN) ? (1 << EPDIR) : 0)),
+          ((1 << ALLOC) | ((Banks > 1) ? (1 << EPBK0) : 0) | Endpoint_BytesToEPSizeMask(Size)));
+}
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,
@@ -59,27 +142,35 @@ static constexpr uint8_t
 
 typedef struct
 {
+    uint8_t  Address;
+    uint16_t Size;
+    uint8_t  Type;
+    uint8_t  Banks;
+} USB_Endpoint_Table_t;
+
+struct USB_CDC_Descriptor_FunctionalHeader_t
+{
     uint8_t size;
     uint8_t type;
     uint8_t  Subtype;
     uint16_t CDCSpecification;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalHeader_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_StdDescriptor_FunctionalHeader_t
 {
     uint8_t  bFunctionLength;
     uint8_t  bDescriptorType;
     uint8_t  bDescriptorSubType;
     uint16_t bcdCDC;
-} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalHeader_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct USB_CDC_Descriptor_FunctionalACM_t
 {
     uint8_t size;
     uint8_t type;
     uint8_t Subtype;
     uint8_t Capabilities;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalACM_t;
+} __attribute__ ((packed));
 
 typedef struct
 {
@@ -87,7 +178,7 @@ typedef struct
     uint8_t bDescriptorType;
     uint8_t bDescriptorSubType;
     uint8_t bmCapabilities;
-} ATTR_PACKED USB_CDC_StdDescriptor_FunctionalACM_t;
+} __attribute__ ((packed)) USB_CDC_StdDescriptor_FunctionalACM_t;
 
 typedef struct
 {
@@ -96,7 +187,7 @@ typedef struct
     uint8_t Subtype;
     uint8_t MasterInterfaceNumber;
     uint8_t SlaveInterfaceNumber;
-} ATTR_PACKED USB_CDC_Descriptor_FunctionalUnion_t;
+} __attribute__ ((packed)) USB_CDC_Descriptor_FunctionalUnion_t;
 
 struct USB_CDC_StdDescriptor_FunctionalUnion_t
 {
@@ -105,7 +196,7 @@ struct USB_CDC_StdDescriptor_FunctionalUnion_t
     uint8_t bDescriptorSubType;
     uint8_t bMasterInterface;
     uint8_t bSlaveInterface0;
-} ATTR_PACKED;
+} __attribute__ ((packed));
 
 static constexpr uint32_t
     REMOTE_NDIS_PACKET_MSG = 0x00000001UL,
@@ -171,18 +262,33 @@ static constexpr uint32_t
     OID_802_3_XMIT_ONE_COLLISION   = 0x01020102,
     OID_802_3_XMIT_MORE_COLLISIONS = 0x01020103;
 
-#define MAC_COMPARE(MAC1, MAC2)          (memcmp(MAC1, MAC2, sizeof(MacAddr)) == 0)
+static inline int myMemcmp(const void* s1, const void* s2,size_t n)
+{
+    const uint8_t *p1 = (const uint8_t *)s1, *p2 = (const uint8_t *)s2;
+
+    while (n--)
+    {
+        if (*p1 != *p2)
+            return *p1 - *p2;
+
+        p1++,p2++;
+    }
+
+    return 0;
+}
+
+#define MAC_COMPARE(MAC1, MAC2)          (myMemcmp(MAC1, MAC2, sizeof(MacAddr)) == 0)
 
 struct MacAddr
 {
     uint8_t Octets[6];
-} ATTR_PACKED;
+} __attribute__ ((packed));
 
 typedef struct
 {
     uint32_t MessageType;
     uint32_t MessageLength;
-} ATTR_PACKED RNDIS_Message_Header_t;
+} __attribute__ ((packed)) RNDIS_Message_Header_t;
 
 typedef struct
 {
@@ -197,7 +303,7 @@ typedef struct
     uint32_t PerPacketInfoLength;
     uint32_t VcHandle;
     uint32_t Reserved;
-} ATTR_PACKED RNDIS_Packet_Message_t;
+} __attribute__ ((packed)) RNDIS_Packet_Message_t;
 
 typedef struct
 {
@@ -207,7 +313,7 @@ typedef struct
     uint32_t MajorVersion;
     uint32_t MinorVersion;
     uint32_t MaxTransferSize;
-} ATTR_PACKED RNDIS_Initialize_Message_t;
+} __attribute__ ((packed)) RNDIS_Initialize_Message_t;
 
 typedef struct
 {
@@ -224,14 +330,14 @@ typedef struct
     uint32_t PacketAlignmentFactor;
     uint32_t AFListOffset;
     uint32_t AFListSize;
-} ATTR_PACKED RNDIS_Initialize_Complete_t;
+} __attribute__ ((packed)) RNDIS_Initialize_Complete_t;
 
 typedef struct
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t RequestId;
-} ATTR_PACKED RNDIS_KeepAlive_Message_t;
+} __attribute__ ((packed)) RNDIS_KeepAlive_Message_t;
 
 typedef struct
 {
@@ -239,7 +345,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} ATTR_PACKED RNDIS_KeepAlive_Complete_t;
+} __attribute__ ((packed)) RNDIS_KeepAlive_Complete_t;
 
 typedef struct
 {
@@ -247,7 +353,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t Status;
     uint32_t AddressingReset;
-} ATTR_PACKED RNDIS_Reset_Complete_t;
+} __attribute__ ((packed)) RNDIS_Reset_Complete_t;
 
 typedef struct
 {
@@ -258,7 +364,7 @@ typedef struct
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
     uint32_t DeviceVcHandle;
-} ATTR_PACKED RNDIS_Set_Message_t;
+} __attribute__ ((packed)) RNDIS_Set_Message_t;
 
 typedef struct
 {
@@ -266,7 +372,7 @@ typedef struct
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} ATTR_PACKED RNDIS_Set_Complete_t;
+} __attribute__ ((packed)) RNDIS_Set_Complete_t;
 
 typedef struct
 {
@@ -277,7 +383,7 @@ typedef struct
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
     uint32_t DeviceVcHandle;
-} ATTR_PACKED RNDIS_Query_Message_t;
+} __attribute__ ((packed)) RNDIS_Query_Message_t;
 
 typedef struct
 {
@@ -287,12 +393,25 @@ typedef struct
     uint32_t Status;
     uint32_t InformationBufferLength;
     uint32_t InformationBufferOffset;
-} ATTR_PACKED RNDIS_Query_Complete_t;
+} __attribute__ ((packed)) RNDIS_Query_Complete_t;
 
-Busby *Busby::instance;
+#define RNDIS_DEVICE_MIN_MESSAGE_BUFFER_LENGTH  sizeof(AdapterSupportedOIDList) + \
+    sizeof(RNDIS_Query_Complete_t)
+
+#define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 1)
+#define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
+#define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 3)
+#define CDC_TXRX_EPSIZE                64
+#define CDC_NOTIFICATION_EPSIZE        8
+
+
 
 class RNDIS : public USB
 {
+private:
+    Endpoint _inpoint;
+    Endpoint _outpoint;
+    Endpoint _notif;
 public:
     RNDIS();
     void customCtrl();
@@ -314,9 +433,12 @@ public:
                              void* ResponseData, uint16_t* ResponseSize);
 };
 
-RNDIS::RNDIS()
+RNDIS::RNDIS() :
+    _inpoint(CDC_TX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1),
+    _outpoint(CDC_RX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1),
+    _notif(CDC_NOTIFICATION_EPADDR, EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1)
 {
-    USB_OTGPAD_Off();
+    *p_usbcon &= ~(1<<otgpade);
 
     if (!(USB_Options & USB_OPT_REG_DISABLED))
         UHWCON |= 1<<UVREGE;
@@ -340,7 +462,7 @@ RNDIS::RNDIS()
     USB_Device_CurrentlySelfPowered = false;
     UDCON &= ~(1<<LSM);
     USBCON |= 1<<VBUSTE;
-    Endpoint_ConfigureEndpoint(0, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
+    configureEndpoint(_control);
     UDINT &= ~(1<<SUSPI);
     UDIEN |= 1<<SUSPE;
     UDIEN |= 1<<EORSTE;
@@ -390,6 +512,10 @@ static constexpr uint8_t
     PROTOCOL_OSPF = 89,
     PROTOCOL_SCTP = 132;
 
+#ifndef PROGMEM
+#define PROGMEM __attribute__ ((__progmem__))
+#endif
+
 static const MacAddr PROGMEM AdapterMACAddress = {{0x02, 0x00, 0x02, 0x00, 0x02, 0x00}};
 static const char PROGMEM AdapterVendorDescription[] = "LUFA RNDIS Adapter";
 static uint8_t CurrRNDISState = RNDIS_Uninitialized;
@@ -416,14 +542,6 @@ typedef struct
         uint32_t CurrPacketFilter;
     } State;
 } USB_ClassInfo_RNDIS_Device_t;
-
-#define RNDIS_DEVICE_MIN_MESSAGE_BUFFER_LENGTH  sizeof(AdapterSupportedOIDList) + sizeof(RNDIS_Query_Complete_t)
-
-#define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 1)
-#define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
-#define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 3)
-#define CDC_TXRX_EPSIZE                64
-#define CDC_NOTIFICATION_EPSIZE        8
 
 void EVENT_USB_Device_ConfigurationChanged(void)
 {
@@ -686,9 +804,9 @@ void RNDIS::customCtrl()
         if (_ctrlReq.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS |
             REQREC_INTERFACE))
         {
-            UEINTX &= ~(1<<RXSTPI);
+            *p_ueintx &= ~(1<<rxstpi);
             readControlStreamLE(RNDISMessageBuffer, _ctrlReq.wLength);
-            Endpoint_ClearIN();
+            *p_ueintx &= ~(1<<txini | 1<<fifocon);
             ProcessRNDISControlMessage();
         }
 
@@ -703,9 +821,9 @@ void RNDIS::customCtrl()
                 MessageHeader->MessageLength = 1;
             }
 
-            UEINTX &= ~(1<<RXSTPI);
+            *p_ueintx &= ~(1<<rxstpi);
             write_Control_Stream_LE(RNDISMessageBuffer, MessageHeader->MessageLength);
-            Endpoint_ClearOUT();
+            *p_ueintx &= ~(1<<rxouti | 1<<fifocon);
             MessageHeader->MessageLength = 0;
         }
         break;
@@ -713,7 +831,7 @@ void RNDIS::customCtrl()
 }
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex,
-       const void** const DescriptorAddress) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
+       const void** const DescriptorAddress);
 
 uint16_t RNDIS::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddress)
 {
@@ -722,6 +840,11 @@ uint16_t RNDIS::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const de
 
 void RNDIS::configure()
 {
+#if 0
+    configureEndpoint(_inpoint);
+    configureEndpoint(_outpoint);
+    configureEndpoint(_notif);
+#endif
     EVENT_USB_Device_ConfigurationChanged();
 }
 
@@ -737,7 +860,7 @@ typedef struct
 
 
 #define DEFAULT_TTL                      128
-#define IP_COMPARE(IP1, IP2)             (memcmp(IP1, IP2, sizeof(IP_Address_t)) == 0)
+#define IP_COMPARE(IP1, IP2)             (myMemcmp(IP1, IP2, sizeof(IP_Address_t)) == 0)
 
 typedef struct
 {
@@ -806,22 +929,12 @@ struct ICMP_Header_t
     uint16_t Sequence;
 };
 
-typedef struct
-{
-    uint16_t SourcePort;
-    uint16_t DestinationPort;
-    uint16_t Length;
-    uint16_t Checksum;
-} UDP_Header_t;
-
-static constexpr uint32_t DHCP_MAGIC_COOKIE = 0x63825363;
-
 static constexpr uint16_t ETHERNET_VER2_MINSIZE = 0x0600;
 
 struct Frame
 {
     uint8_t FrameData[ETHERNET_FRAME_SIZE_MAX];
-    uint16_t FrameLength;
+    uint16_t len;
 };
 
 typedef struct
@@ -930,6 +1043,22 @@ int16_t RNDIS::ARP_ProcessARPPacket(void *inStart, void *outStart)
     return 0;
 }
 
+static inline void *myMemcpy(void *dest, const void *src, size_t n)
+{
+    char *dp = (char *)dest;
+    const char *sp = (const char *)src;
+
+    while (n--)
+        *dp++ = *sp++;
+
+    return dest;
+}
+
+static inline void *myMemmove(void *dest, const void *src, size_t n)
+{
+    return myMemcpy(dest, src, n);
+}
+
 int16_t RNDIS::ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart)
 {
     ICMP_Header_t *ICMPHeaderIN = (ICMP_Header_t*)InDataStart;
@@ -943,12 +1072,11 @@ int16_t RNDIS::ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart)
         ICMPHeaderOUT->Id = ICMPHeaderIN->Id;
         ICMPHeaderOUT->Sequence = ICMPHeaderIN->Sequence;
 
-        intptr_t DataSize = frameIN.FrameLength - ((((intptr_t)InDataStart +
+        intptr_t DataSize = frameIN.len - ((((intptr_t)InDataStart +
             sizeof(ICMP_Header_t)) - (intptr_t)frameIN.FrameData));
 
-        memmove(&((uint8_t*)OutDataStart)[sizeof(ICMP_Header_t)],
-                &((uint8_t*)InDataStart)[sizeof(ICMP_Header_t)],
-                DataSize);
+        myMemmove(&((uint8_t*)OutDataStart)[sizeof(ICMP_Header_t)],
+                &((uint8_t*)InDataStart)[sizeof(ICMP_Header_t)], DataSize);
 
         ICMPHeaderOUT->Checksum = Ethernet_Checksum16(ICMPHeaderOUT,
             (DataSize + sizeof(ICMP_Header_t)));
@@ -967,7 +1095,7 @@ void RNDIS::Ethernet_ProcessPacket()
 
     if ((MAC_COMPARE(&inHeader->Destination, &serverMac) ||
          MAC_COMPARE(&inHeader->Destination, &BroadcastMACAddress)) &&
-        (SWAPENDIAN_16(frameIN.FrameLength) > ETHERNET_VER2_MINSIZE))
+        (SWAPENDIAN_16(frameIN.len) > ETHERNET_VER2_MINSIZE))
     {
         switch (SWAPENDIAN_16(inHeader->EtherType))
         {
@@ -986,12 +1114,12 @@ void RNDIS::Ethernet_ProcessPacket()
             FrameOUTHeader->Source = serverMac;
             FrameOUTHeader->Destination = inHeader->Source;
             FrameOUTHeader->EtherType = inHeader->EtherType;
-            frameOUT.FrameLength = (sizeof(Ethernet_Frame_Header_t) + retSize);
+            frameOUT.len = (sizeof(Ethernet_Frame_Header_t) + retSize);
         }
     }
 
     if (retSize != -1)
-        frameIN.FrameLength = 0;
+        frameIN.len = 0;
 }
 
 static const DescDev PROGMEM DeviceDescriptor =
@@ -1017,9 +1145,9 @@ struct USB_Descriptor_Configuration_t
     DescConf config;
     DescIface CDC_CCI_Interface;
     USB_CDC_Descriptor_FunctionalHeader_t CDC_Functional_Header;
-    USB_CDC_Descriptor_FunctionalACM_t    CDC_Functional_ACM;
-    USB_CDC_Descriptor_FunctionalUnion_t  CDC_Functional_Union;
-    DescEndpoint             CDC_NotificationEndpoint;
+    USB_CDC_Descriptor_FunctionalACM_t CDC_Functional_ACM;
+    USB_CDC_Descriptor_FunctionalUnion_t CDC_Functional_Union;
+    DescEndpoint CDC_NotificationEndpoint;
     DescIface CDC_DCI_Interface;
     DescEndpoint RNDIS_DataOutEndpoint;
     DescEndpoint RNDIS_DataInEndpoint;
@@ -1168,11 +1296,21 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
     return Size;
 }
 
+static inline void *myMemset(void *s, int c, size_t n)
+{
+    uint8_t *p = (uint8_t *)s;
+
+    while (n--)
+        *p++ = (uint8_t)c;
+
+    return s;
+}
+
 void RNDIS::rndisTask()
 {
-	Endpoint_SelectEndpoint(CDC_NOTIFICATION_EPADDR);
+	selectEndpoint(CDC_NOTIFICATION_EPADDR);
 
-	if ((UEINTX & 1<<TXINI) && ResponseReady)
+	if ((*p_ueintx & 1<<txini) && ResponseReady)
 	{
 		USBRequest Notification = (USBRequest)
         {
@@ -1184,48 +1322,46 @@ void RNDIS::rndisTask()
         };
 
 		writeStream2(&Notification, sizeof(Notification), NULL);
-		Endpoint_ClearIN();
+        *p_ueintx &= ~(1<<txini | 1<<fifocon);
 		ResponseReady = false;
 	}
 
 	if ((CurrRNDISState == RNDIS_Data_Initialized) && !(MessageHeader->MessageLength))
 	{
 		RNDIS_Packet_Message_t RNDISPacketHeader;
-		Endpoint_SelectEndpoint(CDC_RX_EPADDR);
+		selectEndpoint(CDC_RX_EPADDR);
 
-		if (Endpoint_IsOUTReceived() && !(frameIN.FrameLength))
+		if ((*p_ueintx & 1<<rxouti) && !frameIN.len)
 		{
 			readStream(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 
 			if (RNDISPacketHeader.DataLength > ETHERNET_FRAME_SIZE_MAX)
 			{
-                UECONX |= 1<<STALLRQ;
+                *p_ueconx |= 1<<stallrq;
 				return;
 			}
 
 			readStream(frameIN.FrameData, RNDISPacketHeader.DataLength, NULL);
-			Endpoint_ClearOUT();
-			frameIN.FrameLength = RNDISPacketHeader.DataLength;
+            *p_ueintx &= ~(1<<rxouti | 1<<fifocon);
+			frameIN.len = RNDISPacketHeader.DataLength;
 		}
 
-		Endpoint_SelectEndpoint(CDC_TX_EPADDR);
+        selectEndpoint(CDC_TX_EPADDR);
 
-		if ((UEINTX & 1<<TXINI) && frameOUT.FrameLength)
-		{
-			memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
-			RNDISPacketHeader.MessageType   = REMOTE_NDIS_PACKET_MSG;
-
-			RNDISPacketHeader.MessageLength = (sizeof(RNDIS_Packet_Message_t) +
-                frameOUT.FrameLength);
+        if ((*p_ueintx & 1<<txini) && frameOUT.len)
+        {
+            myMemset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
+            RNDISPacketHeader.MessageType   = REMOTE_NDIS_PACKET_MSG;
+            RNDISPacketHeader.MessageLength = sizeof(RNDIS_Packet_Message_t) + frameOUT.len;
 
 			RNDISPacketHeader.DataOffset = (sizeof(RNDIS_Packet_Message_t) -
                 sizeof(RNDIS_Message_Header_t));
 
-			RNDISPacketHeader.DataLength    = frameOUT.FrameLength;
+			RNDISPacketHeader.DataLength    = frameOUT.len;
 			writeStream2(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 			writeStream2(frameOUT.FrameData, RNDISPacketHeader.DataLength, NULL);
-			Endpoint_ClearIN();
-			frameOUT.FrameLength = 0;
+            *p_ueintx &= ~(1<<txini | 1<<fifocon);
+			frameOUT.len = 0;
 		}
 	}
 }
@@ -1235,7 +1371,7 @@ void RNDIS::ethTask()
 	if (state != DEVICE_STATE_Configured)
         return;
 
-	if (frameIN.FrameLength)
+	if (frameIN.len)
 		Ethernet_ProcessPacket();
 }
 
@@ -1244,29 +1380,31 @@ void RNDIS::usbTask()
     if (state == DEVICE_STATE_UNATTACHED)
         return;
 
-    uint8_t PrevEndpoint = Endpoint_GetCurrentEndpoint();
-    Endpoint_SelectEndpoint(0);
+    uint8_t PrevEndpoint = getCurrentEndpoint();
+    selectEndpoint(0);
 
-    if (UEINTX & 1<<RXSTPI)
+    if (*p_ueintx & 1<<rxstpi)
         procCtrlReq();
 
-    Endpoint_SelectEndpoint(PrevEndpoint);
+    selectEndpoint(PrevEndpoint);
 }
 
-ISR(USB_GEN_vect, ISR_BLOCK)
-{
-    USB::instance->gen();
-}
-
-ISR(USB_COM_vect, ISR_BLOCK)
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
 {
     USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
+{
+    USB::instance->gen();
 }
 
 int main(void)
 {
     RNDIS rndis;
-    sei();
+    zei();
 
     while (true)
     {

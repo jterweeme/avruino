@@ -1,6 +1,7 @@
 #ifndef _IPADDREZZ_H_
 #define _IPADDREZZ_H_
 #include <string.h>
+#include "types.h"
 
 static constexpr uint32_t htonl(uint32_t x)
 {

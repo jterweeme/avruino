@@ -3,10 +3,9 @@
 
 UIPClient UIPServer::available()
 {
-    UIPEthernetClass::tick();
     _eth->tick();
 
-    for (uip_userdata_t* data = &UIPClient::all_data[0];
+    for (uip_userdata_t *data = &UIPClient::all_data[0];
         data < &UIPClient::all_data[UIP_CONNS];
         data++)
     {
@@ -26,7 +25,7 @@ UIPClient UIPServer::available()
 void UIPServer::begin()
 {
     uip_listen(_port);
-    UIPEthernetClass::tick();
+    _eth->tick();
 }
 
 size_t UIPServer::write(const uint8_t *buf, size_t size)

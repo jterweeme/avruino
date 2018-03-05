@@ -50,21 +50,22 @@ int UIPClient::connect(IPAddrezz ip, uint16_t port)
     if (conn)
     {
 #if UIP_CONNECT_TIMEOUT > 0
-      int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
+        int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
 #endif
-      while((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
+        while((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
         {
-          UIPEthernetClass::tick();
-          if ((conn->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED)
+            _eth->tick();
+
+            if ((conn->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED)
             {
-              data = (uip_userdata_t*) conn->appstate;
-              return 1;
+                data = (uip_userdata_t*) conn->appstate;
+                return 1;
             }
 #if UIP_CONNECT_TIMEOUT > 0
-          if (((int32_t)(millis() - timeout)) > 0)
+            if (((int32_t)(millis() - timeout)) > 0)
             {
-              conn->tcpstateflags = UIP_CLOSED;
-              break;
+                conn->tcpstateflags = UIP_CLOSED;
+                break;
             }
 #endif
         }
@@ -99,7 +100,7 @@ void UIPClient::stop()
     }
 
     data = NULL;
-    UIPEthernetClass::tick();
+    _eth->tick();
 }
 
 uint8_t UIPClient::connected()
@@ -110,20 +111,21 @@ uint8_t UIPClient::connected()
 
 UIPClient::operator bool()
 {
-    UIPEthernetClass::tick();
+    _eth->tick();
     return data && (!(data->state & UIP_CLIENT_REMOTECLOSED) || data->packets_in[0] != NOBLOCK);
 }
 
 size_t UIPClient::_write(uip_userdata_t* u, const uint8_t *buf, size_t size)
 {
-  int remain = size;
-  uint16_t written;
+    int remain = size;
+    uint16_t written;
 #if UIP_ATTEMPTS_ON_WRITE > 0
-  uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
+    uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
 #endif
-  repeat:
-  UIPEthernetClass::tick();
-  if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+repeat:
+    UIPEthernetClass::instance->tick();
+
+    if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
     {
       uint8_t p = _currentBlock(&u->packets_out[0]);
       if (u->packets_out[p] == NOBLOCK)
@@ -142,7 +144,9 @@ newpacket:
             }
           u->out_pos = 0;
         }
-      written = Enc28J60Network::writePacket(u->packets_out[p],u->out_pos,(uint8_t*)buf+size-remain,remain);
+      written = Enc28J60Network::instance->writePacket(u->packets_out[p],
+            u->out_pos,(uint8_t*)buf+size-remain,remain);
+
       remain -= written;
       u->out_pos+=written;
       if (remain > 0)
@@ -182,7 +186,7 @@ int UIPClient::_available(uip_userdata_t *u)
     int len = 0;
 
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
-        len += Enc28J60Network::blockSize(u->packets_in[i]);
+        len += Enc28J60Network::instance->blockSize(u->packets_in[i]);
     
     return len;
 }
@@ -200,8 +204,10 @@ int UIPClient::read(uint8_t *buf, size_t size)
 
         do
         {
-          read = Enc28J60Network::readPacket(data->packets_in[0],0,buf+size-remain,remain);
-          if (read == Enc28J60Network::blockSize(data->packets_in[0]))
+            read = Enc28J60Network::instance->readPacket(data->packets_in[0],
+                    0,buf+size-remain,remain);
+
+            if (read == Enc28J60Network::instance->blockSize(data->packets_in[0]))
             {
               remain -= read;
               _eatBlock(&data->packets_in[0]);
@@ -246,7 +252,7 @@ int UIPClient::peek()
         if (data->packets_in[0] != NOBLOCK)
         {
             uint8_t c;
-            Enc28J60Network::readPacket(data->packets_in[0],0,&c,1);
+            Enc28J60Network::instance->readPacket(data->packets_in[0],0,&c,1);
             return c;
         }
     }
@@ -261,32 +267,40 @@ void UIPClient::flush()
 
 void uipclient_appcall(void)
 {
-  uint16_t send_len = 0;
-  uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
-  if (!u && uip_connected())
+    uint16_t send_len = 0;
+    uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
+
+    if (!u && uip_connected())
     {
-      u = (uip_userdata_t*) UIPClient::_allocateData();
-      if (u)
+        u = (uip_userdata_t*) UIPClient::_allocateData();
+
+        if (u)
         {
-          uip_conn->appstate = u;
+            uip_conn->appstate = u;
         }
     }
-  if (u)
+
+    if (u)
     {
-      if (uip_newdata())
+        if (uip_newdata())
         {
-          if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+            if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
             {
-              for (uint8_t i=0; i < UIP_SOCKET_NUMPACKETS; i++)
+                for (uint8_t i=0; i < UIP_SOCKET_NUMPACKETS; i++)
                 {
-                  if (u->packets_in[i] == NOBLOCK)
+                    if (u->packets_in[i] == NOBLOCK)
                     {
-                      u->packets_in[i] = Enc28J60Network::allocBlock(uip_len);
-                      if (u->packets_in[i] != NOBLOCK)
+                        u->packets_in[i] = Enc28J60Network::allocBlock(uip_len);
+
+                        if (u->packets_in[i] != NOBLOCK)
                         {
-                          Enc28J60Network::copyPacket(u->packets_in[i],0,UIPEthernetClass::in_packet,((uint8_t*)uip_appdata)-uip_buf,uip_len);
+                          Enc28J60Network::instance->copyPacket(u->packets_in[i],
+                            0, UIPEthernetClass::instance->in_packet,
+                            ((uint8_t*)uip_appdata)-uip_buf,uip_len);
+
                           if (i == UIP_SOCKET_NUMPACKETS-1)
-                            uip_stop();
+                                uip_stop();
+
                           goto finish_newdata;
                         }
                     }
@@ -333,14 +347,17 @@ finish_newdata:
                     }
                 }
               else
-                send_len = Enc28J60Network::blockSize(u->packets_out[0]);
+            {
+                send_len = Enc28J60Network::instance->blockSize(u->packets_out[0]);
+            }
               if (send_len > 0)
                 {
                   UIPEthernetClass::uip_hdrlen = ((uint8_t*)uip_appdata)-uip_buf;
-                  UIPEthernetClass::uip_packet = Enc28J60Network::allocBlock(UIPEthernetClass::uip_hdrlen+send_len);
-                  if (UIPEthernetClass::uip_packet != NOBLOCK)
+                  UIPEthernetClass::instance->uip_packet = Enc28J60Network::allocBlock(UIPEthernetClass::uip_hdrlen+send_len);
+                  if (UIPEthernetClass::instance->uip_packet != NOBLOCK)
                     {
-                      Enc28J60Network::copyPacket(UIPEthernetClass::uip_packet,UIPEthernetClass::uip_hdrlen,u->packets_out[0],0,send_len);
+                      Enc28J60Network::instance->copyPacket(UIPEthernetClass::instance->uip_packet,
+        UIPEthernetClass::uip_hdrlen,u->packets_out[0],0,send_len);
                       UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
                     }
                 }

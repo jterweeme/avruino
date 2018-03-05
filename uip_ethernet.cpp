@@ -12,6 +12,8 @@ uint32_t millis()
     return g_millis;
 }
 
+UIPEthernetClass *UIPEthernetClass::instance;
+
 memhandle UIPEthernetClass::in_packet(NOBLOCK);
 memhandle UIPEthernetClass::uip_packet(NOBLOCK);
 uint8_t UIPEthernetClass::uip_hdrlen(0);
@@ -24,6 +26,7 @@ unsigned long UIPEthernetClass::periodic_timer;
 
 UIPEthernetClass::UIPEthernetClass()
 {
+    instance = this;
 }
 
 int UIPEthernetClass::begin(const uint8_t* mac)
@@ -136,38 +139,42 @@ IPAddrezz UIPEthernetClass::dnsServerIP()
 void UIPEthernetClass::tick()
 {
     if (in_packet == NOBLOCK)
-        in_packet = Enc28J60Network::receivePacket();
+        in_packet = _nw.receivePacket();
 
     if (in_packet != NOBLOCK)
     {
-      packetstate = UIPETHERNET_FREEPACKET;
-      uip_len = Enc28J60Network::blockSize(in_packet);
-      if (uip_len > 0)
+        packetstate = UIPETHERNET_FREEPACKET;
+        uip_len = _nw.blockSize(in_packet);
+
+        if (uip_len > 0)
         {
-          Enc28J60Network::readPacket(in_packet,0,(uint8_t*)uip_buf,UIP_BUFSIZE);
-          if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_IP))
+            Enc28J60Network::instance->readPacket(in_packet,0,(uint8_t*)uip_buf,UIP_BUFSIZE);
+
+            if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_IP))
             {
-              uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
-              uip_arp_ipin();
-              uip_input();
-              if (uip_len > 0)
+                uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
+                uip_arp_ipin();
+                uip_input();
+
+                if (uip_len > 0)
                 {
-                  uip_arp_out();
-                  network_send();
+                    uip_arp_out();
+                    network_send();
                 }
             }
-          else if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_ARP))
+            else if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_ARP))
             {
-              uip_arp_arpin();
-              if (uip_len > 0)
+                uip_arp_arpin();
+
+                if (uip_len > 0)
                 {
-                  network_send();
+                    network_send();
                 }
             }
         }
       if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
         {
-          Enc28J60Network::freePacket();
+          _nw.freePacket();
           in_packet = NOBLOCK;
         }
     }
@@ -226,34 +233,36 @@ void UIPEthernetClass::tick()
 
 bool UIPEthernetClass::network_send()
 {
-  if (packetstate & UIPETHERNET_SENDPACKET)
+    if (packetstate & UIPETHERNET_SENDPACKET)
     {
-      Enc28J60Network::writePacket(uip_packet,0,uip_buf,uip_hdrlen);
-      packetstate &= ~ UIPETHERNET_SENDPACKET;
-      goto sendandfree;
+        _nw.writePacket(uip_packet,0,uip_buf,uip_hdrlen);
+        packetstate &= ~ UIPETHERNET_SENDPACKET;
+        goto sendandfree;
     }
-  uip_packet = Enc28J60Network::allocBlock(uip_len);
-  if (uip_packet != NOBLOCK)
+
+    uip_packet = _nw.allocBlock(uip_len);
+
+    if (uip_packet != NOBLOCK)
     {
-      Enc28J60Network::writePacket(uip_packet,0,uip_buf,uip_len);
-      goto sendandfree;
+        _nw.writePacket(uip_packet,0,uip_buf,uip_len);
+        goto sendandfree;
     }
-  return false;
+
+    return false;
 sendandfree:
-  Enc28J60Network::sendPacket(uip_packet);
-  Enc28J60Network::freeBlock(uip_packet);
-  uip_packet = NOBLOCK;
-  return true;
+    _nw.sendPacket(uip_packet);
+    _nw.freeBlock(uip_packet);
+    uip_packet = NOBLOCK;
+    return true;
 }
 
-void UIPEthernetClass::init(const uint8_t* mac) {
-  periodic_timer = millis() + UIP_PERIODIC_TIMER;
-
-  Enc28J60Network::init((uint8_t*)mac);
-  uip_seteth_addr(mac);
-
-  uip_init();
-  uip_arp_init();
+void UIPEthernetClass::init(const uint8_t* mac)
+{
+    periodic_timer = millis() + UIP_PERIODIC_TIMER;
+    _nw.init((uint8_t*)mac);
+    uip_seteth_addr(mac);
+    uip_init();
+    uip_arp_init();
 }
 
 void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
@@ -271,9 +280,7 @@ void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
 
 UIPEthernetClass UIPEthernet;
 
-/*---------------------------------------------------------------------------*/
-uint16_t
-UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
+uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
   uint16_t t;
   const uint8_t *dataptr;
@@ -303,18 +310,12 @@ UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
   return sum;
 }
 
-/*---------------------------------------------------------------------------*/
-
-uint16_t
-UIPEthernetClass::ipchksum(void)
+uint16_t UIPEthernetClass::ipchksum(void)
 {
-  uint16_t sum;
-
-  sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
-  return (sum == 0) ? 0xffff : htons(sum);
+    uint16_t sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
+    return sum == 0 ? 0xffff : htons(sum);
 }
 
-/*---------------------------------------------------------------------------*/
 uint16_t
 #if UIP_UDP
 UIPEthernetClass::upper_layer_chksum(uint8_t proto)
@@ -353,12 +354,9 @@ uip_tcpchksum(void)
 
   if (upper_layer_memlen < upper_layer_len)
     {
-      sum = Enc28J60Network::chksum(
-          sum,
-          UIPEthernetClass::uip_packet,
-          UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
-          upper_layer_len - upper_layer_memlen
-      );
+      sum = _nw.chksum(sum, uip_packet,
+            UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
+            upper_layer_len - upper_layer_memlen);
     }
   return (sum == 0) ? 0xffff : htons(sum);
 }

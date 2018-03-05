@@ -18,31 +18,26 @@ static inline bool izprint(uint8_t c)
     return c >= 0x20 && c <= 0x7e ? true : false;
 }
 
-static inline char nibble(uint8_t n)
-{
-    return n <= 9 ? '0' + n : 'A' + n - 10;
-}
-
 static void hexDump(uint8_t *point, ostream &os)
 {
     for (uint16_t i = 0; i < 512; i += 16)
     {
         for (uint8_t j = 0; j < 16; j++)
         {
-            os.write(nibble(point[i + j] >> 4));
-            os.write(nibble(point[i + j] & 0xf));
-            os.write(' ');
+            os.put(nibble(point[i + j] >> 4));
+            os.put(nibble(point[i + j] & 0xf));
+            os.put(' ');
         }
 
         for (uint8_t j = 0; j < 16; j++)
         {
             if (izprint(point[i + j]))
-                os.write(point[i + j]);
+                os.put(point[i + j]);
             else
-                os.write('.');
+                os.put('.');
         }
 
-        os.write("\r\n");
+        os.writeString("\r\n");
     }   
 }
 

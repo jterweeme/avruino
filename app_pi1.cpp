@@ -9,11 +9,6 @@
 
 static const char PI[] = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745";
 
-static inline char nibble(uint8_t n)
-{
-    return n <= 9 ? '0' + n : 'A' + n - 10;
-}
-
 int main()
 {
 #if defined (__AVR_ATmega32U4__)
@@ -33,23 +28,23 @@ int main()
     {
         while (true)
         {
-            uint8_t byte = cin.get();
+            uint8_t c = cin.get();
 
-            if (byte == 255)
+            if (c == 255)
                 continue;
 
-            cout.write(byte);
+            cout.put(c);
             cout.flush();
         
-            if (byte != PI[i++])
+            if (c != PI[i++])
                 break;
         }
 
         cout.writeString("\r\nHelaas!\r\n");
-        cout.write(nibble(i >> 12 & 0xf));
-        cout.write(nibble(i >> 8 & 0xf));
-        cout.write(nibble(i >> 4 & 0xf));
-        cout.write(nibble(i & 0xf));
+        cout.put(nibble(i >> 12 & 0xf));
+        cout.put(nibble(i >> 8 & 0xf));
+        cout.put(nibble(i >> 4 & 0xf));
+        cout.put(nibble(i & 0xf));
         cout.writeString("\r\n");
         cout.flush();
         i = 0;

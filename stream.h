@@ -9,13 +9,18 @@
 class ostream
 {
 public:
-    virtual void write(char c) { }
-    void write(const char *s) { while (*s) write(*s++); }
-    virtual void writeString(const char *s) { while (*s) write(*s++); }
+    virtual void put(char c) { }
+    virtual void writeString(const char *s) { while (*s) put(*s++); }
     virtual void flush() { }
 };
 
 class istream
+{
+public:
+    virtual int get() { return 0; }
+};
+
+class ifstream : public istream
 {
 public:
     virtual int get() { return 0; }
@@ -27,7 +32,7 @@ private:
     UartBase * const _serial;
 public:
     UartStream(UartBase *s) : _serial(s) { }
-    void write(char c) { _serial->write(c); }
+    void put(char c) { _serial->write(c); }
 };
 
 class UartIStream : public istream
@@ -46,7 +51,7 @@ private:
     CDC * const _cdc;
 public:
     USBStream(CDC *cdc) : _cdc(cdc) { }
-    void write(char c) { _cdc->sendByte(c); }
+    void put(char c) { _cdc->sendByte(c); }
     void flush() { _cdc->flush(); }
 };
 

@@ -6,10 +6,6 @@
 
 #define SWAPENDIAN_16(x)   (uint16_t)((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
 
-#define SWAPENDIAN_32(x) \
-  (uint32_t)((((x) & 0xFF000000UL) >> 24UL) | (((x) & 0x00FF0000UL) >> 8UL) | \
-                           (((x) & 0x0000FF00UL) << 8UL)  | (((x) & 0x000000FFUL) << 24UL))
-
 #define GCC_MEMORY_BARRIER()                  __asm__ __volatile__("" ::: "memory");
 #define GCC_IS_COMPILE_CONST(x)               __builtin_constant_p(x)
 #define ATTR_WARN_UNUSED_RESULT      __attribute__ ((warn_unused_result))

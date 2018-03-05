@@ -2,7 +2,7 @@
 #define _UIPUDP_H_
 
 #include "uip.h"
-#include "network.h"
+#include "enc28j60.h"
 #include "ipaddrezz.h"
 
 static const uint16_t UIP_UDP_MAXDATALEN = 1500;

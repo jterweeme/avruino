@@ -1,9 +1,6 @@
 #ifndef UIPSERVER_H
 #define UIPSERVER_H
-
 #include "uip_client.h"
-#include "uip_ethernet.h"
-#include <stddef.h>
 
 class UIPServer
 {

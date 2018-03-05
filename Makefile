@@ -47,7 +47,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex app_analogweb1.elf \
-    app_optiboot1.hex app_heliosboot1.hex
+    app_optiboot1.hex app_heliosboot1.hex app_xmodem1.elf \
 
 ifeq ($(POOL1), ja)
 TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
@@ -60,7 +60,7 @@ TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_ledmatrix1.elf app_ledmatrix2.elf app_serialusb1.elf app_usbloop1.elf \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
     app_usbpiano1.elf app_rndis1.elf app_rndis2.elf \
-    app_rndisdhcp1.elf app_rndisping1.elf app_rndisbridge1.elf
+    app_rndisping1.elf app_rndisbridge1.elf
 endif
 
 %.o: %.cpp
@@ -90,7 +90,7 @@ app_analog1.elf: app_analog1.o $(BSP)
 app_analog2.elf: app_analog2.o $(BSP)
 
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o uip_client.o \
-    uip.o dhcp.o uip_ethernet.o uip_udp.o network.o uip_timer.o $(BSP)
+    uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
 app_blink1.elf: app_blink1.o
 app_blink2.elf: app_blink2.o $(BSP)
@@ -118,9 +118,8 @@ app_ps2kb2.elf: app_ps2kb2.o keyboard.o $(USBOPT) $(BSP)
 app_ringtone1.elf: app_ringtone1.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
-app_rndisdhcp1.elf: app_rndisdhcp1.o bogota.o
 app_rndisping1.elf: app_rndisping1.o busby.o
-app_rndisbridge1.elf: app_rndisbridge1.o busby.o network.o
+app_rndisbridge1.elf: app_rndisbridge1.o busby.o enc28j60.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o $(USBOPT) $(BSP)
 app_sdmbr1.elf: app_sdmbr1.o zd2card.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -144,6 +143,7 @@ app_usbsound1.elf: app_usbsound1.o busby.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 app_wifi1.elf: app_wifi1.o misc.o $(USBOPT) $(BSP)
+app_xmodem1.elf: app_xmodem1.o fatty.o zd2card.o $(BSP)
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
@@ -170,9 +170,8 @@ app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
-app_rndisdhcp1.o: app_rndisdhcp1.cpp bogota.h
 app_rndisping1.o: app_rndisping1.cpp bogota.h
-app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h network.h
+app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h enc28j60.h
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
 app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
@@ -194,6 +193,7 @@ app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_wifi1.o: app_wifi1.cpp misc.h
+app_xmodem1.o: app_xmodem1.cpp
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp
@@ -205,6 +205,7 @@ i2c.o: i2c.cpp misc.h
 infrared.o: infrared.cpp infrared.h
 keyboard.o: keyboard.cpp
 mega.o: mega.cpp misc.h
+mempool.o: mempool.cpp
 misc.o: misc.cpp misc.h
 sd.o: sd.cpp
 tft.o: tft.cpp tft.h

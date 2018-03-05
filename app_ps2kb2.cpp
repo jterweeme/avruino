@@ -22,11 +22,6 @@ ISR(INT0_vect)
     g_kb->isr();
 }
 
-inline char nibble(uint8_t n)
-{
-    return n <= 9 ? '0' + n : 'A' + n - 10;
-}
-
 int main()
 {
     sei();
@@ -55,8 +50,8 @@ int main()
 
         if (x > 0)
         {
-            os.write(nibble(x >> 4));
-            os.write(nibble(x & 0xf));
+            os.put(nibble(x >> 4));
+            os.put(nibble(x & 0xf));
             os.writeString("\r\n");
             os.flush();
         }

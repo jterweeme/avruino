@@ -8,7 +8,7 @@
 #define UIP_BIG_ENDIAN     1234
 #endif /* UIP_BIG_ENDIAN */
 
-#include <inttypes.h>
+#include "types.h"
 
 #define UIP_SOCKET_NUMPACKETS    5
 #define UIP_CONF_MAX_CONNECTIONS 4

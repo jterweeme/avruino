@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include "types.h"
 
-struct freelist
+static inline char nibble(uint8_t n)
 {
-    size_t sz;
-    freelist *nx;
-};
+    return n <= 9 ? '0' + n : 'A' + n - 10;
+}
 
 class Utility
 {
