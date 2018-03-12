@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -47,7 +47,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex app_analogweb1.elf \
-    app_optiboot1.hex app_heliosboot1.hex app_xmodem1.elf \
+    app_optiboot1.hex app_heliosboot1.hex app_minos1.elf \
 
 ifeq ($(POOL1), ja)
 TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
@@ -143,7 +143,7 @@ app_usbsound1.elf: app_usbsound1.o busby.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 app_wifi1.elf: app_wifi1.o misc.o $(USBOPT) $(BSP)
-app_xmodem1.elf: app_xmodem1.o fatty.o zd2card.o $(BSP)
+app_minos1.elf: app_minos1.o fatty.o zd2card.o $(BSP)
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
@@ -173,7 +173,7 @@ app_rndis2.o: app_rndis2.cpp
 app_rndisping1.o: app_rndisping1.cpp bogota.h
 app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h enc28j60.h
 app_segment1.o: app_segment1.cpp
-app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h
+app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h stream.h
 app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_sound1.o: app_sound1.cpp
@@ -193,13 +193,14 @@ app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_wifi1.o: app_wifi1.cpp misc.h
-app_xmodem1.o: app_xmodem1.cpp
+app_minos1.o: app_minos1.cpp
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp
 button.o: button.cpp
 calc.o: calc.cpp
 capsense.o: capsense.cpp capsense.h
+fatty.o: fatty.cpp fatty.h
 helios.o: helios.cpp helios.h misc.h
 i2c.o: i2c.cpp misc.h
 infrared.o: infrared.cpp infrared.h

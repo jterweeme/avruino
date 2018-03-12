@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-ZD *ZD::instance;
+Fatty *Fatty::instance;
 
 Fyle::Fyle(SdFile f, const char *n)
 {
@@ -34,13 +34,17 @@ size_t Fyle::write(const uint8_t *buf, size_t size)
   return t;
 }
 
-int Fyle::peek() {
-  if (! _file) 
-    return 0;
+int Fyle::peek()
+{
+    if (! _file) 
+        return 0;
 
-  int c = _file->read();
-  if (c != -1) _file->seekCur(-1);
-  return c;
+    int c = _file->read();
+
+    if (c != -1)
+        _file->seekCur(-1);
+
+    return c;
 }
 
 int Fyle::available()
@@ -50,11 +54,6 @@ int Fyle::available()
 
     uint32_t n = size() - position();
     return n > 0X7FFF ? 0X7FFF : n;
-}
-
-void Fyle::flush() {
-  if (_file)
-    _file->sync();
 }
 
 void Fyle::close()
@@ -162,14 +161,6 @@ bool walkPath2(char *filepath, SdFile& parentDir,
 bool callback_pathExists(SdFile& parentDir, char *filePathComponent,
                 bool isLastComponent, void *object)
 {
-  /*
-
-    Callback used to determine if a file/directory exists in parent
-    directory.
-
-    Returns true if file path exists.
-
-  */
     SdFile child;
     bool exists = child.open(parentDir, filePathComponent, O_RDONLY);
 
@@ -203,8 +194,8 @@ bool callback_remove(SdFile& parentDir, char *filePathComponent,
     return true;
 }
 
-bool callback_rmdir(SdFile& parentDir, char *filePathComponent,
-            bool isLastComponent, void *object)
+bool
+callback_rmdir(SdFile& parentDir, char *filePathComponent, bool isLastComponent, void *object)
 {
     if (isLastComponent)
     {
@@ -218,36 +209,38 @@ bool callback_rmdir(SdFile& parentDir, char *filePathComponent,
     return true;
 }
 
-bool ZD::begin()
+bool Fatty::begin()
 {
-    return card.init(SPI_HALF_SPEED) && volume.init(card) && root.openRoot(volume);
+    return _card->init(SPI_HALF_SPEED) && volume.init(_card) && root.openRoot(volume);
 }
 
 
-SdFile ZD::getParentDir(const char *filepath, int *index)
+SdFile Fatty::getParentDir(const char *filepath, int *index)
 {
     // get parent directory
     SdFile d1 = root; // start with the mostparent, root!
     SdFile d2;
 
-  // we'll use the pointers to swap between the two objects
-  SdFile *parent = &d1;
-  SdFile *subdir = &d2;
+    // we'll use the pointers to swap between the two objects
+    SdFile *parent = &d1;
+    SdFile *subdir = &d2;
 
-  const char *origpath = filepath;
+    const char *origpath = filepath;
 
-  while (strchr(filepath, '/')) {
+    while (strchr(filepath, '/'))
+    {
+        // get rid of leading /'s
+        if (filepath[0] == '/')
+        {
+            filepath++;
+            continue;
+        }
 
-    // get rid of leading /'s
-    if (filepath[0] == '/') {
-      filepath++;
-      continue;
-    }
-
-    if (! strchr(filepath, '/')) {
-      // it was in the root directory, so leave now
-      break;
-    }
+        if (!strchr(filepath, '/'))
+        {
+            // it was in the root directory, so leave now
+            break;
+        }
 
     // extract just the name of the next subdirectory
     uint8_t idx = strchr(filepath, '/') - filepath;
@@ -280,7 +273,7 @@ SdFile ZD::getParentDir(const char *filepath, int *index)
   return *parent;
 }
 
-Fyle ZD::open(const char *filepath, uint8_t mode)
+Fyle Fatty::open(const char *filepath, uint8_t mode)
 {
     int pathidx;
     SdFile parentdir = getParentDir(filepath, &pathidx);
@@ -359,16 +352,16 @@ Fyle Fyle::openNextFile(uint8_t mode)
   return Fyle();
 }
 
-void Fyle::rewindDirectory(void)
+void Fyle::rewindDirectory()
 {
-  if (isDirectory())
-    _file->rewind();
+    if (isDirectory())
+        _file->rewind();
 }
 
-bool ZD::exists(char *filepath) { return walkPath2(filepath, root, callback_pathExists); }
-bool ZD::mkdir(char *filepath) { return walkPath2(filepath, root, callback_makeDirPath); }
-bool ZD::remove(char *filepath) { return walkPath2(filepath, root, callback_remove); }
-bool ZD::rmdir(char *filepath) { return walkPath2(filepath, root, callback_rmdir); }
+bool Fatty::exists(char *filepath) { return walkPath2(filepath, root, callback_pathExists); }
+bool Fatty::mkdir(char *filepath) { return walkPath2(filepath, root, callback_makeDirPath); }
+bool Fatty::remove(char *filepath) { return walkPath2(filepath, root, callback_remove); }
+bool Fatty::rmdir(char *filepath) { return walkPath2(filepath, root, callback_rmdir); }
 
 void (*SdFile::dateTime_)(uint16_t* date, uint16_t* time) = NULL;
 
@@ -389,17 +382,22 @@ uint8_t SdFile::addCluster() {
   return true;
 }
 
-uint8_t SdFile::addDirCluster(void) {
-  if (!addCluster()) return false;
+uint8_t SdFile::addDirCluster()
+{
+    if (!addCluster())
+        return false;
 
-  // zero data in cluster insure first cluster is in cache
-  uint32_t block = vol_->clusterStartBlock(curCluster_);
-  for (uint8_t i = vol_->blocksPerCluster_; i != 0; i--) {
-    if (!SdVolume::cacheZeroBlock(block + i - 1)) return false;
-  }
-  // Increase directory file size by cluster size
-  fileSize_ += 512UL << vol_->clusterSizeShift_;
-  return true;
+    // zero data in cluster insure first cluster is in cache
+    uint32_t block = vol_->clusterStartBlock(curCluster_);
+
+    for (uint8_t i = vol_->blocksPerCluster_; i != 0; i--)
+    {
+        if (!SdVolume::cacheZeroBlock(block + i - 1))
+            return false;
+    }
+    // Increase directory file size by cluster size
+    fileSize_ += 512UL << vol_->clusterSizeShift_;
+    return true;
 }
 //------------------------------------------------------------------------------
 // cache a file's directory entry
@@ -879,10 +877,14 @@ uint8_t SdFile::remove(void) {
  * \a dirFile is not a directory, \a fileName is not found
  * or an I/O error occurred.
  */
-uint8_t SdFile::remove(SdFile* dirFile, const char* fileName) {
-  SdFile file;
-  if (!file.open(dirFile, fileName, O_WRITE)) return false;
-  return file.remove();
+uint8_t SdFile::remove(SdFile* dirFile, const char* fileName)
+{
+    SdFile file;
+
+    if (!file.open(dirFile, fileName, O_WRITE))
+        return false;
+
+    return file.remove();
 }
 
 uint8_t SdFile::rmDir(void) {
@@ -1321,7 +1323,8 @@ uint8_t SdVolume::fatGet(uint32_t cluster, uint32_t* value) const {
   return true;
 }
 
-uint8_t SdVolume::fatPut(uint32_t cluster, uint32_t value) {
+uint8_t SdVolume::fatPut(uint32_t cluster, uint32_t value)
+{
   // error if reserved cluster
   if (cluster < 2) return false;
 
@@ -1366,23 +1369,30 @@ uint8_t SdVolume::freeChain(uint32_t cluster) {
   return true;
 }
 
-uint8_t SdVolume::init(Sd2Card* dev, uint8_t part) {
-  uint32_t volumeStartBlock = 0;
-  sdCard_ = dev;
-  // if part == 0 assume super floppy with FAT boot sector in block zero
-  // if part > 0 assume mbr volume with partition table
-  if (part) {
-    if (part > 4)return false;
-    if (!cacheRawBlock(volumeStartBlock, CACHE_FOR_READ)) return false;
-    part_t* p = &cacheBuffer_.mbr.part[part-1];
-    if ((p->boot & 0X7F) !=0  ||
-      p->totalSectors < 100 ||
-      p->firstSector == 0) {
-      // not a valid partition
-      return false;
+uint8_t SdVolume::init(Sd2Card *dev, uint8_t part)
+{
+    uint32_t volumeStartBlock = 0;
+    sdCard_ = dev;
+    // if part == 0 assume super floppy with FAT boot sector in block zero
+    // if part > 0 assume mbr volume with partition table
+    if (part)
+    {
+        if (part > 4)
+            return false;
+
+        if (!cacheRawBlock(volumeStartBlock, CACHE_FOR_READ))
+            return false;
+
+        part_t* p = &cacheBuffer_.mbr.part[part-1];
+
+        if ((p->boot & 0X7F) !=0 || p->totalSectors < 100 || p->firstSector == 0)
+        {
+            // not a valid partition
+            return false;
+        }
+        volumeStartBlock = p->firstSector;
     }
-    volumeStartBlock = p->firstSector;
-  }
+
     if (!cacheRawBlock(volumeStartBlock, CACHE_FOR_READ))
         return false;
 

@@ -17,7 +17,9 @@ public:
 class istream
 {
 public:
+    virtual int peek() { return 0; }
     virtual int get() { return 0; }
+    virtual void read(char *s, size_t n) { for (size_t i = 0; i < n; i++) s[i] = get(); }
 };
 
 class ifstream : public istream

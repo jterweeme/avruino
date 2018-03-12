@@ -1,28 +1,8 @@
 /* Arduino SdFat Library
  * Copyright (C) 2009 by William Greiman
- *
- * This file is part of the Arduino SdFat Library
- *
- * This Library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
- * <http://www.gnu.org/licenses/>.
  */
 #ifndef SdFat_h
 #define SdFat_h
-/**
- * \file
- * SdFile and SdVolume classes
- */
 #include <avr/pgmspace.h>
 #include "zd2card.h"
 #include <string.h>
@@ -31,80 +11,31 @@
 uint8_t const BOOTSIG0 = 0X55;
 uint8_t const BOOTSIG1 = 0XAA;
 
-struct partitionTable {
-          /**
-           * Boot Indicator . Indicates whether the volume is the active
-           * partition.  Legal values include: 0X00. Do not use for booting.
-           * 0X80 Active partition.
-           */
-  uint8_t  boot;
-          /**
-            * Head part of Cylinder-head-sector address of the first block in
-            * the partition. Legal values are 0-255. Only used in old PC BIOS.
-            */
-  uint8_t  beginHead;
-          /**
-           * Sector part of Cylinder-head-sector address of the first block in
-           * the partition. Legal values are 1-63. Only used in old PC BIOS.
-           */
-  unsigned beginSector : 6;
-           /** High bits cylinder for first block in partition. */
-  unsigned beginCylinderHigh : 2;
-          /**
-           * Combine beginCylinderLow with beginCylinderHigh. Legal values
-           * are 0-1023.  Only used in old PC BIOS.
-           */
-  uint8_t  beginCylinderLow;
-          /**
-           * Partition type. See defines that begin with PART_TYPE_ for
-           * some Microsoft partition types.
-           */
-  uint8_t  type;
-          /**
-           * head part of cylinder-head-sector address of the last sector in the
-           * partition.  Legal values are 0-255. Only used in old PC BIOS.
-           */
-  uint8_t  endHead;
-          /**
-           * Sector part of cylinder-head-sector address of the last sector in
-           * the partition.  Legal values are 1-63. Only used in old PC BIOS.
-           */
-  unsigned endSector : 6;
-           /** High bits of end cylinder */
-  unsigned endCylinderHigh : 2;
-          /**
-           * Combine endCylinderLow with endCylinderHigh. Legal values
-           * are 0-1023.  Only used in old PC BIOS.
-           */
-  uint8_t  endCylinderLow;
-           /** Logical block address of the first block in the partition. */
-  uint32_t firstSector;
-           /** Length of the partition, in blocks. */
-  uint32_t totalSectors;
+struct PartitionTable
+{
+    uint8_t boot;
+    uint8_t beginHead;
+    unsigned beginSector : 6;
+    unsigned beginCylinderHigh : 2;
+    uint8_t beginCylinderLow;
+    uint8_t type;
+    uint8_t endHead;
+    unsigned endSector : 6;
+    unsigned endCylinderHigh : 2;
+    uint8_t endCylinderLow;
+    uint32_t firstSector;
+    uint32_t totalSectors;
 };
 
-typedef struct partitionTable part_t;
-//------------------------------------------------------------------------------
-/**
- * \struct masterBootRecord
- *
- * \brief Master Boot Record
- *
- * The first block of a storage device that is formatted with a MBR.
- */
+typedef struct PartitionTable part_t;
+
 struct masterBootRecord {
-           /** Code Area for master boot program. */
-  uint8_t  codeArea[440];
-           /** Optional WindowsNT disk signature. May contain more boot code. */
-  uint32_t diskSignature;
-           /** Usually zero but may be more boot code. */
-  uint16_t usuallyZero;
-           /** Partition tables. */
-  part_t   part[4];
-           /** First MBR signature byte. Must be 0X55 */
-  uint8_t  mbrSig0;
-           /** Second MBR signature byte. Must be 0XAA */
-  uint8_t  mbrSig1;
+    uint8_t  codeArea[440];
+    uint32_t diskSignature;
+    uint16_t usuallyZero;
+    part_t part[4];
+    uint8_t  mbrSig0;
+    uint8_t  mbrSig1;
 };
 /** Type name for masterBootRecord */
 typedef struct masterBootRecord mbr_t;
@@ -809,22 +740,9 @@ public:
        on FAT16 volumes or the first cluster number on FAT32 volumes. */
   uint32_t rootDirStart(void) const {return rootDirStart_;}
   /** return a pointer to the Sd2Card object for this volume */
-  static Sd2Card* sdCard(void) {return sdCard_;}
-//------------------------------------------------------------------------------
-#if ALLOW_DEPRECATED_FUNCTIONS
-  // Deprecated functions  - suppress cpplint warnings with NOLINT comment
-  /** \deprecated Use: uint8_t SdVolume::init(Sd2Card* dev); */
-  uint8_t init(Sd2Card& dev) {return init(&dev);}  // NOLINT
-
-    /** \deprecated Use: uint8_t SdVolume::init(Sd2Card* dev, uint8_t vol); */
-    uint8_t init(Sd2Card& dev, uint8_t part) {  // NOLINT
-        return init(&dev, part);
-    }
-#endif  // ALLOW_DEPRECATED_FUNCTIONS
+    static Sd2Card *sdCard(void) {return sdCard_;}
 private:
-    // Allow SdFile access to SdVolume private data.
     friend class SdFile;
-
     // value for action argument in cacheRawBlock to indicate read from cache
     static uint8_t const CACHE_FOR_READ = 0;
     // value for action argument in cacheRawBlock to indicate cache dirty
@@ -899,7 +817,7 @@ public:
     virtual int read() { return _file ? _file->read() : -1; }
     virtual int peek();
     virtual int available();
-    virtual void flush();
+    virtual void flush() { if (_file) _file->sync(); }
     int read(void *buf, uint16_t nbyte) { return _file ? _file->read(buf, nbyte) : 0; }
     inline bool seek(uint32_t pos) { return _file ? _file->seekSet(pos) : false; } 
     uint32_t position() { return _file ? _file->curPosition() : -1; }
@@ -912,29 +830,26 @@ public:
     void rewindDirectory();
 };
 
-class ZD
+class Fatty
 {
 private:
     int fileOpenMode;
     friend class Fyle;
     friend bool callback_openPath(SdFile&, char *, bool, void *);
-    Port _portB;
-    Pin _pin9;
-    Sd2Card card;
+    Sd2Card * const _card;
     SdVolume volume;
     SdFile root;
     SdFile getParentDir(const char *filepath, int *indx);
 public:
-    static ZD *instance;
-    ZD() : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(&_pin9) { instance = this; }
-    ZD(Pin *cs) : _portB((uint8_t *)portb_base), _pin9(_portB, BIT1), card(cs) { instance = this; }
+    static Fatty *instance;
+    Fatty(Sd2Card *kard) : _card(kard) { instance = this; }
     bool begin();
     Fyle open(const char *filename, uint8_t mode = FILE_READ);
     bool exists(char *filepath);
     bool mkdir(char *filepath);
     bool remove(char *filepath);
     bool rmdir(char *filepath);
-    inline void tick() { card.tick(); }
+    inline void tick() { _card->tick(); }
 };
 
 class FyleIfstream : public ifstream
@@ -942,7 +857,8 @@ class FyleIfstream : public ifstream
 private:
     Fyle _fyle;
 public:
-    void open(const char *fn) { _fyle = ZD::instance->open(fn); }
+    int peek() { return _fyle.peek(); }
+    void open(const char *fn) { _fyle = Fatty::instance->open(fn); }
     void close() { _fyle.close(); }
     int get() { return _fyle.read(); }
 };

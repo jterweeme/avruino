@@ -1,5 +1,20 @@
 #ifndef _STORAGE_H_
 #define _STORAGE_H_
+#include "types.h"
+
+class Utility
+{
+public:
+    static inline void strcpy(char *d, const char *s) { while ((*d++ = *s++)); }
+    static inline void delay(const uint32_t x) { for (volatile uint32_t i = 0; i < x; i++); }
+    template <class T> static void swap(T& a, T& b) { T c(a); a = b; b = c; }
+    static void reverse(char str[], int length);
+    static int strcmp(const char *a, const char *b);
+    static size_t strlen(const char *s);
+    static char *itoa(int num, char *str, int base);
+    static void *malloc(size_t size) { return ::malloc(size); }
+    static int isdigit(int c) { return c >= '0' && c <= '9' ? 1 : 0; }
+};
 
 template <size_t N> class bitset
 {

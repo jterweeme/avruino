@@ -10,9 +10,9 @@ werkt met UNO
 #include "misc.h"
 #include "stream.h"
 
-static ZD *g_zd;
+static Fatty *g_zd;
 
-static void printDirectory(Fyle dir, int numTabs, ostream &os)
+static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
 {
     while (true)
     {
@@ -51,7 +51,9 @@ static void printDirectory(Fyle dir, int numTabs, ostream &os)
 
 int main()
 {
-    ZD zd;
+    Board b;
+    Sd2Card sd(&b.pin9);
+    Fatty zd(&sd);
     g_zd = &zd;
     *p_tccr0b = 1<<cs02;
     *p_timsk0 |= 1<<toie0;
