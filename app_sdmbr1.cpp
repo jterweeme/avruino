@@ -37,7 +37,7 @@ static void hexDump(uint8_t *point, ostream &os)
                 os.put('.');
         }
 
-        os.writeString("\r\n");
+        os << "\r\n";
     }   
 }
 
@@ -59,12 +59,12 @@ int main()
     DefaultUart s;
     UartStream cout(&s);
 #endif
-    cout.writeString("Startup\r\n");
+    cout << "Startup\r\n";
 
     while (true)
     {
         hexDump(buf, cout);
-        cout.writeString("\r\n");
+        cout << "\r\n";
         cout.flush();
 
         for (volatile uint32_t i = 0; i < 0xfffff; i++)

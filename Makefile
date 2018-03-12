@@ -46,7 +46,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_blink3.elf app_megaboot4.hex app_analogweb1.elf \
+    app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_websdfat1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_minos1.elf \
 
 ifeq ($(POOL1), ja)
@@ -85,13 +85,16 @@ app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 app_usbsound2.hex: app_usbsound2.asm
 
-app_aditbox.elf: app_aditbox.o analog.o button.o tft.o $(BSP)
-app_analog1.elf: app_analog1.o $(BSP)
-app_analog2.elf: app_analog2.o $(BSP)
-
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
+app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
+    uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
+    zd2card.o fatty.o $(BSP)
+
+app_aditbox.elf: app_aditbox.o analog.o button.o tft.o $(BSP)
+app_analog1.elf: app_analog1.o $(BSP)
+app_analog2.elf: app_analog2.o $(BSP)
 app_blink1.elf: app_blink1.o
 app_blink2.elf: app_blink2.o $(BSP)
 app_blink3.elf: app_blink3.o $(BSP)
@@ -110,6 +113,7 @@ app_lcdtest2.elf: app_lcdtest2.o
 app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o $(BSP)
+app_minos1.elf: app_minos1.o fatty.o zd2card.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o $(USBOPT) $(BSP)
 app_pi1.elf: app_pi1.o $(USBOPT) $(BSP)
 app_pirate1.elf: app_pirate1.o vgax.o
@@ -143,7 +147,6 @@ app_usbsound1.elf: app_usbsound1.o busby.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 app_wifi1.elf: app_wifi1.o misc.o $(USBOPT) $(BSP)
-app_minos1.elf: app_minos1.o fatty.o zd2card.o $(BSP)
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
@@ -166,6 +169,7 @@ app_lcdtest2.o: app_lcdtest2.cpp
 app_lcdtest3.o: app_lcdtest3.cpp
 app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
+app_minos1.o: app_minos1.cpp
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
@@ -192,8 +196,8 @@ app_usbpiano1.o: app_usbpiano1.cpp busby.h
 app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
+app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 app_wifi1.o: app_wifi1.cpp misc.h
-app_minos1.o: app_minos1.cpp
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp

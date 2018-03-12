@@ -15,6 +15,8 @@ public:
 static constexpr uint8_t
     porta_base = 0x20,
         pina = porta_base,
+            pina0 = 0, pina1 = 1, pina2 = 2, pina3 = 3,
+            pina4 = 4, pina5 = 5, pina6 = 6, pina7 = 7,
         ddra = porta_base + 1,
         porta = porta_base + 2,
     portb_base = 0x23,

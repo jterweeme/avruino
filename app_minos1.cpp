@@ -499,6 +499,14 @@ int main()
                 zd.remove(fn);
             }
 
+            if (buf.comp("test"))
+            {
+                Fyle fp;
+                fp = zd.open("test.txt", FILE_WRITE);
+                fp.write((const uint8_t *)"This\r\n", 6);
+                fp.close();
+            }
+
             buf.clear();
         }
     }

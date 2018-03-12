@@ -487,9 +487,7 @@ public:
         void (*dateTime)(uint16_t* date, uint16_t* time)) {
         dateTime_ = dateTime;
     }
-    /**
-    * Cancel the date/time callback function.
-    */
+
     static void dateTimeCallbackCancel() { dateTime_ = 0; }
     /** \return Address of the block that contains this file's directory. */
     uint32_t dirBlock(void) const {return dirBlock_;}
@@ -723,9 +721,9 @@ public:
   /** \return The number of blocks in one FAT. */
   uint32_t blocksPerFat(void)  const {return blocksPerFat_;}
   /** \return The total number of clusters in the volume. */
-  uint32_t clusterCount(void) const {return clusterCount_;}
+  uint32_t clusterCount() const {return clusterCount_;}
   /** \return The shift count required to multiply by blocksPerCluster. */
-  uint8_t clusterSizeShift(void) const {return clusterSizeShift_;}
+  uint8_t clusterSizeShift() const {return clusterSizeShift_;}
   /** \return The logical block number for the start of file data. */
   uint32_t dataStartBlock(void) const {return dataStartBlock_;}
   /** \return The number of FAT structures on the volume. */
@@ -813,7 +811,7 @@ public:
     Fyle() { _name[0] = 0; }
     ~Fyle() { }
     virtual size_t write(const uint8_t *buf, size_t size);
-    virtual size_t write(uint8_t val) { return write(&val, 1); }
+    virtual inline size_t write(uint8_t val) { return write(&val, 1); }
     virtual int read() { return _file ? _file->read() : -1; }
     virtual int peek();
     virtual int available();
@@ -861,6 +859,16 @@ public:
     void open(const char *fn) { _fyle = Fatty::instance->open(fn); }
     void close() { _fyle.close(); }
     int get() { return _fyle.read(); }
+};
+
+class FyleOfstream : public ofstream
+{
+private:
+    Fyle _fyle;
+public:
+    void put(char c) { _fyle.write((uint8_t)c); }
+    void open(const char *fn) { _fyle = Fatty::instance->open(fn, FILE_WRITE); }
+    void close() { _fyle.close(); }
 };
 
 #endif

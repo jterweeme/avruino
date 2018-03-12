@@ -10,6 +10,7 @@ class ostream
 {
 public:
     virtual void put(char c) { }
+    virtual void operator<< (const char *s) { while (*s) put(*s++); }
     virtual void writeString(const char *s) { while (*s) put(*s++); }
     virtual void flush() { }
 };
@@ -26,6 +27,13 @@ class ifstream : public istream
 {
 public:
     virtual int get() { return 0; }
+};
+
+class ofstream : public ostream
+{
+public:
+    virtual void open(const char *fn) { }
+    virtual void close() { }
 };
 
 class UartStream : public ostream
