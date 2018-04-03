@@ -9,7 +9,7 @@
 #include <util/delay.h>
 #include "bogota.h"
 #include "busby.h"
-#include "network.h"
+#include "enc28j60.h"
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,

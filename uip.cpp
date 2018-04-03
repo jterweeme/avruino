@@ -500,7 +500,7 @@ static void uip_add_rcv_nxt(uint16_t n)
   uip_conn->rcv_nxt[2] = uip_acc32[2];
   uip_conn->rcv_nxt[3] = uip_acc32[3];
 }
-/*---------------------------------------------------------------------------*/
+
 void uip_process(uint8_t flag)
 {
   register struct uip_conn *uip_connr = uip_conn;

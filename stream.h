@@ -10,6 +10,7 @@ class ostream
 {
 public:
     virtual void put(char c) { }
+    virtual void write(const char *s, size_t n);
     virtual void operator<< (const char *s) { while (*s) put(*s++); }
     virtual void writeString(const char *s) { while (*s) put(*s++); }
     virtual void flush() { }
@@ -17,10 +18,13 @@ public:
 
 class istream
 {
+protected:
+    size_t _lastread = 0;
 public:
     virtual int peek() { return 0; }
     virtual int get() { return 0; }
-    virtual void read(char *s, size_t n) { for (size_t i = 0; i < n; i++) s[i] = get(); }
+    virtual void read(char *s, size_t n);
+    virtual size_t gcount() { return _lastread; }
 };
 
 class ifstream : public istream
@@ -42,7 +46,7 @@ private:
     UartBase * const _serial;
 public:
     UartStream(UartBase *s) : _serial(s) { }
-    void put(char c) { _serial->write(c); }
+    void put(char c) { _serial->myPutc(c); }
 };
 
 class UartIStream : public istream

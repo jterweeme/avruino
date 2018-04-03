@@ -104,7 +104,6 @@ uint8_t Rtttl::_noten(char c) const
 
 void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
 {
-    Utility util;
     uint8_t default_dur = 4, default_oct = 6;
     int bpm = 63, num;
     long wholenote, duration;
@@ -118,7 +117,7 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
         p += 2; // skip "d="
         num = 0;
 
-        while (util.isdigit(read_byte(p, pgm)))
+        while (my_isdigit(read_byte(p, pgm)))
             num = num * 10 + (read_byte(p++, pgm) - '0');
 
         if (num > 0)
@@ -143,7 +142,7 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
         p+=2; // skip "b="
         num = 0;
 
-        while (util.isdigit(read_byte(p, pgm)))
+        while (my_isdigit(read_byte(p, pgm)))
             num = num * 10 + (read_byte(p++, pgm) - '0');
 
         bpm = num;
@@ -156,7 +155,7 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
     {
         num = 0;
 
-        while (util.isdigit(read_byte(p, pgm)))
+        while (my_isdigit(read_byte(p, pgm)))
             num = (num * 10) + (read_byte(p++, pgm) - '0');
 
         duration = num ? wholenote / num : wholenote / default_dur;
@@ -174,7 +173,7 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
             p++;
         }
 
-        scale = util.isdigit(read_byte(p, pgm)) ? read_byte(p++, pgm) - '0' : default_oct;
+        scale = my_isdigit(read_byte(p, pgm)) ? read_byte(p++, pgm) - '0' : default_oct;
         scale += octave_offset;
 
         if (read_byte(p, pgm) == ',')

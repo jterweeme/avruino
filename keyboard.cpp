@@ -3,7 +3,7 @@ PS2 CLK: D2
 */
 
 #include "keyboard.h"
-#include <avr/io.h>
+#include "board.h"
 
 void CircBuf::push(uint8_t v)
 {
@@ -50,8 +50,8 @@ PS2Keyboard::PS2Keyboard(Pin *dat) : _dat(dat)
 {
     _dat->direction(INPUT);
     _dat->set();
-    DDRD &= ~(1<<DDD2);
-    PORTD |= PORTD2;
+    *p_int0_ddr &= ~(1<<int0_bit);
+    *p_int0_port |= int0_bit;
 }
 
 void PS2Keyboard::isr()

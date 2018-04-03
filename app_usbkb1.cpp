@@ -15,22 +15,22 @@ void hidTask(USBKB &kb)
     uint8_t i = 0;
     memset((void *)&report, 0, sizeof(report));
 
-    if ((PINF & 1<<0) == 0)
+    if ((*p_pinf & 1<<0) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_A;
 
-    if ((PINF & 1<<1) == 0)
+    if ((*p_pinf & 1<<1) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_B;
 
-    if ((PINF & 1<<4) == 0)
+    if ((*p_pinf & 1<<4) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_C;
 
-    if ((PINF & 1<<5) == 0)
+    if ((*p_pinf & 1<<5) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_D;
 
-    if ((PINF & 1<<6) == 0)
+    if ((*p_pinf & 1<<6) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_E;
 
-    if ((PINF & 1<<7) == 0)
+    if ((*p_pinf & 1<<7) == 0)
         report.keyCode[i++] = HID_KEYBOARD_SC_F;
 
     kb.sendReport(report);
@@ -38,8 +38,8 @@ void hidTask(USBKB &kb)
 
 int main()
 {
-    DDRF &= ~(1<<0 | 1<<1 | 1<<4 | 1<<5 | 1<<6 | 1<<7);
-    PORTF |= 1<<0 | 1<<1 | 1<<4 | 1<<5 | 1<<6 | 1<<7;
+    *p_ddrf &= ~(1<<0 | 1<<1 | 1<<4 | 1<<5 | 1<<6 | 1<<7);
+    *p_portf |= 1<<0 | 1<<1 | 1<<4 | 1<<5 | 1<<6 | 1<<7;
     USBKB kb;
     
     while (true)

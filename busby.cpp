@@ -3,8 +3,8 @@ Adapted from LUFA code by Dean Camera
 */
 
 #include "busby.h"
-#include <avr/boot.h>
-#include <avr/pgmspace.h>
+#include "schip.h"
+#include "pgmspees.h"
 #include "int.h"
 
 USB *USB::instance;

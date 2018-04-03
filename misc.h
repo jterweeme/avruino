@@ -5,54 +5,138 @@
 #include "storage.h"
 #include "pinport.h"
 
-inline void * operator new (size_t size) { return Utility::malloc(size); }
-inline void * operator new[] (size_t size) { return Utility::malloc(size); }
-
 static inline char nibble(uint8_t n)
 {
     return n <= 9 ? '0' + n : 'A' + n - 10;
 }
 
-static inline bool myIsspace(char c)
+static inline void *my_memcpy(void *dst, void *src, size_t n)
+{
+    uint8_t *csrc = (uint8_t *)src;
+    uint8_t *cdst = (uint8_t *)dst;
+
+    for (size_t i = 0; i < n; i++)
+        cdst[i] = csrc[i];
+
+    return dst;
+}
+
+static inline int my_memcmp(const void *s1, const void *s2, size_t n)
+{
+    const uint8_t *p1 = (uint8_t *)s1, *p2 = (uint8_t *)s2;
+
+    while (n--)
+    {
+        if (*p1 != *p2)
+            return *p1 - *p2;
+
+        p1++, p2++;
+    }
+
+    return 0;
+}
+
+static inline bool my_isupper(char c)
+{
+    return c >= 'A' && c <= 'Z';
+}
+
+static inline bool my_islower(char c)
+{
+    return c >= 'a' && c <= 'z';
+}
+
+static inline int my_tolower(int c)
+{
+    return my_isupper(c) ? c + 32 : c;
+}
+
+static inline int my_toupper(int c)
+{
+    return my_islower(c) ? c - 32 : c;
+}
+
+static inline void *my_memset(void *s, int c, size_t n)
+{
+    uint8_t *p = (uint8_t *)s;
+    
+    while (n--)
+        *p++ = (uint8_t)c;
+
+    return s;
+}
+
+static inline int my_strcasecmp(const char *a, const char *b, size_t n)
+{
+    for (;; a++, b++)
+    {
+        int d = my_tolower(*a) - my_tolower(*b);
+
+        if (d != 0 || !*a)
+            return d;
+    }
+
+    return 0;
+}
+
+static inline int my_strncasecmp(const char *a, const char *b, size_t n)
+{
+    while (n--)
+        if (my_tolower(*a++) != my_tolower(*b++))
+            return my_tolower(*a) - my_tolower(*b);
+
+    return 0;
+}
+
+static inline char *my_strchr(const char *s, int c)
+{
+    while (*s != (char)c)
+        if (!*s++)
+            return 0;
+
+    return (char *)s;
+}
+
+static inline char *my_strncpy(char *dst, const char *src, size_t n)
+{
+    size_t i;
+
+    for (i = 0; i < n && src[i] != '\0'; i++)
+        dst[i] = src[i];
+
+    for (; i < n; i++)
+        dst[i] = '\0';
+
+    return dst;
+}
+
+static inline bool my_isspace(char c)
 {
     return c == ' ';
 }
 
-static inline bool myIsprint(char c)
+static inline int my_isdigit(int c)
+{
+    return c >= '0' && c <= '9' ? 1 : 0;
+}
+
+static inline bool my_isprint(char c)
 {
     return c >= 0x20 && c <= 0x7e;
 }
 
-class SPIBase
+class Utility
 {
 public:
-    volatile uint8_t * const base;
-    volatile uint8_t * const spcr;
-    volatile uint8_t * const spsr;
-    volatile uint8_t * const spdr;
-    SPIBase(uint8_t *base) : base(base), spcr(base), spsr(base + 1), spdr(base + 2) { }
-    uint8_t transfer(uint8_t data);
-    uint8_t read() { return transfer(0xff); }
-
-    enum spsr_bits
-    {
-        spi2x = 1 << 0,
-        wcol = 1 << 6,
-        spif = 1 << 7
-    };
-
-    enum spcr_bits
-    {
-        spr0 = 1 << 0,
-        spr1 = 1 << 1,
-        cpha = 1 << 2,
-        cpol = 1 << 3,
-        mstr = 1 << 4,
-        dord = 1 << 5,
-        spe = 1 << 6,
-        spie = 1 << 7
-    };
+    static inline void delay(const uint32_t x) { for (volatile uint32_t i = 0; i < x; i++); }
+    template <class T> static void swap(T& a, T& b) { T c(a); a = b; b = c; }
+    static void reverse(char str[], int length);
+    static char *itoa(int num, char *str, int base);
+    static void *malloc(size_t size) { return ::malloc(size); }
 };
+
+inline void * operator new (size_t size) { return Utility::malloc(size); }
+inline void * operator new[] (size_t size) { return Utility::malloc(size); }
 
 struct DS1302_Regs
 {

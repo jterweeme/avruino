@@ -2,7 +2,7 @@
 buzzer: D5
 */
 
-#include <avr/pgmspace.h>
+#include "pgmspees.h"
 #include "busby.h"
 #include "usbsound.h"
 

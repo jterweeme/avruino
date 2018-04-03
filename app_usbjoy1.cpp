@@ -10,12 +10,11 @@ Button 1: A1/PF6
 #include "usbjoy.h"
 #include "analog.h"
 #include "board.h"
-#include <avr/interrupt.h>
 
 int main()
 {
     USBJoy joy;
-    sei();
+    zei();
     *p_ddrf &= ~(1<<7 | 1<<6);
     *p_portf |= 1<<7 | 1<<6;
     JoyReportData jrd;

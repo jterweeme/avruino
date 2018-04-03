@@ -9,7 +9,7 @@ int main()
 {
     DefaultUart uart;
     uart.enableRead();
-    uart.puts("Testbericht\r\n");
+    //uart.puts("Testbericht\r\n");
 
     while (true)
         uart.myPutc(uart.readByte());

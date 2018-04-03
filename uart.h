@@ -27,7 +27,8 @@ protected:
     Pin * const d7;
     void lcd_write_4(uint8_t theByte);
 public:
-    static const uint8_t LINEONE = 0x00,
+    static constexpr uint8_t
+        LINEONE = 0x00,
         LINETWO = 0x40,
         CLEAR = 0x01,
         HOME = 0x02,
@@ -55,34 +56,29 @@ protected:
     volatile uint8_t * const ucsra;
     volatile uint8_t * const ucsrb;
 public:
-    enum sra
-    {
-        MUDRE = 1 << 5,
-        MRXC = 1 << 7
-    };
-
-    enum srb
-    {
+    static constexpr uint8_t
+        MUDRE = 1<<5,
+        MRXC = 1<<7,
         TXEn = 1<<3,
         RXEn = 1<<4,
         udrie = 1<<5,
         txcie = 1<<6,
-        rxcie = 1<<7
-    };
+        rxcie = 1<<7;
 
     UartBase(volatile uint16_t *brr, volatile uint8_t *udr, volatile uint8_t *ucsra,
         volatile uint8_t *ucsrb);
 
-    void myPutc(char c) { while (!(*ucsra & sra::MUDRE)) { } *udr = c; }
+    void myPutc(char c) { while ((*ucsra & MUDRE) == 0); *udr = c; }
     virtual void onReceive() { }
-    void inline enableTransmit() { *ucsrb |= srb::TXEn; }
-    void inline enableRead() { *ucsrb |= srb::RXEn; }
-    void inline enableReadInterrupt() { *ucsrb |= srb::rxcie; asm volatile ("sei"); }
-    uint8_t readByte() { while (!(*ucsra & sra::MRXC)) { } return *udr; }
+    void inline enableTransmit() { *ucsrb |= TXEn; }
+    void inline enableRead() { *ucsrb |= RXEn; }
+    void inline enableReadInterrupt() { *ucsrb |= rxcie; asm volatile ("sei"); }
+    uint8_t readByte() { while ((*ucsra & MRXC) == 0); return *udr; }
 };
 
 class Uart : public UartBase
 {
+private:
     static Uart *instance;
 public:
     Uart();
@@ -96,13 +92,7 @@ class DefaultUart : public Uart
 public:
     DefaultUart();
 };
-
-class Wifi
-{
-    Uart * const uart;
-public:
-    Wifi(Uart *uart) : uart(uart) { }
-};
-
 #endif
+
+
 

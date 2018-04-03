@@ -1,11 +1,7 @@
 // code from Adafruit TFT library
 
-#include <avr/io.h>
-#include <stdio.h>
-#include <avr/pgmspace.h>
 #include "glcdfont.h"
 #include "tft.h"
-#include <string.h>
 #include "board.h"
 
 #ifndef F_CPU
@@ -53,15 +49,15 @@ void TFT::init_table16(const void *table, int16_t size)
         else
         {
 #if defined (__AVR_ATmega328P__)
-            PORTC &= ~(1<<3);   // A3
+            *p_portc &= ~(1<<3);   // A3
             writeCmd(cmd);
             writeData(d);
-            PORTC |= 1<<3;      // A3
+            *p_portc |= 1<<3;      // A3
 #elif defined (__AVR_ATmega2560__)
-            PORTF &= ~(1<<3);   // A3
+            *p_portf &= ~(1<<3);   // A3
             writeCmd(cmd);
             writeData(d);
-            PORTF |= 1<<3;      // A3
+            *p_portf |= 1<<3;      // A3
 #else
             b.pinA3.clear();
             writeCmd(cmd);
@@ -152,16 +148,6 @@ void TFT::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
         drawVLine(i, y, h, color);
 }
 
-int16_t TFT::width()
-{
-    return _width;
-}
-
-int16_t TFT::height()
-{
-    return _height;
-}
-
 void TFT::drawChar(int16_t x, int16_t y, char c)
 {
     for (int8_t i = 0; i < 5; i++)
@@ -176,7 +162,7 @@ void TFT::drawChar(int16_t x, int16_t y, char c)
 
 void TFT::drawString(int16_t x, int16_t y, const char *s)
 {
-    size_t n = strlen(s);
+    size_t n = my_strlen(s);
 
     for (size_t i = 0; i < n; i++)
         drawChar(x + i * 8, y, s[i]);
@@ -245,31 +231,17 @@ uint8_t TFT::read8()
 {
     uint8_t dst = 0;
 #if defined (__AVR_ATmega328P__)
-    PORTC |= 1<<0;
-    PORTC &= ~(1<<0);
-    PORTC &= ~(1<<0);
-    PORTC &= ~(1<<0);
-    dst = (PINB & 0x03) | (PIND & 0xfc);
-    PORTC |= 1<<0;
-#elif defined (__AVR_ATmega2560__)
-    PORTF |= 1<<0;
-    PORTF &= ~(1<<0);
-    PORTF &= ~(1<<0);
-    PORTF &= ~(1<<0);
-    dst |= b.pin8.read() ? 1<<0 : 0;
-    dst |= b.pin9.read() ? 1<<1 : 0;
-    dst |= b.pin2.read() ? 1<<2 : 0;
-    dst |= b.pin3.read() ? 1<<3 : 0;
-    dst |= b.pin4.read() ? 1<<4 : 0;
-    dst |= b.pin5.read() ? 1<<5 : 0;
-    dst |= b.pin6.read() ? 1<<6 : 0;
-    dst |= b.pin7.read() ? 1<<7 : 0;
-    PORTF |= 1<<0;
+    *p_portc |= 1<<pc0;
+    *p_portc &= ~(1<<pc0);
+    *p_portc &= ~(1<<pc0);
+    *p_portc &= ~(1<<pc0);
+    dst = (*p_pinb & 0x03) | (*p_pind & 0xfc);
+    *p_portc |= 1<<pc0;
 #else
-    b.pinA0.set();
-    b.pinA0.clear();
-    b.pinA0.clear();
-    b.pinA0.clear();
+    *p_pinA0_port |= 1<<pinA0_bit;
+    *p_pinA0_port &= ~(1<<pinA0_bit);
+    *p_pinA0_port &= ~(1<<pinA0_bit);
+    *p_pinA0_port &= ~(1<<pinA0_bit);
     dst |= b.pin8.read() ? 1<<0 : 0;
     dst |= b.pin9.read() ? 1<<1 : 0;
     dst |= b.pin2.read() ? 1<<2 : 0;
@@ -278,7 +250,7 @@ uint8_t TFT::read8()
     dst |= b.pin5.read() ? 1<<5 : 0;
     dst |= b.pin6.read() ? 1<<6 : 0;
     dst |= b.pin7.read() ? 1<<7 : 0;
-    b.pinA0.set();
+    *p_pinA0_port |= 1<<pinA0_bit;
 #endif
     return dst;
 }

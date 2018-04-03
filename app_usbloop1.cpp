@@ -7,22 +7,12 @@ prints to USB in opposite case
 #include "cdc.h"
 #include "misc.h"
 
-static inline bool isUpper(char c)
-{
-    return c >= 'A' && c <= 'Z';
-}
-
-static inline bool isLower(char c)
-{
-    return c >= 'a' && c <= 'z';
-}
-
 static inline char convertCase(char c)
 {
-    if (isUpper(c))
+    if (my_isupper(c))
         return c + 32;
 
-    if (isLower(c))
+    if (my_islower(c))
         return c - 32;
 
     return c;

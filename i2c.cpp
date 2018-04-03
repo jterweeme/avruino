@@ -1,5 +1,4 @@
 #include "i2c.h"
-#include <stdio.h>
 
 I2CBus::I2CBus(unsigned brr)
   :
@@ -19,7 +18,7 @@ I2CBus::I2CBus(unsigned brr)
 uint8_t I2CBus::start()
 {
     *twcr = RTWINT | RTWEN | RTWSTA;
-    while (!(*twcr & RTWINT)) { }
+    while ((*twcr & RTWINT) == 0);
     return *twsr;
 }
 
@@ -27,14 +26,14 @@ uint8_t I2CBus::write(uint8_t data)
 {
     *twdr = data;
     *twcr = RTWINT | RTWEN;
-    while (!(*twcr & RTWINT)) { }
+    while ((*twcr & RTWINT) == 0);
     return *twsr;
 }
 
 uint8_t I2CBus::read(uint8_t ack)
 {
     *twcr = RTWINT | RTWEN | ((ack == 0) ? RTWEA : 0);
-    while (!(*twcr & RTWINT)) { }
+    while ((*twcr & RTWINT) == 0);
     return *twdr;
 }
 
@@ -54,7 +53,7 @@ void I2CBus::scan()
 void I2CBus::stop()
 {
     *twcr = RTWINT | RTWEN | RTWSTO;
-    while (!(*twcr & RTWSTO)) { }
+    while ((*twcr & RTWSTO) == 0);
 }
 
 void PCF8563::readTime()

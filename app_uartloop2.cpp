@@ -28,7 +28,7 @@ App::App()
 {
     uart.enableRead();
     uart.enableReadInterrupt();
-    uart.puts("Testbericht\r\n");
+    //uart.puts("Testbericht\r\n");
 }
 
 int App::run()

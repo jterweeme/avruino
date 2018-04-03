@@ -24,7 +24,7 @@ public:
 void MyUart::onReceive()
 {
     PORTC ^= 1 << 7;
-    _os->write(readByte());
+    _os->put(readByte());
 }
 
 int App::run()

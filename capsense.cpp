@@ -1,5 +1,4 @@
 #include "capsense.h"
-#include <avr/interrupt.h>
 
 #ifndef F_CPU
 #define F_CPU 16000000
@@ -27,7 +26,7 @@ CapSense::CapSense(Pin send, Pin receive, uint16_t threshold)
 
 int16_t CapSense::senseOneCycle()
 {
-    cli();
+    zli();
     *_out &= ~(1<<_bit);
     *_mode &= ~(1<<_bit);
     *_mode |= ~(1<<_bit);
@@ -35,7 +34,7 @@ int16_t CapSense::senseOneCycle()
     _delay_us(10);
     *_mode &= ~(1<<_bit);
     *_out |= 1<<_bit;
-    sei();
+    zei();
 
     while ((*_in & 1<<_bit) == 0 && _total < _timeout)
         _total++;
@@ -43,13 +42,13 @@ int16_t CapSense::senseOneCycle()
     if (_total > _timeout)
         return -2;
 
-    cli();
+    zli();
     *_out |= 1<<_bit;
     *_mode |= 1<<_bit;
     *_out |= 1<<_bit;
     *_mode &= ~(1<<_bit);
     *_out &= ~(1<<_bit);
-    sei();
+    zei();
 
     while ((*_in & 1<<_bit) && _total < _timeout)
         _total++;

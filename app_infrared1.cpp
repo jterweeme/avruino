@@ -1,10 +1,13 @@
 #include <avr/interrupt.h>
 #include "misc.h"
 
+#ifndef F_CPU
 #define F_CPU 16000000
+#endif
+
 #include <util/delay.h>
 #include "infrared.h"
-#include "uart.h"
+#include "stream.h"
 
 int main()
 {
@@ -12,10 +15,11 @@ int main()
     IRrecv irrecv(RECV_PIN);
     decode_results results;
     DefaultUart serial;
+    UartStream cout(&serial);
     serial.enableTransmit();
-    serial.puts("Enabling IRin\r\n");
+    cout << "Enabling IRin\r\n";
     irrecv.enableIRIn();
-    serial.puts("Enabled IRin\r\n");
+    cout << "Enabled IRin\r\n";
 
     while (true)
     {
@@ -24,7 +28,7 @@ int main()
             for (int8_t i = 7; i >= 0; i--)
                 serial.myPutc(nibble(results.value >> (i << 2) & 0xf));
 
-            serial.puts("\r\n");
+            cout << "\r\n";
             irrecv.resume();
         }
 

@@ -2,19 +2,35 @@
 #define _STORAGE_H_
 #include "types.h"
 
-class Utility
+static inline size_t my_strlen(const char *s)
 {
-public:
-    static inline void strcpy(char *d, const char *s) { while ((*d++ = *s++)); }
-    static inline void delay(const uint32_t x) { for (volatile uint32_t i = 0; i < x; i++); }
-    template <class T> static void swap(T& a, T& b) { T c(a); a = b; b = c; }
-    static void reverse(char str[], int length);
-    static int strcmp(const char *a, const char *b);
-    static size_t strlen(const char *s);
-    static char *itoa(int num, char *str, int base);
-    static void *malloc(size_t size) { return ::malloc(size); }
-    static int isdigit(int c) { return c >= '0' && c <= '9' ? 1 : 0; }
-};
+    const char *t;
+    for (t = s; *t; ++t);
+    return t - s;
+}
+
+static inline void my_strcpy(char *d, const char *s)
+{
+    while ((*d++ = *s++));
+}
+
+static inline int my_strcmp(const char *a, const char *b)
+{
+    for (; *a == *b; a++, b++)
+        if (*a == '\0')
+            return 0;
+
+    return *a - *b;
+}
+
+static inline int my_strncmp(const char *a, const char *b, size_t n)
+{
+    while (n--)
+        if (*a++ != *b++)
+            return *(uint8_t *)(a - 1) - *(uint8_t *)(b - 1);
+
+    return 0;
+}
 
 template <size_t N> class bitset
 {
@@ -70,12 +86,12 @@ class string
 public:
     string(const char *s);
     size_t inline capacity() { return _capacity; }
-    size_t inline size() const { return Utility::strlen(s); }
+    size_t inline size() const { return my_strlen(s); }
     size_t inline length() { return size(); }
     const char *c_str() const { return s; }
     void reserve(size_t n) { _capacity += n; ::realloc(s, _capacity); }
-    void append(const char *s);
     void append(const string &s);
+    void append(const char *s) { append(string(s)); }
 };
 
 #endif

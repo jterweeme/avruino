@@ -1,10 +1,7 @@
 #ifndef _BUSBY_H_
 #define _BUSBY_H_
-#include <avr/io.h>
-#include <stddef.h>
+//#include <avr/io.h>
 #include "board.h"
-
-//#define BUSBY_INT
 
 static constexpr uint8_t
     ENDPOINT_DIR_MASK = 0x80,
@@ -222,7 +219,7 @@ protected:
     inline void write16le(uint16_t dat) const { *p_uedatx = dat & 0xff; *p_uedatx = dat >> 8; }
     void write32(uint32_t dat) const;
     void write32be(uint32_t dat) const;
-    inline uint16_t bytesInEndpoint() const { return ((uint16_t)UEBCHX<<8) | UEBCLX; }
+    inline uint16_t bytesInEndpoint() const { return ((uint16_t)*p_uebchx<<8) | *p_uebclx; }
     void Device_ClearSetFeature();
     void Device_GetSerialString(uint16_t *unicodeString);
     void clearStatusStage() const;

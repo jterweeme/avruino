@@ -1,7 +1,7 @@
 #include "calc.h"
 #include <avr/interrupt.h>
 #include "misc.h"
-#include <avr/sleep.h>
+#include "sleepy.h"
 #include "uart.h"
 
 Calculator *g_calc;
@@ -81,13 +81,13 @@ public:
 
 void OutputTerminal::redraw()
 {
-    _serial->write('\r');
+    _serial->myPutc('\r');
 
     for (uint8_t i = 0; i <= 20 - _pos; i++)
-        _serial->write(' ');
+        _serial->myPutc(' ');
 
     for (uint8_t i = 0; i <= _pos; i++)
-        _serial->write(_buf[i]);
+        _serial->myPutc(_buf[i]);
 }
 
 void OutputTerminal::push(char c)

@@ -137,91 +137,6 @@ char *Utility::itoa(int num, char *str, int base)
     return str;
 }
 
-UartBase::UartBase(volatile uint16_t *brr, volatile uint8_t *udr,
-    volatile uint8_t *ucsra, volatile uint8_t *ucsrb)
-  :
-    brr(brr),
-    udr(udr),
-    ucsra(ucsra),
-    ucsrb(ucsrb)
-{
-}
-
-void Terminal::printf(const char *format, ...)
-{
-    va_list argp;
-    va_start(argp, format);
-
-    for (const char *p = format; *p != '\0'; p++)
-    {
-        if (*p != '%')
-        {
-            myPutc(*p);
-            continue;
-        }
-
-        switch (*++p)
-        {
-        case 'u':
-            {
-                unsigned u = va_arg(argp, unsigned);
-                char s[40] = {0};
-                puts(Utility::itoa(u, s, 10));
-            }
-            
-            break;
-        case 's':
-            {
-                char *s = va_arg(argp, char *);
-                puts(s);
-            }
-
-            break;
-        case 'x':
-            {
-                unsigned u = va_arg(argp, unsigned);
-                const uint8_t foo = u & 0x0f;
-                const uint8_t bar = u >> 4;
-                char high = bar < 10 ? (char)(bar + 48) : (char)(bar + 55);
-                char low = foo < 10 ? (char)(foo + 48) : (char)(foo + 55);
-                myPutc(high);
-                myPutc(low);
-            }
-            break;
-        }
-    }
-    
-    va_end(argp);
-}
-
-void Pin::direction(Direction dir)
-{
-    switch (dir)
-    {
-    case INPUT:
-        *port.direction &= ~(1<<bit);
-        break;
-    case OUTPUT:
-        *port.direction |= 1<<bit;
-        break;
-    }
-}
-
-#if 0
-void PinX::direction(Direction dir)
-{
-    switch (dir)
-    {
-    case INPUT:
-        *direction &= ~(1<<bit);
-        break;
-    case OUTPUT:
-        *direction |= 1<<bit;
-        break;
-    }
-}
-#endif
-
 void Utility::reverse(char str[], int length)
 {
     int start = 0;
@@ -235,37 +150,16 @@ void Utility::reverse(char str[], int length)
     }
 }
 
-int Utility::strcmp(const char *a, const char *b)
-{
-    for (; *a == *b; a++, b++)
-        if (*a == '\0')
-            return 0;
-
-    return (*a - *b);
-}
-
-size_t Utility::strlen(const char *s)
-{
-    const char *t;
-    for (t = s; *t; ++t) { }
-    return (t - s);
-}
-
 string::string(const char *s)
 {
-    _capacity = Utility::strlen(s) + 1;
+    _capacity = my_strlen(s) + 1;
     this->s = new char[_capacity];
-    Utility::strcpy(this->s, s);
-}
-
-void string::append(const char *s)
-{
-    append(string(s));
+    my_strcpy(this->s, s);
 }
 
 void string::append(const string &s)
 {
-    Utility::strcpy(this->s + size(), s.c_str());
+    my_strcpy(this->s + size(), s.c_str());
 }
 
 AnalogBase::AnalogBase(uint8_t *base)
@@ -287,13 +181,6 @@ Analog::Analog() : AnalogBase((uint8_t *)0x78)
     *adcsra |= (1<<BADSC);
 }
 
-uint8_t SPIBase::transfer(uint8_t data)
-{
-    *spdr = data;
-    while (!(*spsr & spsr_bits::spif)) { }
-    return *spdr;
-}
-
 DS1302::DS1302(Pin *clk, Pin *dat, Pin *rst) : clk(clk), dat(dat), rst(rst)
 {
     clk->direction(OUTPUT);
@@ -310,12 +197,6 @@ void DS1302::write(int address, uint8_t data)
     toggleWrite(address, false);
     toggleWrite(data, false);
     stop();
-}
-
-void LCD::home()
-{
-    lcd_write_instruction_4d(CURSOR_HOME);
-    _delay_ms(2);
 }
 
 bitset<8> DS1302::toggleReadBitset()
@@ -400,80 +281,6 @@ void DS1302::stop()
     _delay_us(4);
 }
 
-LCD::LCD(Pin *rs, Pin *e, Pin *d4, Pin *d5, Pin *d6, Pin *d7)
-  :
-    rs(rs), e(e), d4(d4), d5(d5), d6(d6), d7(d7)
-{
-    rs->direction(OUTPUT);
-    e->direction(OUTPUT);
-    d4->direction(OUTPUT);
-    d5->direction(OUTPUT);
-    d6->direction(OUTPUT);
-    d7->direction(OUTPUT);
-    _delay_ms(100);
-    rs->clear();
-    e->clear();
-    lcd_write_4(RESET);
-    _delay_ms(10);
-    lcd_write_4(RESET);
-    _delay_us(200);
-    lcd_write_4(RESET);
-    _delay_us(200);
-    lcd_write_4(FOURBIT);
-    _delay_us(80);
-    lcd_write_instruction_4d(FOURBIT);
-    _delay_us(80);
-    lcd_write_instruction_4d(OFF);
-    _delay_us(80);
-    lcd_write_instruction_4d(CLEAR);
-    _delay_ms(4);
-    lcd_write_instruction_4d(ENTRYMODE);
-    _delay_us(80);
-    lcd_write_instruction_4d(ON);
-    _delay_us(80);
-}
-
-void LCD::lcd_write_4(uint8_t theByte)
-{
-    d7->set(theByte & 1<<7);
-    d6->set(theByte & 1<<6);
-    d5->set(theByte & 1<<5);
-    d4->set(theByte & 1<<4);
-    e->set();
-    _delay_us(1);
-    e->clear();
-    _delay_us(1);
-}
-
-void LCD::myPutc(char c)
-{
-    if (c == '\r')
-        return home();
-
-    rs->set();
-    e->clear();
-    lcd_write_4(c);
-    lcd_write_4(c << 4);
-}
-
-void LCD::puts(const char *s)
-{
-    while (*s)
-    {
-        myPutc(*s++);
-        _delay_us(80);
-    }
-}
-
-void LCD::lcd_write_instruction_4d(uint8_t theInstruction)
-{
-    rs->clear();
-    e->clear();
-    lcd_write_4(theInstruction);
-    lcd_write_4(theInstruction << 4);
-
-}
-
 uint8_t DFKeyPad::poll()
 {
     unsigned x = adc.read();
@@ -486,90 +293,5 @@ uint8_t DFKeyPad::poll()
 }
 
 
-
-/*
-char *__brkval;
-freelist *__flp;
-
-void *
-malloc(size_t len)
-{
-    freelist *fp1, *fp2, *sfp1, *sfp2;
-    char *cp;
-    size_t s, avail;
-
-    if (len < sizeof(freelist) - sizeof(size_t))
-        len = sizeof(freelist) - sizeof(size_t);
-
-    for (s = 0, fp1 = __flp, fp2 = 0;
-         fp1;
-         fp2 = fp1, fp1 = fp1->nx)
-    {
-        if (fp1->sz < len)
-            continue;
-
-        if (fp1->sz == len)
-        {
-            if (fp2)
-                fp2->nx = fp1->nx;
-            else
-                __flp = fp1->nx;
-
-            return &(fp1->nx);
-        }
-        else
-        {
-            if (s == 0 || fp1->sz < s)
-            {
-                s = fp1->sz;
-                sfp1 = fp1;
-                sfp2 = fp2;
-            }
-        }
-    }
-
-    if (s)
-    {
-        if (s - len < sizeof(freelist))
-        {
-            if (sfp2)
-                sfp2->nx = sfp1->nx;
-            else
-                __flp = sfp1->nx;
-            return &(sfp1->nx);
-        }
-
-        cp = (char *)sfp1;
-        s -= len;
-        cp += s;
-        sfp2 = (freelist *)cp;
-        sfp2->sz = len;
-        sfp1->sz = s - sizeof(size_t);
-        return &(sfp2->nx);
-    }
-
-    if (__brkval == 0)
-        __brkval = __malloc_heap_start;
-
-    cp = __malloc_heap_end;
-
-    if (cp == 0)
-        cp = STACK_POINTER() - __malloc_margin;
-
-    if (cp <= __brkval)
-      return 0;
-    avail = cp - __brkval;
-
-    if (avail >= len && avail >= len + sizeof(size_t))
-    {
-        fp1 = (struct __freelist *)__brkval;
-        __brkval += len + sizeof(size_t);
-        fp1->sz = len;
-        return &(fp1->nx);
-    }
-
-    return 0;
-}
-*/
 
 

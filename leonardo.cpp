@@ -41,18 +41,11 @@ Timer1::Timer1()
 }
 
 extern "C" void __vector_20() __attribute__ ((signal, used, externally_visible));
-//extern "C" void __vector_23() __attribute__ ((signal, used, externally_visible));
 extern "C" void __vector_25() __attribute__ ((signal, used, externally_visible));
 
 void __vector_20() { Timer1::getInstance()->onOverflow(); }
-//void __vector_23() { Timer0::getInstance()->onOverflow(); }
 void __vector_25() { Uart::getInstance()->onReceive(); }
 
-SPIBus::SPIBus() : SPIBase((uint8_t *)0x4c)
-{
-    PORTB |= 1<<PB0;    // SS high
-    DDRB |= (1<<PB0) | (1<<PB1) | (1<<PB2);
-    *spcr = spcr_bits::spe | spcr_bits::mstr;
-}
+
 
 

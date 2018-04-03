@@ -8,7 +8,7 @@ D13 is zend pin
 
 #include "busby.h"
 #include "usbsound.h"
-#include <avr/pgmspace.h>
+#include "pgmspees.h"
 #include "capsense.h"
 #include "usbmidi.h"
 

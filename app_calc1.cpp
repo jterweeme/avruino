@@ -12,9 +12,7 @@ LCD data 4 = D4
 #include "st7783.h"
 
 #include <util/delay.h>
-#include <avr/pgmspace.h>
-#include <stdio.h>
-#include <string.h>
+#include "pgmspees.h"
 #include "misc.h"
 #include "analog.h"
 #include "button.h"

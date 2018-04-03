@@ -65,17 +65,17 @@ int main()
     DefaultUart s;
     UartStream cout(&s);
 #endif
-    cout.writeString("\r\nAttempt to open SD card\r\n");
+    cout << "\r\nAttempt to open SD card\r\n";
     cout.flush();
     bool ret = zd.begin();
 
     if (!ret)
     {
-        cout.writeString("initialization failed!\r\n");
+        cout << "initialization failed!\r\n";
         return 0;
     }
 
-    cout.writeString("start\r\n");
+    cout << "start\r\n";
     Fyle myFile = zd.open("/");
     printDirectory(myFile, 0, cout);
 

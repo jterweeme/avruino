@@ -1,3 +1,6 @@
+/* Wat is dit?
+*/
+
 #include <avr/io.h>
 #include "uno.h"
 #include "uart.h"
@@ -17,7 +20,7 @@ int App::run()
     ADCSRA = (1<<ADPS1) | (1<<ADPS0) | (1<<ADEN) | (1<<ADATE);
     ADCSRB &= ~(1<<ADTS2) | (1<<ADTS1) | (1<<ADTS0);
     ADCSRA |= (1<<ADSC);
-    uart.puts("Hello");
+    //uart.puts("Hello");
 
     while (true)
     {

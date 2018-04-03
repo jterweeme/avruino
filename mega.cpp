@@ -3,9 +3,7 @@
 #include "uart.h"
 #include "timer.h"
 
-Uart::Uart()
-  :
-    UartBase((uint16_t *)0xc4, (uint8_t *)0xc6, (uint8_t *)0xc0, (uint8_t *)0xc1)
+Uart::Uart() : UartBase(p_ubrr0, p_udr0, p_ucsr0a, p_ucsr0b)
 {
     instance = this;
 }
@@ -38,35 +36,14 @@ Timer1::Timer1()
     asm volatile ("sei");
 }
 
-static volatile unsigned long timer0_millis = 0;
-static unsigned char timer0_fract = 0;
-
-#if 0
-unsigned long millis()
-{
-    unsigned long m;
-    uint8_t oldSREG = SREG;
-    cli();
-    m = timer0_millis;
-    SREG = oldSREG;
-    return m;
-}
-#endif
-
 Timer1 *Timer1::instance;
 Timer0 *Timer0::instance;
 Uart *Uart::instance;
 
 extern "C" void __vector_13() __attribute__ ((signal, used, externally_visible));
-//extern "C" void __vector_16() __attribute__ ((signal, used, externally_visible));
 extern "C" void __vector_18() __attribute__ ((signal, used, externally_visible));
 
 void __vector_13() {     Timer1::getInstance()->onOverflow(); }
-//void __vector_16() {    Timer0::getInstance()->onOverflow(); }
 void __vector_18() {    Uart::getInstance()->onReceive(); }
 
-SPIBus::SPIBus() : SPIBase((uint8_t *)0x4c)
-{
-    
-}
 

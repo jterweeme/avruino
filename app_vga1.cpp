@@ -14,10 +14,9 @@ HSync: D9
 VSync: D12
 */
 
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-#include <avr/sleep.h>
-#include <stdio.h>
+//#include <avr/interrupt.h>
+#include "pgmspees.h"
+#include "sleepy.h"
 #include "board.h"
 
 static const uint8_t screen_font[8][256] PROGMEM = 
@@ -183,17 +182,12 @@ private:
 
 Display display;
 
-ISR(TIMER1_OVF_vect)
-{
-    display.interrupt();
-}
-
 Display::Display()
 {
     for (int i = 0; i < 30; i++)
-        ::sprintf(message[i], "Line %03i - hello!", i);
+        my_strcpy(message[i], "Line xxx - hello!");
 
-    sei();
+    zei();
     *p_timsk0 = 0;
     *p_ocr0a = 0;
     *p_ocr0b = 0;
@@ -224,10 +218,6 @@ void Display::interrupt()
     messageLine = 0;
     backPorchLinesToGo = 35;
 }
-  
-ISR(TIMER2_OVF_vect)
-{
-}
 
 void Display::scanLine()
 {    
@@ -246,7 +236,7 @@ void Display::scanLine()
     *p_ucsr0b = 1<<txen0;
 
     while (i--)
-        *p_udr0 = pgm_read_byte(linePtr + (*messagePtr++));
+        *p_udr0 = pgm_read_byte(linePtr + *messagePtr++);
 
     while ((*p_ucsr0a & 1<<txc0) == 0)
         ;
@@ -267,6 +257,17 @@ int main()
     }
 
     return 0;
+}
+
+extern "C" void TIMER1_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER1_OVF
+{
+    display.interrupt();
+}
+
+extern "C" void TIMER2_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER2_OVF
+{
 }
 
 

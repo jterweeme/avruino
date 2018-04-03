@@ -17,7 +17,7 @@ VSync: D12
 */
 
 #include <avr/interrupt.h>
-#include <avr/pgmspace.h>
+#include "pgmspees.h"
 #include <avr/sleep.h>
 #include <stdio.h>
 #include "board.h"

@@ -1,11 +1,10 @@
 /* Arduino SdFat Library
  * Copyright (C) 2009 by William Greiman
  */
-#ifndef SdFat_h
-#define SdFat_h
-#include <avr/pgmspace.h>
+#ifndef _FATTY_H_
+#define _FATTY_H_
+#include "pgmspees.h"
 #include "zd2card.h"
-#include <string.h>
 #include "stream.h"
 
 uint8_t const BOOTSIG0 = 0X55;
@@ -37,163 +36,48 @@ struct masterBootRecord {
     uint8_t  mbrSig0;
     uint8_t  mbrSig1;
 };
-/** Type name for masterBootRecord */
+
 typedef struct masterBootRecord mbr_t;
 
-/** 
- * \struct biosParmBlock
- *
- * \brief BIOS parameter block
- * 
- *  The BIOS parameter block describes the physical layout of a FAT volume.
- */
-struct biosParmBlock {
-          /**
-           * Count of bytes per sector. This value may take on only the
-           * following values: 512, 1024, 2048 or 4096
-           */
-  uint16_t bytesPerSector;
-          /**
-           * Number of sectors per allocation unit. This value must be a
-           * power of 2 that is greater than 0. The legal values are
-           * 1, 2, 4, 8, 16, 32, 64, and 128.
-           */
-  uint8_t  sectorsPerCluster;
-          /**
-           * Number of sectors before the first FAT.
-           * This value must not be zero.
-           */
-  uint16_t reservedSectorCount;
-          /** The count of FAT data structures on the volume. This field should
-           *  always contain the value 2 for any FAT volume of any type.
-           */
-  uint8_t  fatCount;
-          /**
-          * For FAT12 and FAT16 volumes, this field contains the count of
-          * 32-byte directory entries in the root directory. For FAT32 volumes,
-          * this field must be set to 0. For FAT12 and FAT16 volumes, this
-          * value should always specify a count that when multiplied by 32
-          * results in a multiple of bytesPerSector.  FAT16 volumes should
-          * use the value 512.
-          */
-  uint16_t rootDirEntryCount;
-          /**
-           * This field is the old 16-bit total count of sectors on the volume.
-           * This count includes the count of all sectors in all four regions
-           * of the volume. This field can be 0; if it is 0, then totalSectors32
-           * must be non-zero.  For FAT32 volumes, this field must be 0. For
-           * FAT12 and FAT16 volumes, this field contains the sector count, and
-           * totalSectors32 is 0 if the total sector count fits
-           * (is less than 0x10000).
-           */
-  uint16_t totalSectors16;
-          /**
-           * This dates back to the old MS-DOS 1.x media determination and is
-           * no longer usually used for anything.  0xF8 is the standard value
-           * for fixed (non-removable) media. For removable media, 0xF0 is
-           * frequently used. Legal values are 0xF0 or 0xF8-0xFF.
-           */
-  uint8_t  mediaType;
-          /**
-           * Count of sectors occupied by one FAT on FAT12/FAT16 volumes.
-           * On FAT32 volumes this field must be 0, and sectorsPerFat32
-           * contains the FAT size count.
-           */
-  uint16_t sectorsPerFat16;
-           /** Sectors per track for interrupt 0x13. Not used otherwise. */
-  uint16_t sectorsPerTrtack;
-           /** Number of heads for interrupt 0x13.  Not used otherwise. */
-  uint16_t headCount;
-          /**
-           * Count of hidden sectors preceding the partition that contains this
-           * FAT volume. This field is generally only relevant for media
-           *  visible on interrupt 0x13.
-           */
-  uint32_t hidddenSectors;
-          /**
-           * This field is the new 32-bit total count of sectors on the volume.
-           * This count includes the count of all sectors in all four regions
-           * of the volume.  This field can be 0; if it is 0, then
-           * totalSectors16 must be non-zero.
-           */
-  uint32_t totalSectors32;
-          /**
-           * Count of sectors occupied by one FAT on FAT32 volumes.
-           */
-  uint32_t sectorsPerFat32;
-          /**
-           * This field is only defined for FAT32 media and does not exist on
-           * FAT12 and FAT16 media.
-           * Bits 0-3 -- Zero-based number of active FAT.
-           *             Only valid if mirroring is disabled.
-           * Bits 4-6 -- Reserved.
-           * Bit 7  -- 0 means the FAT is mirrored at runtime into all FATs.
-             *        -- 1 means only one FAT is active; it is the one referenced in bits 0-3.
-           * Bits 8-15  -- Reserved.
-           */
-  uint16_t fat32Flags;
-          /**
-           * FAT32 version. High byte is major revision number.
-           * Low byte is minor revision number. Only 0.0 define.
-           */
-  uint16_t fat32Version;
-          /**
-           * Cluster number of the first cluster of the root directory for FAT32.
-           * This usually 2 but not required to be 2.
-           */
-  uint32_t fat32RootCluster;
-          /**
-           * Sector number of FSINFO structure in the reserved area of the
-           * FAT32 volume. Usually 1.
-           */
-  uint16_t fat32FSInfo;
-          /**
-           * If non-zero, indicates the sector number in the reserved area
-           * of the volume of a copy of the boot record. Usually 6.
-           * No value other than 6 is recommended.
-           */
-  uint16_t fat32BackBootBlock;
-          /**
-           * Reserved for future expansion. Code that formats FAT32 volumes
-           * should always set all of the bytes of this field to 0.
-           */
-  uint8_t  fat32Reserved[12];
+struct biosParmBlock
+{
+    uint16_t bytesPerSector;
+    uint8_t  sectorsPerCluster;
+    uint16_t reservedSectorCount;
+    uint8_t  fatCount;
+    uint16_t rootDirEntryCount;
+    uint16_t totalSectors16;
+    uint8_t  mediaType;
+    uint16_t sectorsPerFat16;
+    uint16_t sectorsPerTrtack;
+    uint16_t headCount;
+    uint32_t hidddenSectors;
+    uint32_t totalSectors32;
+    uint32_t sectorsPerFat32;
+    uint16_t fat32Flags;
+    uint16_t fat32Version;
+    uint32_t fat32RootCluster;
+    uint16_t fat32FSInfo;
+    uint16_t fat32BackBootBlock;
+    uint8_t  fat32Reserved[12];
 };
 
-/** Type name for biosParmBlock */
 typedef struct biosParmBlock bpb_t;
-//------------------------------------------------------------------------------
-/**
- * \struct fat32BootSector
- *
- * \brief Boot sector for a FAT16 or FAT32 volume.
- * 
- */
-struct fat32BootSector {
-           /** X86 jmp to boot program */
-  uint8_t  jmpToBootCode[3];
-           /** informational only - don't depend on it */
-  char     oemName[8];
-           /** BIOS Parameter Block */
-  bpb_t    bpb;
-           /** for int0x13 use value 0X80 for hard drive */
-  uint8_t  driveNumber;
-           /** used by Windows NT - should be zero for FAT */
-  uint8_t  reserved1;
-           /** 0X29 if next three fields are valid */
-  uint8_t  bootSignature;
-           /** usually generated by combining date and time */
-  uint32_t volumeSerialNumber;
-           /** should match volume label in root dir */
-  char     volumeLabel[11];
-           /** informational only - don't depend on it */
-  char     fileSystemType[8];
-           /** X86 boot code */
-  uint8_t  bootCode[420];
-           /** must be 0X55 */
-  uint8_t  bootSectorSig0;
-           /** must be 0XAA */
-  uint8_t  bootSectorSig1;
+
+struct fat32BootSector
+{
+    uint8_t  jmpToBootCode[3];
+    char     oemName[8];
+    bpb_t    bpb;
+    uint8_t  driveNumber;
+    uint8_t  reserved1;
+    uint8_t  bootSignature;
+    uint32_t volumeSerialNumber;
+    char     volumeLabel[11];
+    char     fileSystemType[8];
+    uint8_t  bootCode[420];
+    uint8_t  bootSectorSig0;
+    uint8_t  bootSectorSig1;
 };
 //------------------------------------------------------------------------------
 // End Of Chain values for FAT entries
@@ -532,11 +416,11 @@ public:
     int16_t read(void* buf, uint16_t nbyte);
     int8_t readDir(dir_t* dir);
     static uint8_t remove(SdFile* dirFile, const char* fileName);
-    uint8_t remove(void);
+    uint8_t remove();
     /** Set the file's current position to zero. */
-    void rewind(void) { curPosition_ = curCluster_ = 0; }
-    uint8_t rmDir(void);
-    uint8_t rmRfStar(void);
+    void rewind() { curPosition_ = curCluster_ = 0; }
+    uint8_t rmDir();
+    uint8_t rmRfStar();
     /** Set the files position to current position + \a pos. See seekSet(). */
     uint8_t seekCur(uint32_t pos) { return seekSet(curPosition_ + pos); }
   /**
@@ -567,7 +451,7 @@ public:
     SdVolume* volume(void) const {return vol_;}
     size_t write(uint8_t b) { return write(&b, 1); }
     size_t write(const void* buf, uint16_t nbyte);
-    size_t write(const char* str) { return write(str, strlen(str)); }
+    size_t write(const char* str) { return write(str, my_strlen(str)); }
     void write_P(PGM_P str) { for (uint8_t c; (c = pgm_read_byte(str)); str++) write(c); }
     void writeln_P(PGM_P str) { write_P(str); }
 //------------------------------------------------------------------------------
@@ -845,7 +729,7 @@ public:
     Fyle open(const char *filename, uint8_t mode = FILE_READ);
     bool exists(char *filepath);
     bool mkdir(char *filepath);
-    bool remove(char *filepath);
+    bool remove(const char *filepath);
     bool rmdir(char *filepath);
     inline void tick() { _card->tick(); }
 };
@@ -869,6 +753,7 @@ public:
     void put(char c) { _fyle.write((uint8_t)c); }
     void open(const char *fn) { _fyle = Fatty::instance->open(fn, FILE_WRITE); }
     void close() { _fyle.close(); }
+    void flush() { _fyle.flush(); }
 };
 
 #endif

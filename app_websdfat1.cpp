@@ -1,17 +1,12 @@
 /*
 Mega eth CS: D53
+Mega SD CS: D9
+
+Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
 #include "uip_server.h"
-#include "misc.h"
 #include "fatty.h"
-#include <stdio.h>
-
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
-
-#include <util/delay.h>
 
 class Buffer
 {
@@ -41,8 +36,10 @@ void Buffer::reset()
 static UIPEthernetClass eth;
 static Fatty *g_zd;
 
-static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
+static void printDirectory(Fyle dir, uint8_t numTabs, UIPClient &os)
 {
+    os.write("<table>\r\n");
+
     while (true)
     {
         Fyle entry = dir.openNextFile();
@@ -51,33 +48,39 @@ static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
             break;
 
         for (uint8_t i = 0; i < numTabs; i++)
-            os.writeString("\t");
+            os.write("\t");
 
-        os.writeString(entry.name());
+        os.write("<tr><td><a href=\"");
+        os.write(entry.name());
+        os.write("\">");
+        os.write(entry.name());
+        os.write("</a></td>");
 
         if (entry.isDirectory())
         {
-            os.writeString("/");
+            os.write("/");
             printDirectory(entry, numTabs + 1, os);
         }
         else
         {
-            os.writeString("\t\t");
+            os.write("<td>");
             uint32_t size = entry.size();
-            os.put(nibble(size >> 28 & 0xf));
-            os.put(nibble(size >> 24 & 0xf));
-            os.put(nibble(size >> 20 & 0xf));
-            os.put(nibble(size >> 16 & 0xf));
-            os.put(nibble(size >> 12 & 0xf));
-            os.put(nibble(size >> 8 & 0xf));
-            os.put(nibble(size >> 4 & 0xf));
-            os.put(nibble(size & 0xf));
-            os.writeString("\r\n");
+            os.write(nibble(size >> 28 & 0xf));
+            os.write(nibble(size >> 24 & 0xf));
+            os.write(nibble(size >> 20 & 0xf));
+            os.write(nibble(size >> 16 & 0xf));
+            os.write(nibble(size >> 12 & 0xf));
+            os.write(nibble(size >> 8 & 0xf));
+            os.write(nibble(size >> 4 & 0xf));
+            os.write(nibble(size & 0xf));
+            os.write("</td>");
         }
         entry.close();
+        os.write("<td>D</td>\r\n</tr>\r\n");
     }
-}
 
+    os.write("</table>\r\n");
+}
 
 int main()
 {
@@ -85,7 +88,6 @@ int main()
     // 16,000 / 256 = 62
 
     UIPServer server = UIPServer(&eth, 80);
-    //Fyle myFile;
     Board b;
     Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
@@ -94,7 +96,7 @@ int main()
     TIMSK0 |= 1<<TOIE0;
     zei();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddrezz myIP(192,168,178,32);
+    IPAddrezz myIP(192,168,200,56);
     eth.begin(mac, myIP);
     server.begin();
     Buffer buffer;
@@ -107,7 +109,7 @@ int main()
 
     if (!ret)
     {
-        cout.writeString("init failed!\r\n");
+        cout << "init failed!\r\n";
         return 0;
     }
 
@@ -117,9 +119,6 @@ int main()
 
         if (client)
         {
-            cout << "Client\r\n";
-            cout.flush();
-
             while (client.connected())
             {
                 if (client.available())
@@ -129,6 +128,10 @@ int main()
 
                     if (buffer.end())
                     {
+                        cout << buffer.get();
+                        cout << "\r\n";
+                        cout.flush();
+
                         if (strncmp("GET ", buffer.get(), 4) == 0)
                         {
                             char fn[100] = {0};
@@ -145,43 +148,70 @@ int main()
                             if (fn[0] == 0)
                                 strncpy(fn, "index.htm", 100);
 
-                            size_t dot = 0;
-
-                            for (uint8_t i = 0; i < strlen(fn); i++)
-                                if (fn[i] == '.')
-                                    dot = i;
-
-                            for (char *p = fn + dot + 1, *d = ext; *p != 0; p++)
-                                *d++ = *p;
-                            
-                            cout << fn;
-                            cout << "\r\n";
-                            cout.flush();
-                            FyleIfstream ifs;
-                            ifs.open(fn);
+                            char *dot = my_strchr(fn, '.');
+                            my_strncpy(ext, dot + 1, 3);
                             client.write("HTTP/1.1 200 OK\r\n");
-                            cout << "HTTP/1.1 200 OK\r\n";
-                            cout.flush();
 
-                            if (strncmp(ext, "svg", 3) == 0)
+                            if (my_strncasecmp(ext, "svg", 3) == 0)
                                 client.write("Content-Type: image/svg+xml\r\n");
+                            else if (my_strncasecmp(ext, "css", 3) == 0)
+                                client.write("Content-Type: text/css\r\n");
+                            else if (my_strncasecmp(ext, "js", 2) == 0)
+                                client.write("Content-Type: text/js\r\n");
+                            else if (my_strncasecmp(ext, "7z", 2) == 0)
+                                client.write("Content-Type: application/x-7z-compressed\r\n");
+                            else if (my_strncasecmp(ext, "cpp", 3) == 0)
+                                client.write("Content-Type: text/plain\r\n");
                             else
                                 client.write("Content-Type: text/html\r\n");
 
                             client.write("Connection: close\r\n\r\n");  // let op de dubbel nl
-                        
-                            int c2;
 
-                            while ((c2 = ifs.get()) != -1)
-                                client.write(c2);
+                            if (strncmp(fn, "listing", 7) == 0)
+                            {
+                                client.write("<!DOCTYPE html>\r\n");
+                                client.write("<html>\r\n<head>\r\n<title>Listing</title>\r\n");
+                                client.write("</head>\r\n<body>\r\n<h1>Listing</h1>\r\n");
+                                Fyle root = zd.open("/");
+                                printDirectory(root, 0, client);
+                                root.close();
+                                client.write("</body>\r\n</html>\r\n");
+                            }
+                            else
+                            {
+                                FyleIfstream ifs;
+                                ifs.open(fn);
 
-                            ifs.close();
+                                int c2;
+                                while ((c2 = ifs.get()) != -1)
+                                    client.write(c2);
+
+                                ifs.close();
+                            }
                         }
                         else if (strncmp("PUT ", buffer.get(), 4) == 0)
                         {
-#if 0
-                            serial.write(buffer.get());
-#endif
+                            client.write("HTTP/1.1 200 OK\r\n\r\n");
+                        }
+                        else if (strncmp("DELETE ", buffer.get(), 7) == 0)
+                        {
+                            char fn[50];
+
+                            for (uint16_t i = 8; i < 512; i++)
+                            {
+                                if (buffer.get()[i] != ' ')
+                                    fn[i - 8] = buffer.get()[i];
+                                else
+                                    break;
+                            }
+                            
+                            zd.remove(fn);
+                            cout << buffer.get();
+                            cout << "\r\n";
+                            cout.flush();
+                        }
+                        else if (strncmp("POST ", buffer.get(), 5) == 0)
+                        {
                         }
 
                         buffer.reset();
@@ -189,7 +219,8 @@ int main()
                     }
                 }
             }
-            _delay_ms(1);
+
+            for (volatile uint16_t i = 0; i < 0x4fff; i++); // delay
             client.stop();
         }
     }

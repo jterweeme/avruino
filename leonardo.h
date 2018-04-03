@@ -51,6 +51,12 @@ static constexpr uint8_t
     tifr3 = 0x38,
     tifr4 = 0x39,
     tifr5 = 0x3a,
+    pcifr = 0x3b,
+    eifr = 0x3c,
+    eimsk = 0x3d, int0 = 0, int1 = 1, int2 = 2, int3 = 3, int4 = 4, int5 = 5, int6 = 6, int7 = 7,
+    gpior0 = 0x3e,
+    eecr = 0x3f,
+    eedr = 0x40,
     tccr0a = 0x44, wgm00 = 0, wgm01 = 1, com0b0 = 4, com0b1 = 5, com0a0 = 6, com0a1 = 7,
     tccr0b = 0x45, cs00 = 0, cs01 = 1, cs02 = 2, wgm02 = 3, foc0b = 6, foc0a = 7,
     tcnt0 = 0x46,
@@ -67,6 +73,7 @@ static constexpr uint8_t
         plltm0 = 4, plltm1 = 5, pllusb = 6, pinmux = 7,
     mcusr = 0x54,
     mcucr = 0x55,
+    eicra = 0x69, isc00 = 0, isc01 = 1, isc10 = 2, isc11 = 3, isc20 = 4, isc30 = 6, isc31 = 7,
     timsk0 = 0x6e, toie0 = 0, ocie0a = 1, ocie0b = 2,
     timsk1 = 0x6f, toie1 = 0, ocie1a = 1, ocie1b = 2, ocie1c = 3, icie1 = 5,
     timsk3 = 0x71, toie3 = 0, ocie3a = 1, ocie3b = 2, ocie3c = 3, icie3 = 5,
@@ -151,6 +158,9 @@ static constexpr uint8_t
     ueienx = 0xf0,
         txine = 0, stallede = 1, rxoute = 2, rxstpe = 3, nakoute = 4, nakine = 6, flerre = 7,
     uedatx = 0xf1,
+    uebcx = 0xf2,
+    uebclx = 0xf2,
+    uebchx = 0xf3,
     ueint = 0xf4,
 
     ocr1a_port_base = portb_base,
@@ -161,6 +171,12 @@ static constexpr uint8_t
     ocr1b_ddr = ocr1b_port_base + 1,
     ocr1b_port = ocr1b_port_base + 2,
     ocr1b_bit = pb6,
+
+    int0_port_base = portd_base,
+    int0_ddr = int0_port_base + 1,
+    int0_port = int0_port_base + 2,
+    int0_bit = pd0,
+
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
@@ -209,6 +225,7 @@ static constexpr uint8_t
     pin13_port = pin13_base + 2,
     pin13_bit = pc7,
     pinA0_base = portf_base,
+    pinA0_port = pinA0_base + 1,
     pinA0_bit = pf7,
     pinA1_base = portf_base,
     pinA1_bit = pf6,
@@ -238,6 +255,7 @@ static volatile uint8_t
     * const p_tifr3 = (volatile uint8_t * const)tifr3,
     * const p_tifr4 = (volatile uint8_t * const)tifr4,
     * const p_tifr5 = (volatile uint8_t * const)tifr5,
+    * const p_eimsk = (volatile uint8_t * const)eimsk,
     * const p_tccr0a = (volatile uint8_t * const)tccr0a,
     * const p_tccr0b = (volatile uint8_t * const)tccr0b,
     * const p_tcnt0 = (volatile uint8_t * const)tcnt0,
@@ -250,6 +268,7 @@ static volatile uint8_t
     * const p_spsr = (volatile uint8_t * const)spsr,
     * const p_spdr = (volatile uint8_t * const)spdr,
     * const p_pllfrq = (volatile uint8_t * const)pllfrq,
+    * const p_eicra = (volatile uint8_t * const)eicra,
     * const p_timsk0 = (volatile uint8_t * const)timsk0,
     * const p_timsk1 = (volatile uint8_t * const)timsk1,
     * const p_timsk3 = (volatile uint8_t * const)timsk3,
@@ -290,7 +309,12 @@ static volatile uint8_t
     * const p_uecfg1x = (volatile uint8_t * const)uecfg1x,
     * const p_ueienx = (volatile uint8_t * const)ueienx,
     * const p_uedatx = (volatile uint8_t * const)uedatx,
+    * const p_uebclx = (volatile uint8_t * const)uebclx,
+    * const p_uebchx = (volatile uint8_t * const)uebchx,
     * const p_ueint = (volatile uint8_t * const)ueint,
+
+    * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
+    * const p_int0_port = (volatile uint8_t * const)int0_port,
 
     * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,
     * const p_port_ss = (volatile uint8_t * const)ss_port,
@@ -318,6 +342,7 @@ static volatile uint8_t
     * const p_pin13_ddr = (volatile uint8_t * const)pin13_ddr,
     * const p_pin13_port = (volatile uint8_t * const)pin13_port,
     * const p_pinA0_base = (volatile uint8_t * const)pinA0_base,
+    * const p_pinA0_port = (volatile uint8_t * const)pinA0_port,
     * const p_pinA1_base = (volatile uint8_t * const)pinA1_base,
     * const p_pinA2_base = (volatile uint8_t * const)pinA2_base,
     * const p_pinA3_base = (volatile uint8_t * const)pinA3_base,
@@ -344,12 +369,6 @@ protected:
 public:
     Timer4();
     static Timer4 *getInstance() { return instance; }
-};
-
-class SPIBus : public SPIBase
-{
-public:
-    SPIBus();
 };
 
 struct Board
@@ -384,6 +403,7 @@ struct Board
         pinA5 { portF, BIT0 };
 };
 
+#define INTR0 __vector_1()
 #define USB_GEN __vector_10()
 #define USB_COM __vector_11()
 #define TIMER1_CAPT __vector_16()

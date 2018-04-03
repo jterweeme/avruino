@@ -6,12 +6,6 @@
 #define F_CPU 16000000UL
 #endif
 
-class SPIBus : public SPIBase
-{
-public:
-    SPIBus();
-};
-
 static constexpr uint8_t
     portb_base = 0x23,
         pinb = portb_base,
@@ -48,6 +42,10 @@ static constexpr uint8_t
     tifr2 = 0x37, tov2 = 0, ocf2a = 1, ocf2b = 2,
     pcifr = 0x3b, pcif0 = 0, pcif1 = 1, pcif2 = 2,
     eifr = 0x3c, intf0 = 0, intf1 = 1,
+    eimsk = 0x3d, int0 = 0, int1 = 1,
+    gpior0 = 0x3e,
+    eecr = 0x3f,
+    eedr = 0x40,
     tccr0a = 0x44, wgm00 = 0, wgm01 = 1, com0b0 = 4, com0b1 = 5, com0a0 = 6, com0a1 = 7,
     tccr0b = 0x45, cs00 = 0, cs01 = 1, cs02 = 2, wgm02 = 3, foc0b = 6, foc0a = 7,
     tcnt0 = 0x46,
@@ -56,6 +54,14 @@ static constexpr uint8_t
     spcr = 0x4c, spr0 = 0, spr1 = 1, cpha = 2, cpol = 3, mstr = 4, dord = 5, spe = 6, spie = 7,
     spsr = 0x4d, spi2x = 0, wcol = 6, spif = 7,
     spdr = 0x4e,
+    acsr = 0x50,
+    smcr = 0x53,
+    mcusr = 0x54,
+    spmcsr = 0x57,
+    wdtcsr = 0x60,
+    clkpr = 0x61,
+    pcicr = 0x68,
+    eicra = 0x69, isc00 = 0, isc01 = 1, isc10 = 2, isc11 = 3,
     timsk0 = 0x6e, toie0 = 0, ocie0a = 1, ocie0b = 2,
     timsk1 = 0x6f, toie1 = 0, ocie1a = 1, ocie1b = 2, icie1 = 5,
     timsk2 = 0x70, toie2 = 0, ocie2a = 1, ocie2b = 2,
@@ -107,6 +113,12 @@ static constexpr uint8_t
     ocr2b_ddr = ocr2b_port_base + 1,
     ocr2b_port = ocr2b_port_base + 2,
     ocr2b_bit = pd3,
+
+    int0_port_base = portd_base,
+    int0_ddr = int0_port_base + 1,
+    int0_port = int0_port_base + 2,
+    int0_bit = pd2,
+
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
@@ -155,6 +167,8 @@ static constexpr uint8_t
     pin13_port = pin13_base + 2,
     pin13_bit = pb5,
     pinA0_base = portc_base,
+    pinA0_ddr = pinA0_base + 1,
+    pinA0_port = pinA0_base + 2,
     pinA0_bit = pc0,
     pinA1_base = portc_base,
     pinA1_bit = pc1,
@@ -180,6 +194,7 @@ static volatile uint8_t
     * const p_tifr0 = (volatile uint8_t * const)tifr0,
     * const p_tifr1 = (volatile uint8_t * const)tifr1,
     * const p_tifr2 = (volatile uint8_t * const)tifr2,
+    * const p_eimsk = (volatile uint8_t * const)eimsk,
     * const p_tcnt0 = (volatile uint8_t * const)tcnt0,
     * const p_ocr0a = (volatile uint8_t * const)ocr0a,
     * const p_ocr0b = (volatile uint8_t * const)ocr0b,
@@ -188,6 +203,7 @@ static volatile uint8_t
     * const p_spcr = (volatile uint8_t * const)spcr,
     * const p_spsr = (volatile uint8_t * const)spsr,
     * const p_spdr = (volatile uint8_t * const)spdr,
+    * const p_eicra = (volatile uint8_t * const)eicra,
     * const p_timsk0 = (volatile uint8_t * const)timsk0,
     * const p_timsk1 = (volatile uint8_t * const)timsk1,
     * const p_timsk2 = (volatile uint8_t * const)timsk2,
@@ -215,6 +231,10 @@ static volatile uint8_t
     * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,
     * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,
     * const p_ddr_ocr2b = (volatile uint8_t * const)ocr2b_ddr,
+
+    * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
+    * const p_int0_port = (volatile uint8_t * const)int0_port,
+
     * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,
     * const p_port_ss = (volatile uint8_t * const)ss_port,
     * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,
@@ -284,9 +304,14 @@ struct Board
         pinA5 {portC, BIT5};
 };
 
+#define INTR0 __vector_1()
+//#define INT1 __vector_2()
+//#define PCINT0 vector_3()
 #define TIMER2_COMPA __vector_7()
 #define TIMER2_COMPB __vector_8()
+#define TIMER2_OVF __vector_9()
 #define TIMER1_CAPT __vector_10()
+#define TIMER1_OVF __vector_13()
 #define TIMER0_COMPA __vector_14()
 #define TIMER0_COMPB __vector_15()
 #define TIMER0_OVF __vector_16()
@@ -298,8 +323,6 @@ struct Board
 #define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
 static const uint8_t FRACT_MAX = 1000 >> 3;
 static volatile unsigned long timer0_overflow_count = 0;
-
-//unsigned long millis();
 
 #endif
 
