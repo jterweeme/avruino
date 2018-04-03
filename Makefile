@@ -93,6 +93,9 @@ app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
     zd2card.o fatty.o pinport.o uart.o stream.o $(BSP)
 
+app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
+stream.o md5sum.o uart.o $(BSP)
+
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o pinport.o uart.o $(BSP)
 app_analog1.elf: app_analog1.o pinport.o uart.o $(BSP)
 app_analog2.elf: app_analog2.o pinport.o uart.o $(BSP)
@@ -111,7 +114,6 @@ app_lcdtest2.elf: app_lcdtest2.o
 app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o pinport.o $(BSP)
-app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o stream.o uart.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o pinport.o uart.o $(USBOPT) $(BSP)
 app_pi1.elf: app_pi1.o pinport.o uart.o $(USBOPT) $(BSP)
 app_pirate1.elf: app_pirate1.o vgax.o
@@ -163,7 +165,10 @@ app_lcdtest2.o: app_lcdtest2.cpp
 app_lcdtest3.o: app_lcdtest3.cpp
 app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
-app_minos1.o: app_minos1.cpp
+
+app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
+stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
+
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
@@ -193,7 +198,7 @@ app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp
-button.o: button.cpp
+button.o: button.cpp button.h analog.h tft.h
 calc.o: calc.cpp calc.h types.h
 capsense.o: capsense.cpp capsense.h
 fatty.o: fatty.cpp fatty.h
@@ -201,18 +206,21 @@ helios.o: helios.cpp helios.h misc.h
 i2c.o: i2c.cpp misc.h
 infrared.o: infrared.cpp infrared.h
 keyboard.o: keyboard.cpp
-mega.o: mega.cpp misc.h
+mega.o: mega.cpp misc.h types.h storage.h pinport.h
 mempool.o: mempool.cpp mempool.h uip.h types.h
+md5sum.o: md5sum.cpp md5sum.cpp stream.h uart.h types.h
 misc.o: misc.cpp misc.h types.h storage.h pinport.h
 pinport.o: pinport.cpp pinport.h types.h
 stream.o: stream.cpp stream.h
 tft.o: tft.cpp tft.h board.h
-uart.o: uart.cpp uart.h
-uno.o: uno.cpp uno.h misc.h
-usbkb.o: usbkb.cpp usbkb.h
+uart.o: uart.cpp uart.h types.h misc.h storage.h pinport.h
+uno.o: uno.cpp uno.h misc.h types.h storage.h pinport.h
+usbkb.o: usbkb.cpp usbkb.h misc.h usbhid.h
 usbsd.o: usbsd.cpp usbsd.h busby.h
 vga.o: vga.cpp vga.h
 vgax.o: vgax.cpp vgax.h
+xmodem.o: xmodem.cpp xmodem.h stream.h types.h
+ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
