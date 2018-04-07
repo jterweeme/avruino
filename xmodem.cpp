@@ -1,17 +1,29 @@
 #include "xmodem.h"
+#include "board.h"
 
 static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,
     SYNC_TIMEOUT = 30, MAX_RETRY = 30;
 
+extern ostream *g_dout;
+
 #ifdef ENABLE_XRECEIVER
+int16_t XReceiver::_read(uint32_t timeout = 0xffffffff)
+{
+    for (uint32_t i = 0; i <= timeout; i++)
+        if (*p_ucsr0a & 1<<rxc0)
+            return *p_udr0;
+
+    return -1;  // timeout
+}
+
 void XReceiver::receive(ostream &os)
 {
     int sectnum = 0, sectcurr;
     char sendchar = NAK;
     *_os << "waiting to receive.";
 
-    for (volatile uint32_t i = 0; i < 0x1fffff; i++);
+    for (volatile uint32_t i = 0; i < 0xfffff; i++);
 
     while (true)
     {
@@ -47,22 +59,19 @@ int XReceiver::_getsec()
 {
     for (uint8_t errors = 0; errors < 10; errors++)
     {
-        uint8_t firstch = _is->get();
+        uint8_t firstch = _read();
 
         if (firstch == SOH)
         {
-            uint8_t sectcurr = _is->get();
-            uint8_t n_sectcurr = _is->get();
+            uint8_t sectcurr = _read();
+            uint8_t sectcurn = _read();
 
-            if (sectcurr + n_sectcurr == 0xff)
+            if (sectcurr + sectcurn == 0xff)
             {
                 for (uint8_t i = 0; i < 128; i++)
-                {
-                    uint8_t v = _is->get();
-                    _secbuf[i] = v;
-                }
+                    _secbuf[i] = _read();
 
-                _is->get();
+                _read(); // checksum
                 return sectcurr;
             }
         }

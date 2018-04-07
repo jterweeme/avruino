@@ -6,7 +6,13 @@
 #include "xmodem.h"
 #include "ymodem.h"
 
+#ifndef ENABLE_YRECEIVER
+#define ENABLE_YRECEIVER
+#endif
+
+#ifndef ENABLE_YSENDER
 #define ENABLE_YSENDER
+#endif
 
 UartBase *g_uart1;
 UartStream *g_dout;
@@ -168,6 +174,7 @@ private:
 #ifdef ENABLE_XRECEIVER
     void _rx(Fatty &zd, istream *is, ostream *os);
 #endif
+    void _rb(Fatty &zd, istream *is, ostream *os);
 #ifdef ENABLE_YSENDER
     void _sb(Fatty &zd, istream *is, ostream *os);
 #endif
@@ -180,14 +187,12 @@ public:
 
 void App::_cat(Fatty &zd, ostream &os)
 {
-    FyleIfstream myFile;
     char fn[50] = {0};
     _buf.token2(fn);
-    *g_dout << fn;
-    *g_dout << "\r\n";
 
     if (zd.exists(fn))
     {
+        FyleIfstream myFile;
         myFile.open(fn);
         cat(myFile, os);
         myFile.close();
@@ -215,14 +220,12 @@ void App::_rm(Fatty &zd, ostream &os)
 
 void App::_od(Fatty &zd, ostream &os)
 {
-    FyleIfstream ifs;
     char fn[50] = {0};
     _buf.token2(fn);
-    *g_dout << fn;
-    *g_dout << "\r\n";
     
     if (zd.exists(fn))
     {
+        FyleIfstream ifs;
         ifs.open(fn);
         od(ifs, os);
         ifs.close();
@@ -236,12 +239,12 @@ void App::_od(Fatty &zd, ostream &os)
 #ifdef ENABLE_XSENDER
 void App::_sx(Fatty &zd, istream *is, ostream *os)
 {
-    FyleIfstream ifs;
     char fn[50] = {0};
     _buf.token2(fn);
 
     if (zd.exists(fn))
     {
+        FyleIfstream ifs;
         ifs.open(fn);
         XSender x(is, os);
         x.send(ifs);
@@ -267,13 +270,36 @@ void App::_rx(Fatty &zd, istream *is, ostream *os)
 }
 #endif
 
+static YReceiver *g_yr;
+
+#ifdef ENABLE_YRECEIVER
+void App::_rb(Fatty &zd, istream *, ostream *)
+{
+    g_yr->receive(zd);
+}
+#endif
+
 #ifdef ENABLE_YSENDER
 void App::_sb(Fatty &zd, istream *is, ostream *os)
 {
     char fn[50] = {0};
     _buf.token2(fn);
-    YSender y(is, os);
-    y.send(fn);
+
+    if (zd.exists(fn))
+    {
+        Fyle fyle = zd.open(fn);
+        uint32_t filesize = fyle.size();
+        fyle.close();
+        FyleIfstream ifs;
+        ifs.open(fn);
+        YSender y(is, os);
+        y.send(ifs, fn, filesize, 0, 0);
+        ifs.close();
+    }
+    else
+    {
+        *os << "No such file\r\n";
+    }
 }
 #endif
 
@@ -306,7 +332,6 @@ int App::run()
     Fatty zd(&sd);
     *p_tccr0b = 1<<cs02;
     *p_timsk0 |= 1<<toie0;
-    zei();
     DefaultUart s;
     *p_ucsr0a |= 1<<u2x0;
     *p_ubrr0 = 16;
@@ -314,6 +339,9 @@ int App::run()
     s.enableRead();
     UartStream cout(&s);
     UartIStream cin(&s);
+    YReceiver yr(&cin, &cout);
+    g_yr = &yr;
+    zei();
 #if defined (__AVR_ATmega2560__)
     UartBase uart1(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b);
     uart1.enableTransmit();
@@ -356,6 +384,10 @@ int App::run()
 
             if (_buf.comp("od"))
                 _od(zd, cout);
+#ifdef ENABLE_YRECEIVER
+            if (_buf.comp("rb"))
+                _rb(zd, &cin, &cout);
+#endif
 #ifdef ENABLE_YSENDER
             if (_buf.comp("sb"))
                 _sb(zd, &cin, &cout);
@@ -379,7 +411,6 @@ int App::run()
         }
     }
         
-
     return 0;
 }
 
@@ -393,6 +424,7 @@ extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
 void TIMER0_OVF
 {
     Fatty::instance->tick();
+    g_yr->tick();
 }
 
 

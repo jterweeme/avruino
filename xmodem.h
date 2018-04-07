@@ -9,6 +9,7 @@ class XReceiver
 private:
     istream * const _is;
     ostream * const _os;
+    int16_t _read(uint32_t timeout);
     int _getsec();
     uint8_t _secbuf[128];
 public:

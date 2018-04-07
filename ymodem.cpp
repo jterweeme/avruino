@@ -1,6 +1,9 @@
 #include "ymodem.h"
 #include "fatty.h"
 #include <stdio.h>
+#include <string.h>
+
+extern ostream *g_dout;
 
 static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,
@@ -47,7 +50,6 @@ int YSender::wctx(istream &is)
 {
     int sectnum = 0, attempts = 0, firstch;
     firstsec = 1;
-    //_sync();
 
     do
     {
@@ -145,20 +147,166 @@ int YSender::wctxpn(const char *fn, uint32_t filesize, uint16_t modtime, uint16_
     return 0;
 }
 
-int YSender::send(char *fn)
+int YSender::send(istream &is, const char *fn, uint32_t filesize, uint16_t time, uint16_t mode)
 {
     firstsec = 1;
-    FyleIfstream ifs;
-    ifs.open(fn);
-    wctxpn(fn, 305280, 0, 0);
-    putsec(0, 128);
-    wctx(ifs);
-    ifs.close();
-    wctxpn("", 0, 0, 0);
-    putsec(0, 128);
+    wctxpn(fn, filesize, time, mode);   // write header to buffer
+    putsec(0, 128);                     // send the buffer
+    wctx(is);                           // receive the body
+    wctxpn("", 0, 0, 0);                // write empty header to buffer
+    putsec(0, 128);                     // send the buffer
     return 0;
 }
 #endif
 
+#ifdef ENABLE_YRECEIVER
+int16_t YReceiver::_read(uint32_t timeout)
+{
+    for (uint32_t i = 0; i <= timeout; i++)
+        if (*p_ucsr0a & 1<<rxc0)
+            return *p_udr0;
+
+    return -1;  // timeout
+}
+
+int YReceiver::wcrx(ostream &os)
+{
+    int sectnum = 0, sectcurr;
+    char sendchar = 'C';
+    uint32_t bytes_received = 0;
+
+    while (true)
+    {
+        _os->put(sendchar);
+        _os->flush();
+        sectcurr = _getsec();
+
+        if (sectcurr == ((sectnum + 1) & 0xff))
+        {
+            sectnum++;
+            uint8_t blklen = 128;
+
+            if (_filesize - bytes_received < blklen)
+                blklen = _filesize - bytes_received;
+
+            os.write((const char *)_secbuf, blklen);
+            bytes_received += blklen;
+            os.flush();
+            sendchar = ACK;
+        }
+        else if (sectcurr == (sectnum & 0xff))
+        {
+            sendchar = ACK;
+        }
+        else if (sectcurr == -10)
+        {
+            _os->put(ACK);
+            _os->flush();
+            return 0;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+}
+
+void YReceiver::receive(Fatty &zd)
+{
+    FyleOfstream ofs;
+    *_os << "waiting to receive.";
+    _os->flush();
+    _wcrxpn();
+    _procheader();
+    ofs.open(_fn);
+    wcrx(ofs);
+    ofs.close();
+    _wcrxpn();
+}
+
+int YReceiver::_wcrxpn()
+{
+    //_read(1);
+et_tu:
+    _firstsec = 1;
+    _os->put('C');
+    _os->flush();
+    
+    for (int c; (c = _getsec()) != 0;)
+    {
+        if (c == -10)
+        {
+            _os->put(ACK);
+            _os->flush();
+            _read(0xffffffff);
+            goto et_tu;
+        }
+        return -1;
+    }
+    _os->put(ACK);
+    _os->flush();
+    return 0;
+}
+
+int YReceiver::_getsec()
+{
+    for (uint8_t errors = 0; errors < 10; errors++)
+    {
+        uint8_t firstch = _read(0xffffffff);
+#if 0
+        g_dout->put(nibble(firstch >> 4 & 0xf));
+        g_dout->put(nibble(firstch & 0xf));
+        *g_dout << "\r\n";
+#endif
+        if (firstch == SOH)
+        {
+            uint8_t sectcurr = _read(0xffffffff);
+            uint8_t sectcurn = _read(0xffffffff);
+
+            if (sectcurr + sectcurn == 0xff)
+            {
+                for (uint8_t i = 0; i < 128; i++)
+                {
+                    uint8_t v = _read(0xffffffff);
+                    _secbuf[i] = v;
+                }
+
+                _read(0xffffffff);
+                _read(0xffffffff);
+                return sectcurr;
+            }
+        }
+        else if (firstch == EOT)
+        {
+            return -10;
+        }
+
+        for (uint16_t cnt = 0; cnt < 1000 && _read(0xfffff) != -1; cnt++);
+
+        if (_firstsec)
+        {
+            _os->put('C');
+            _os->flush();
+        }
+        else
+        {
+            _os->put(NAK);
+            _os->flush();
+        }
+
+    }
+    return -1;
+
+}
+
+void YReceiver::_procheader()
+{
+    strcpy(_fn, (char *)_secbuf);
+    char *nameend = (char *)_secbuf + 1 + strlen((char *)_secbuf);
+    
+    if (*nameend)
+        sscanf(nameend, "%ld%lo%o", &_filesize, &_modtime, &_mode);
+}
+#endif
 
 
