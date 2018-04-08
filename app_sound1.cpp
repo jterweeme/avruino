@@ -3,21 +3,25 @@ credits to Tomasz Wisniewski
 pcarduino.blogspot.com
 github.com/dagon666
 
-PCSpeaker: D9
-
+PCSpeaker, UNO: OC1A/D9/PB1
+PCSpeaker, MEGA: OC1A/D11/PB5
 */
 
 #include "types.h"
-#include <avr/interrupt.h>
-#include <util/atomic.h>
-#include <util/crc16.h>
 #include "board.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000
 #endif
 
-static constexpr uint8_t PWM_SAMPLES_BUFFER = 128, PWM_BUFFERS = 4;
+static constexpr uint8_t
+    SLIP_END = 0xc0,
+    SLIP_ESC = 0xdb,
+    SLIP_ESC_END = 0xdc,
+    SLIP_ESC_ESC = 0xdd,
+    PWM_SAMPLES_BUFFER = 128,
+    PWM_BUFFERS = 4;
+
 static RingBuf<64> g_rx_buf;
 static volatile uint16_t g_head = 0x00, g_tail = 0x00, max_samples = 0x00;
 
@@ -39,10 +43,15 @@ static uint8_t zerial_getc(uint8_t &a_data)
     return 1;
 }
 
-#define SLIP_END  0300
-#define SLIP_ESC  0333
-#define SLIP_ESC_END 0334
-#define SLIP_ESC_ESC 0335
+static uint16_t crc16_update(uint16_t crc, uint8_t a)
+{
+    crc ^= a;
+
+    for (uint8_t i = 0; i < 8; i++)
+        crc = crc & 1 ? (crc >> 1) ^ 0xa001 : crc >> 1;
+
+    return crc;
+}
 
 static uint8_t slip_verify_crc16(uint8_t *a_buff, uint8_t a_buflen, uint8_t a_crcpos)
 {
@@ -56,14 +65,13 @@ static uint8_t slip_verify_crc16(uint8_t *a_buff, uint8_t a_buflen, uint8_t a_cr
 
     while (a_buflen)
     {
-        crc_calcd = _crc16_update(crc_calcd, *a_buff);
+        crc_calcd = crc16_update(crc_calcd, *a_buff);
         a_buff++;
         a_buflen--;
     }
 
     return crc_calcd == crc_recv ? crc_calcd : 0;
 }
-
 
 static uint8_t zlip_recv(uint8_t *a_buff, uint8_t a_buflen)
 {
@@ -117,18 +125,6 @@ static void serial_flush()
         dummy = *p_udr0;
 }
 
-ISR(USART_RX_vect, ISR_BLOCK)
-{
-    if (UCSR0A & 1<<FE0)    // framing error
-    {
-        volatile uint8_t data __attribute__ ((unused)) = UDR0;
-        return;
-    }
-
-    volatile uint8_t data = UDR0;
-    g_rx_buf.push(data);
-}
-
 static inline void serial_collect_samples(volatile struct packet *a_data)
 {
     uint16_t avail = (max_samples + g_head - g_tail) % max_samples;
@@ -144,20 +140,10 @@ static inline void serial_collect_samples(volatile struct packet *a_data)
     if (!slip_verify_crc16((uint8_t *)a_data, size, 0))
         return;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-    {
-        g_head = (g_head + a_data->num) % max_samples;
-    }
+    g_head = (g_head + a_data->num) % max_samples;  // used to be atomic...
 }
 
-ISR(TIMER0_COMPA_vect, ISR_NOBLOCK)
-{
-	if (g_tail != g_head)
-    {
-		*p_ocr1a = p[g_tail >> 7].samples[g_tail & 0x7f];
-		g_tail = (g_tail + 1) % max_samples;
-	}
-}
+
 
 int main(void)
 {
@@ -169,7 +155,7 @@ int main(void)
     serial_flush();
     *p_ucsr0b &= ~(1<<txcie0);
     *p_ucsr0b |= 1<<rxcie0;
-    sei();
+    zei();
 	serial_flush();
 	max_samples = PWM_SAMPLES_BUFFER * PWM_BUFFERS;
     *p_tccr1a = 0;
@@ -196,5 +182,27 @@ int main(void)
 	return 0;
 }
 
+extern "C" void TIMER0_COMPA __attribute__ ((signal, used, externally_visible));
+void TIMER0_COMPA
+{
+	if (g_tail != g_head)
+    {
+		*p_ocr1a = p[g_tail >> 7].samples[g_tail & 0x7f];
+		g_tail = (g_tail + 1) % max_samples;
+	}
+}
+
+extern "C" void USART_RX __attribute__ ((signal, used, externally_visible));
+void USART_RX
+{
+    if (*p_ucsr0a & 1<<fe0)    // framing error
+    {
+        volatile uint8_t data __attribute__ ((unused)) = *p_udr0;
+        return;
+    }
+
+    volatile uint8_t data = *p_udr0;
+    g_rx_buf.push(data);
+}
 
 

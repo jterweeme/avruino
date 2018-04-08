@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = leonardo
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -47,7 +47,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_websdfat1.elf \
-    app_optiboot1.hex app_heliosboot1.hex \
+    app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
 ifeq ($(POOL1), ja)
 TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
@@ -87,6 +87,9 @@ app_usbsound2.hex: app_usbsound2.asm
 
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o \
+    uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
+
+app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
@@ -146,6 +149,9 @@ app_usbsound1.elf: app_usbsound1.o busby.o pinport.o uart.o $(BSP)
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 
+app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
+stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
+
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_analog2.o: app_analog2.cpp misc.h
@@ -165,21 +171,18 @@ app_lcdtest2.o: app_lcdtest2.cpp
 app_lcdtest3.o: app_lcdtest3.cpp
 app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
-
-app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
-stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
-
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
-app_rndisping1.o: app_rndisping1.cpp bogota.h
+app_rndisping1.o: app_rndisping1.cpp
 app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h enc28j60.h
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h stream.h
 app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_sound1.o: app_sound1.cpp
+app_telnet1.o: app_telnet1.cpp uip_server.h
 app_test1.o: app_test1.cpp
 app_test2.o: app_test2.cpp
 app_ts1.o: app_ts1.cpp

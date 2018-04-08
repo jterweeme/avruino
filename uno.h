@@ -315,6 +315,7 @@ struct Board
 #define TIMER0_COMPA __vector_14()
 #define TIMER0_COMPB __vector_15()
 #define TIMER0_OVF __vector_16()
+#define USART_RX __vector_18()
 
 #define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
 #define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )

@@ -40,12 +40,12 @@ int main()
                 break;
         }
 
-        cout.writeString("\r\nHelaas!\r\n");
+        cout << "\r\nHelaas!\r\n";
         cout.put(nibble(i >> 12 & 0xf));
         cout.put(nibble(i >> 8 & 0xf));
         cout.put(nibble(i >> 4 & 0xf));
         cout.put(nibble(i & 0xf));
-        cout.writeString("\r\n");
+        cout << "\r\n";
         cout.flush();
         i = 0;
     }

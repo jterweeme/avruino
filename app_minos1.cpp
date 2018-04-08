@@ -17,11 +17,13 @@
 UartBase *g_uart1;
 UartStream *g_dout;
 
+#if defined (__AVR_ATmega2560__)
 class Uart1 : public UartBase
 {
 public:
     Uart1() : UartBase(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b) { }
 };
+#endif
 
 class Buffer
 {
@@ -270,12 +272,11 @@ void App::_rx(Fatty &zd, istream *is, ostream *os)
 }
 #endif
 
-static YReceiver *g_yr;
-
 #ifdef ENABLE_YRECEIVER
-void App::_rb(Fatty &zd, istream *, ostream *)
+void App::_rb(Fatty &zd, istream *is, ostream *os)
 {
-    g_yr->receive(zd);
+    YReceiver yr(is, os);
+    yr.receive(zd);
 }
 #endif
 
@@ -339,8 +340,6 @@ int App::run()
     s.enableRead();
     UartStream cout(&s);
     UartIStream cin(&s);
-    YReceiver yr(&cin, &cout);
-    g_yr = &yr;
     zei();
 #if defined (__AVR_ATmega2560__)
     UartBase uart1(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b);
@@ -424,7 +423,6 @@ extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
 void TIMER0_OVF
 {
     Fatty::instance->tick();
-    g_yr->tick();
 }
 
 

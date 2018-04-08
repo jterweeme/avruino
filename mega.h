@@ -39,7 +39,7 @@ static constexpr uint8_t
         ddre = porte_base + 1,
         porte = porte_base + 2,
             porte0 = 0,
-        pe0 = 0,
+        pe0 = 0, pe1 = 1, pe3 = 3, pe4 = 4, pe5 = 5,
     portf_base = 0x2f,
         pinf = portf_base,
             pinf0 = 0, pinf1 = 1, pinf2 = 2, pinf3 = 3,
@@ -180,9 +180,23 @@ static constexpr uint8_t
     miso_ddr = miso_port_base + 1,
     miso_port = miso_port_base + 2,
     pmiso = pb3,
-
     pin0_base = porte_base,
     pin0_bit = pe0,
+    pin1_bit = pe1,
+    pin2_bit = pe4,
+    pin3_bit = pe5,
+    pin4_bit = pg5,
+    pin5_bit = pe3,
+    ph3 = 3,
+    ph4 = 4,
+    ph5 = 5,
+    pin6_bit = ph3,
+    pin7_bit = ph4,
+    pin8_bit = ph5,
+    pin9_bit = ph6,
+    pin10_bit = pb4,
+    pin11_bit = pb5,
+    pin12_bit = pb6,
     pin13_base = portb_base,
     pin13_ddr = pin13_base + 1,
     pin13_port = pin13_base + 2,
@@ -393,8 +407,10 @@ struct Board
 };
 
 #define INTR0 __vector_1()
+#define TIMER0_COMPA __vector_21()
 #define TIMER0_COMPB __vector_22()
 #define TIMER0_OVF __vector_23()
+#define USART_RX __vector_25()
 #define TIMER1_OVF __vector_20()
 #define TIMER2_OVF __vector_15()
 

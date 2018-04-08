@@ -169,6 +169,11 @@ int16_t YReceiver::_read(uint32_t timeout)
     return -1;  // timeout
 }
 
+template <class T> const T& min(const T& a, const T& b)
+{
+    return !(b < a) ? a : b;
+}
+
 int YReceiver::wcrx(ostream &os)
 {
     int sectnum = 0, sectcurr;
@@ -184,11 +189,7 @@ int YReceiver::wcrx(ostream &os)
         if (sectcurr == ((sectnum + 1) & 0xff))
         {
             sectnum++;
-            uint8_t blklen = 128;
-
-            if (_filesize - bytes_received < blklen)
-                blklen = _filesize - bytes_received;
-
+            uint8_t blklen = min(_filesize - bytes_received, (uint32_t)128);
             os.write((const char *)_secbuf, blklen);
             bytes_received += blklen;
             os.flush();
@@ -253,11 +254,7 @@ int YReceiver::_getsec()
     for (uint8_t errors = 0; errors < 10; errors++)
     {
         uint8_t firstch = _read(0xffffffff);
-#if 0
-        g_dout->put(nibble(firstch >> 4 & 0xf));
-        g_dout->put(nibble(firstch & 0xf));
-        *g_dout << "\r\n";
-#endif
+
         if (firstch == SOH)
         {
             uint8_t sectcurr = _read(0xffffffff);

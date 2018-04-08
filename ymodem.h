@@ -16,17 +16,14 @@ private:
     char _fn[50];
     long _modtime;
     uint16_t _mode;
-    //uint32_t _bytes_received = 0;
     long _filesize;
     int _wcrxpn();
     int wcrx(ostream &os);
     void _procheader();
     int16_t _read(uint32_t timeout);    // non blocking read
-    uint16_t _ticks = 0;
 public:
     YReceiver(istream *is, ostream *os) : _is(is), _os(os) { }
     void receive(Fatty &zd);
-    void tick() { _ticks++; }
 };
 #endif
 

@@ -144,7 +144,6 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
 {
     errorCode_ = inBlock_ = partialBlockRead_ = type_ = 0;
     // 16-bit init start time allows over a minute
-    uint16_t t0 = (uint16_t)_ticks;
     uint32_t arg;
     _cs->direction(OUTPUT);
     _cs->set();
@@ -165,9 +164,9 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
     _cs->clear();
 
     // command to go idle in SPI mode
-    while ((status_ = cardCommand(0, 0)) != R1_IDLE_STATE)
+    for (uint32_t i = 0; (status_ = cardCommand(0, 0)) != R1_IDLE_STATE; i++)
     {
-        if (((uint16_t)_ticks - t0) > SD_INIT_TIMEOUT)
+        if (i > 0xfffff)
         {
             error(SD_CARD_ERROR_CMD0);
             goto fail;
@@ -197,10 +196,9 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
     // initialize card and send host supports SDHC if SD2
     arg = type() == SD_CARD_TYPE_SD2 ? 0X40000000 : 0;
 
-    while ((status_ = cardAcmd(41, arg)) != R1_READY_STATE)
+    for (uint32_t i = 0; (status_ = cardAcmd(41, arg)) != R1_READY_STATE; i++)
     {
-        // check for timeout
-        if (((uint16_t)_ticks - t0) > SD_INIT_TIMEOUT)
+        if (i > 0xfffff)
         {
             error(SD_CARD_ERROR_ACMD41);
             goto fail;
@@ -313,10 +311,8 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
     offset_ += count;
 
     if (!partialBlockRead_ || offset_ >= 512)
-    {
-        // read rest of data, checksum and set chip select high
-        readEnd();
-    }
+        readEnd();  // read rest of data, checksum and set chip select high
+    
     return true;
 
 fail:
@@ -397,7 +393,7 @@ uint8_t Sd2Card::setSckRate(uint8_t sckRateID)
     return true;
 }
 
-// wait for card to go not busy
+#if 1
 uint8_t Sd2Card::waitNotBusy(uint16_t timeoutMillis)
 {
     uint16_t t0 = _ticks;
@@ -411,8 +407,8 @@ uint8_t Sd2Card::waitNotBusy(uint16_t timeoutMillis)
 
     return false;
 }
-
-/** Wait for start block token */
+#else
+#endif
 uint8_t Sd2Card::waitStartBlock()
 {
     uint16_t t0 = _ticks;
