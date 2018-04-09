@@ -50,37 +50,37 @@ int UIPUDP::beginPacket(IPAddrezz ip, uint16_t port)
 
     if (ip && port)
     {
-      uip_ipaddr_t ripaddr;
-      uip_ip_addr(&ripaddr, ip);
-      if (_uip_udp_conn)
+        uip_ipaddr_t ripaddr;
+        uip_ip_addr(&ripaddr, ip);
+
+        if (_uip_udp_conn)
         {
-          _uip_udp_conn->rport = htons(port);
-          uip_ipaddr_copy(_uip_udp_conn->ripaddr, &ripaddr);
+            _uip_udp_conn->rport = htons(port);
+            uip_ipaddr_copy(_uip_udp_conn->ripaddr, &ripaddr);
         }
-      else
+        else
         {
-          _uip_udp_conn = uip_udp_new(&ripaddr,htons(port));
-          if (_uip_udp_conn)
-            {
-              _uip_udp_conn->appstate = &appdata;
-            }
-          else
-            {
-              return 0;
-            }
+            _uip_udp_conn = uip_udp_new(&ripaddr,htons(port));
+
+            if (_uip_udp_conn)
+                _uip_udp_conn->appstate = &appdata;
+            else
+                return 0;
         }
     }
-  if (_uip_udp_conn)
+
+    if (_uip_udp_conn)
     {
-      if (appdata.packet_out == NOBLOCK)
+        if (appdata.packet_out == NOBLOCK)
         {
-          appdata.packet_out = Enc28J60Network::allocBlock(UIP_UDP_MAXPACKETSIZE);
-          appdata.out_pos = UIP_UDP_PHYH_LEN;
-          if (appdata.packet_out != NOBLOCK)
-            return 1;
+            appdata.packet_out = Enc28J60Network::allocBlock(UIP_UDP_MAXPACKETSIZE);
+            appdata.out_pos = UIP_UDP_PHYH_LEN;
+
+            if (appdata.packet_out != NOBLOCK)
+                return 1;
         }
     }
-  return 0;
+    return 0;
 }
 
 int UIPUDP::beginPacket(const char *host, uint16_t port)
@@ -98,14 +98,14 @@ int UIPUDP::endPacket()
 {
     if (_uip_udp_conn && appdata.packet_out != NOBLOCK)
     {
-      appdata.send = true;
-      Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos);
-      uip_udp_periodic_conn(_uip_udp_conn);
+        appdata.send = true;
+        Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos);
+        uip_udp_periodic_conn(_uip_udp_conn);
 
-      if (uip_len > 0)
+        if (uip_len > 0)
         {
-          _send(&appdata);
-          return 1;
+            _send(&appdata);
+            return 1;
         }
     }
     return 0;

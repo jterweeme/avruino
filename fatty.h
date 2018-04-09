@@ -731,7 +731,7 @@ public:
     bool mkdir(char *filepath);
     bool remove(const char *filepath);
     bool rmdir(char *filepath);
-    inline void tick() { _card->tick(); }
+    //inline void tick() { }
 };
 
 class FyleIfstream : public ifstream

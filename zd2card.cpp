@@ -36,9 +36,7 @@ static constexpr uint8_t
 static inline void spiSend(uint8_t b)
 {
     *p_spdr = b;
-
-    while ((*p_spsr & 1<<spif) == 0)
-        ;
+    while ((*p_spsr & 1<<spif) == 0);
 }
 
 static inline uint8_t spiRec(void)
@@ -275,9 +273,7 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
     // skip data before offset
     for (;offset_ < offset; offset_++)
     {
-        while ((*p_spsr & 1<<spif) == 0)
-            ;
-
+        while ((*p_spsr & 1<<spif) == 0);
         *p_spdr = 0XFF;
     }
     // transfer data
@@ -298,10 +294,9 @@ uint8_t Sd2Card::readData(uint32_t block, uint16_t offset, uint16_t count, uint8
 
     dst[n] = *p_spdr;
 #else
-  // skip data before offset
-  for (;offset_ < offset; offset_++) {
-    spiRec();
-  }
+    // skip data before offset
+    for (;offset_ < offset; offset_++)
+        spiRec();
 
     // transfer data
     for (uint16_t i = 0; i < count; i++)
@@ -393,24 +388,18 @@ uint8_t Sd2Card::setSckRate(uint8_t sckRateID)
     return true;
 }
 
-#if 1
 uint8_t Sd2Card::waitNotBusy(uint16_t timeoutMillis)
 {
-    uint16_t t0 = _ticks;
-
-    do
-    {
+    for (uint32_t i = 0; i < 0xfffff; i++)
         if (spiRec() == 0XFF)
             return true;
-    }
-    while (((uint16_t)_ticks - t0) < timeoutMillis);
 
     return false;
 }
-#else
-#endif
+
 uint8_t Sd2Card::waitStartBlock()
 {
+#if 0
     uint16_t t0 = _ticks;
 
     while ((status_ = spiRec()) == 0XFF)
@@ -421,7 +410,16 @@ uint8_t Sd2Card::waitStartBlock()
             goto fail;
         }
     }
-
+#else
+    for (uint32_t i = 0; (status_ = spiRec()) == 0xff; i++)
+    {
+        if (i > 0xfffff)
+        {
+            error(SD_CARD_ERROR_READ_TIMEOUT);
+            goto fail;
+        }
+    }
+#endif
     if (status_ != DATA_START_BLOCK)
     {
         error(SD_CARD_ERROR_READ);

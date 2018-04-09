@@ -8,6 +8,7 @@ werkt met mega
 #include "uip_server.h"
 #include "misc.h"
 #include "board.h"
+#include "stream.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -27,11 +28,14 @@ int main()
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
-
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddrezz myIP(192,168,200,56);
-    eth.begin(mac, myIP);
-    //uint32_t ip = UIPEthernet.localIP();
+    //IPAddrezz myIP(192,168,178,40);
+    eth.begin(mac); // init via DHCP
+    uint32_t ip = eth.localIP();
+    DefaultUart s;
+    UartStream cout(&s);
+    hex32(ip, cout);
+    cout << "\r\n";
     server.begin();
 
     while (true)

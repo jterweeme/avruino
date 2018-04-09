@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = leonardo
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -45,7 +45,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_pcf8563test2.elf app_lcdtest1.elf app_pi1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
-    app_analog2.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
+    app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_websdfat1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
@@ -86,7 +86,7 @@ app_optiboot1.hex: app_optiboot1.asm
 app_usbsound2.hex: app_usbsound2.asm
 
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
-    uart.o uip_client.o pinport.o \
+    uart.o uip_client.o pinport.o stream.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
@@ -101,7 +101,7 @@ stream.o md5sum.o uart.o $(BSP)
 
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o pinport.o uart.o $(BSP)
 app_analog1.elf: app_analog1.o pinport.o uart.o $(BSP)
-app_analog2.elf: app_analog2.o pinport.o uart.o $(BSP)
+app_dfkeyb1.elf: app_dfkeyb1.o pinport.o uart.o $(BSP)
 app_blink1.elf: app_blink1.o
 app_blink3.elf: app_blink3.o pinport.o uart.o $(BSP)
 app_calc1.elf: app_calc1.o analog.o button.o tft.o calc.o pinport.o uart.o $(BSP)
@@ -154,7 +154,7 @@ stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
-app_analog2.o: app_analog2.cpp misc.h
+app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
 app_analogweb1.o: app_analogweb1.cpp
 app_blink1.o: app_blink1.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h

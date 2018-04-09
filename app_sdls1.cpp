@@ -10,8 +10,6 @@ werkt met UNO
 #include "misc.h"
 #include "stream.h"
 
-static Fatty *g_zd;
-
 static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
 {
     while (true)
@@ -54,9 +52,6 @@ int main()
     Board b;
     Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
-    g_zd = &zd;
-    *p_tccr0b = 1<<cs02;
-    *p_timsk0 |= 1<<toie0;
     zei();
 #if defined (__AVR_ATmega32U4__)
     CDC cdc;
@@ -85,10 +80,6 @@ int main()
     return 0;
 }
 
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    g_zd->tick();
-}
+
 
 

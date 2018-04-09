@@ -55,6 +55,11 @@ void Buffer::token2(char *dst)
 
 void Buffer::keystroke(char c)
 {
+    if (c == 0x08)
+    {
+        buf[--i] = 0;
+        return;
+    }
     buf[i++] = c;
     buf[i] = 0;
 }
@@ -83,28 +88,21 @@ static void printDirectory(Fyle dir, int numTabs, ostream &os)
             break;
         
         for (uint8_t i = 0; i < numTabs; i++)
-            os.writeString("\t");
+            os << "\t";
 
-        os.writeString(entry.name());
+        os << entry.name();
 
         if (entry.isDirectory())
         {
-            os.writeString("/");
+            os.put('/');
             printDirectory(entry, numTabs + 1, os);
         }
         else
         {
-            os.writeString("\t\t");
+            os << "\t\t";
             uint32_t size = entry.size();
-            os.put(nibble(size >> 28 & 0xf));
-            os.put(nibble(size >> 24 & 0xf));
-            os.put(nibble(size >> 20 & 0xf));
-            os.put(nibble(size >> 16 & 0xf));
-            os.put(nibble(size >> 12 & 0xf));
-            os.put(nibble(size >> 8 & 0xf));
-            os.put(nibble(size >> 4 & 0xf));
-            os.put(nibble(size & 0xf));
-            os.writeString("\r\n");
+            hex32(size, os);
+            os << "\r\n";
         }
         entry.close();
     }
@@ -151,7 +149,7 @@ static void od(istream &is, ostream &os)
             os.put(' ');
         }
 
-        os.writeString(" >");
+        os << " >";
 
         for (uint8_t i = 0; i < cnt; i++)
         {
@@ -161,7 +159,7 @@ static void od(istream &is, ostream &os)
                 os.put('.');
         }
 
-        os.writeString("<\r\n");
+        os << "<\r\n";
     }
 }
 
@@ -331,8 +329,6 @@ int App::run()
     Board b;
     Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
-    *p_tccr0b = 1<<cs02;
-    *p_timsk0 |= 1<<toie0;
     DefaultUart s;
     *p_ucsr0a |= 1<<u2x0;
     *p_ubrr0 = 16;
@@ -419,10 +415,6 @@ int main()
     return app.run();
 }
 
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    Fatty::instance->tick();
-}
+
 
 

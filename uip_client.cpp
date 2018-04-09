@@ -239,7 +239,7 @@ int UIPClient::read()
 {
     uint8_t c;
 
-    if (read(&c,1) < 0)
+    if (read(&c, 1) < 0)
         return -1;
 
     return c;
@@ -388,15 +388,16 @@ uip_userdata_t *UIPClient::_allocateData()
 {
     for (uint8_t sock = 0; sock < UIP_CONNS; sock++)
     {
-      uip_userdata_t* data = &UIPClient::all_data[sock];
-      if (!data->state)
+        uip_userdata_t* data = &UIPClient::all_data[sock];
+
+        if (!data->state)
         {
-          data->state = sock | UIP_CLIENT_CONNECTED;
-          memset(&data->packets_in[0],0,sizeof(uip_userdata_t)-sizeof(data->state));
-          return data;
+            data->state = sock | UIP_CLIENT_CONNECTED;
+            memset(&data->packets_in[0], 0, sizeof(uip_userdata_t) - sizeof(data->state));
+            return data;
         }
     }
-  return NULL;
+    return NULL;
 }
 
 uint8_t UIPClient::_currentBlock(memhandle* block)

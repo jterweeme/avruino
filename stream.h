@@ -16,6 +16,18 @@ public:
     virtual void flush() { }
 };
 
+static inline void hex32(uint32_t v, ostream &os)
+{
+    os.put(nibble(v >> 28 & 0xf));
+    os.put(nibble(v >> 24 & 0xf));
+    os.put(nibble(v >> 20 & 0xf));
+    os.put(nibble(v >> 16 & 0xf));
+    os.put(nibble(v >> 12 & 0xf));
+    os.put(nibble(v >> 8 & 0xf));
+    os.put(nibble(v >> 4 & 0xf));
+    os.put(nibble(v >> 0 & 0xf));
+}
+
 class istream
 {
 protected:

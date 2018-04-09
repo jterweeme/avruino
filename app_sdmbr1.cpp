@@ -11,8 +11,6 @@ ChipSelect = D9
 #include "board.h"
 #include "stream.h"
 
-static Sd2Card *g_sd;
-
 static inline bool izprint(uint8_t c)
 {
     return c >= 0x20 && c <= 0x7e ? true : false;
@@ -43,12 +41,9 @@ static void hexDump(uint8_t *point, ostream &os)
 
 int main()
 {
-    *p_tccr0b = 1<<cs02;
-    *p_timsk0 = 1<<toie0;
     zei();
     Board board;
     Sd2Card sd(&board.pin9);
-    g_sd = &sd;
     sd.init(SPI_FULL_SPEED);
     uint8_t buf[512];
     sd.readBlock(0, buf);
@@ -72,12 +67,6 @@ int main()
     }
 
     return 0;
-}
-
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    g_sd->tick();
 }
 
 #if defined (__AVR_ATmega32U4__)

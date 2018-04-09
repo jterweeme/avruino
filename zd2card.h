@@ -174,7 +174,6 @@ union csd_t
 class Sd2Card
 {
 private:
-    uint32_t _ticks = 0;
     Pin * const _cs;
     uint32_t block_;
     uint8_t errorCode_ = 0;
@@ -215,7 +214,6 @@ public:
     uint8_t type() const {return type_;}
     uint8_t writeBlock(uint32_t blockNumber, const uint8_t* src);
     uint8_t readCSD(csd_t* csd) { return readRegister(SEND_CSD, csd); }
-    void tick() { _ticks++; }
 };
 #endif
 

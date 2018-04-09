@@ -167,14 +167,17 @@ int main()
     TIMSK0 |= 1<<TOIE0;
     zei();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddrezz myIP(192,168,178,40);
-    eth.begin(mac, myIP);
-    server.begin();
-    Buffer buffer;
+    //IPAddrezz myIP(192,168,200,56);
     DefaultUart s;
     UartStream cout(&s);
     cout << "Startup\r\n";
     cout.flush();
+    eth.begin(mac); // init via DHCP
+    uint32_t ip = eth.localIP();
+    hex32(ip, cout);
+    cout << "\r\n";
+    server.begin();
+    Buffer buffer;
     bool ret = zd.begin();
 
     if (!ret)
@@ -248,7 +251,6 @@ int main()
 extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
 void TIMER0_OVF
 {
-    g_zd->tick();
     eth.tick2();
 }
 

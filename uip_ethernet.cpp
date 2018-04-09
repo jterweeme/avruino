@@ -29,10 +29,10 @@ UIPEthernetClass::UIPEthernetClass()
     instance = this;
 }
 
+static DhcpClass s_dhcp;
+
 int UIPEthernetClass::begin(const uint8_t* mac)
 {
-#if 0
-    static DhcpClass s_dhcp;
     _dhcp = &s_dhcp;
     init(mac);
     int ret = _dhcp->beginWithDHCP((uint8_t*)mac);
@@ -43,9 +43,6 @@ int UIPEthernetClass::begin(const uint8_t* mac)
             _dhcp->getSubnetMask());
     }
     return ret;
-#else
-    return 0;
-#endif
 }
 
 void UIPEthernetClass::tick2()
