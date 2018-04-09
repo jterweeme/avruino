@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -41,7 +41,7 @@ POOL1 = ja
 endif
 
 TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
-    app_blink1.elf app_test1.elf app_i2cscan1.elf \
+    app_blink1.elf app_test1.elf app_i2cscan1.elf app_chatserver1.elf \
     app_pcf8563test2.elf app_lcdtest1.elf app_pi1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
@@ -95,6 +95,9 @@ app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinp
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
     zd2card.o fatty.o pinport.o uart.o stream.o $(BSP)
+
+app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
+    IPAddress.o EthernetUdp.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o
 
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
 stream.o md5sum.o uart.o $(BSP)
@@ -160,6 +163,7 @@ app_blink1.o: app_blink1.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
 app_calc2.o: app_calc2.cpp misc.h
+app_chatserver1.o: app_chatserver1.cpp
 app_ds1302test1.o: app_ds1302test1.cpp misc.h
 app_fourinone.o: app_fourinone.cpp
 app_groen1.o: app_groen1.cpp
