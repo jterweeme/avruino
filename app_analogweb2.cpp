@@ -1,15 +1,16 @@
-#include "EthernetClient.h"
-#include "EthernetServer.h"
-#include "misc.h"
-#include "board.h"
-#include "stream.h"
-#include "Arduino.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
+#include "EthernetClient.h"
+#include "EthernetServer.h"
+#include "misc.h"
+#include "board.h"
+#include "stream.h"
+#include <avr/interrupt.h>
+#include "util.h"
 
 static EthernetClass eth;
 static uint8_t g_count = 0;
@@ -33,6 +34,7 @@ int main()
     hex32(ip, cout);
     cout << "\r\n";
     server.begin();
+    cout << "Server begin\r\n";
 
     while (true)
     {
