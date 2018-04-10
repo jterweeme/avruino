@@ -167,11 +167,13 @@ static constexpr uint8_t
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
-    pss = pb0,
+    ss_bit = pb0,
+    pss = pb0,  // moet weg
     sck_port_base = portb_base,
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
-    psck = pb1,
+    sck_bit = pb1,
+    psck = pb1, // moet weg
     mosi_port_base = portb_base,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
@@ -289,8 +291,10 @@ static volatile uint8_t
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
 
-    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,
-    * const p_port_ss = (volatile uint8_t * const)ss_port,
+    * const p_ss_ddr = (volatile uint8_t * const)ss_ddr,
+    * const p_ss_port = (volatile uint8_t * const)ss_port,
+    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,    // moet weg
+    * const p_port_ss = (volatile uint8_t * const)ss_port,  // moet weg
     * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,
     * const p_port_sck = (volatile uint8_t * const)sck_port,
     * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,

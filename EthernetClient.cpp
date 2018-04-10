@@ -5,55 +5,43 @@
 #include <util/delay.h>
 #include "w5100.h"
 #include "socket.h"
-
-extern "C" {
-  #include "string.h"
-}
-
-#include "Arduino.h"
-
-#include "ethernet.h"
 #include "EthernetClient.h"
 #include "EthernetServer.h"
 #include "dns2.h"
+#include "util.h"
 
 uint16_t EthernetClient::_srcport = 1024;
 
-EthernetClient::EthernetClient() : _sock(MAX_SOCK_NUM) {
-}
-
-EthernetClient::EthernetClient(uint8_t sock) : _sock(sock) {
-}
-
 int EthernetClient::connect(const char* host, uint16_t port) {
-  // Look up the host first
-  int ret = 0;
-  DNSClient dns;
-  IPAddress remote_addr;
-
-  dns.begin(Ethernet.dnsServerIP());
-  ret = dns.getHostByName(host, remote_addr);
-  if (ret == 1) {
-    return connect(remote_addr, port);
-  } else {
-    return ret;
-  }
+    // Look up the host first
+    int ret = 0;
+    DNSClient dns(_eth);
+    IPAddress remote_addr;
+    dns.begin(_eth->dnsServerIP());
+    ret = dns.getHostByName(host, remote_addr);
+    
+    if (ret == 1) {
+        return connect(remote_addr, port);
+    } else {
+        return ret;
+    }
 }
 
-int EthernetClient::connect(IPAddress ip, uint16_t port) {
-  if (_sock != MAX_SOCK_NUM)
-    return 0;
+int EthernetClient::connect(IPAddress ip, uint16_t port)
+{
+    if (_sock != MAX_SOCK_NUM)
+        return 0;
 
-  for (int i = 0; i < MAX_SOCK_NUM; i++) {
-    uint8_t s = W5100.readSnSR(i);
-    if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT || s == SnSR::CLOSE_WAIT) {
-      _sock = i;
-      break;
+    for (int i = 0; i < MAX_SOCK_NUM; i++) {
+        uint8_t s = W5100.readSnSR(i);
+        if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT || s == SnSR::CLOSE_WAIT) {
+            _sock = i;
+            break;
+        }
     }
-  }
 
-  if (_sock == MAX_SOCK_NUM)
-    return 0;
+    if (_sock == MAX_SOCK_NUM)
+        return 0;
 
   _srcport++;
   if (_srcport == 0) _srcport = 1024;

@@ -165,6 +165,7 @@ private:
   
   uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
 public:
+    DhcpClass(EthernetClass *eth) : _dhcpUdpSocket(eth) { }
   IPAddress getLocalIp();
   IPAddress getSubnetMask();
   IPAddress getGatewayIp();

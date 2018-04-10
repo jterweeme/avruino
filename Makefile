@@ -46,7 +46,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
     app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_websdfat1.elf \
+    app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_analogweb2.elf app_websdfat1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
 ifeq ($(POOL1), ja)
@@ -89,6 +89,10 @@ app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
+app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
+    uart.o pinport.o stream.o EthernetServer.o socket.o dhcp2.o \
+    EthernetUdp.o IPAddress.o EthernetClient.o w5100.o $(BSP)
+
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o $(BSP)
 
@@ -97,7 +101,7 @@ app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     zd2card.o fatty.o pinport.o uart.o stream.o $(BSP)
 
 app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
-    IPAddress.o EthernetUdp.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o
+    IPAddress.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o
 
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
 stream.o md5sum.o uart.o $(BSP)
@@ -159,6 +163,7 @@ app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
 app_analogweb1.o: app_analogweb1.cpp
+app_analogweb2.o: app_analogweb2.cpp
 app_blink1.o: app_blink1.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h

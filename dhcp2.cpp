@@ -10,7 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "dhcp2.h"
-#include "Arduino.h"
 #include "util.h"
 
 void randomSeed(unsigned int seed)

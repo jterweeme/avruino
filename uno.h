@@ -122,11 +122,13 @@ static constexpr uint8_t
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
-    pss = portb2,  //pin ss
+    ss_bit = pb2,
+    pss = portb2,  //pin ss, moet weg
     sck_port_base = portb_base,
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
-    psck = portb5, //pin sck
+    sck_bit = pb5,
+    psck = portb5, //pin sck, moet weg
     mosi_port_base = portb_base,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
@@ -151,8 +153,12 @@ static constexpr uint8_t
     pin6_base = portd_base,
     pin6_bit = pd6,
     pin7_base = portd_base,
+    pin7_ddr = pin7_base + 1,
+    pin7_port = pin7_base + 2,
     pin7_bit = pd7,
     pin8_base = portb_base,
+    pin8_ddr = pin8_base + 1,
+    pin8_port = pin8_base + 2,
     pin8_bit = pb0,
     pin9_base = portb_base,
     pin9_bit = pb1,
@@ -235,8 +241,10 @@ static volatile uint8_t
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
 
-    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,
-    * const p_port_ss = (volatile uint8_t * const)ss_port,
+    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,    // moet weg
+    * const p_port_ss = (volatile uint8_t * const)ss_port,  // moet weg
+    * const p_ss_ddr = (volatile uint8_t * const)ss_ddr,
+    * const p_ss_port = (volatile uint8_t * const)ss_port,
     * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,
     * const p_port_sck = (volatile uint8_t * const)sck_port,
     * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,
@@ -323,7 +331,7 @@ struct Board
 #define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
 #define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
 static const uint8_t FRACT_MAX = 1000 >> 3;
-static volatile unsigned long timer0_overflow_count = 0;
+//static volatile unsigned long timer0_overflow_count = 0;
 
 #endif
 

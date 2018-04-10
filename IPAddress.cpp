@@ -1,6 +1,5 @@
-
-#include "Arduino.h"
 #include "IPAddress.h"
+#include <string.h>
 
 IPAddress::IPAddress()
 {

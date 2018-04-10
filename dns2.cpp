@@ -12,8 +12,6 @@
 #include "util.h"
 #include "dns2.h"
 #include <string.h>
-#include "Arduino.h"
-
 
 #define SOCKET_NONE	255
 // Various flags and header field values for a DNS message
@@ -57,16 +55,13 @@ void DNSClient::begin(const IPAddress& aDNSServer)
     iRequestId = 0;
 }
 
-
 int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
 {
     // See if we've been given a valid IP address
     const char* p =aIPAddrString;
-    while (*p &&
-           ( (*p == '.') || (*p >= '0') || (*p <= '9') ))
-    {
+
+    while (*p && ( (*p == '.') || (*p >= '0') || (*p <= '9') ))
         p++;
-    }
 
     if (*p == '\0')
     {
@@ -118,22 +113,17 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
     }
 }
 
+static const IPAddress INADDR_NONE(0,0,0,0);
+
 int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
 {
     int ret =0;
 
-    // See if it's a numeric IP address
     if (inet_aton(aHostname, aResult))
-    {
-        // It is, our work here is done
         return 1;
-    }
 
-    // Check we've got a valid DNS server to use
     if (iDNSServer == INADDR_NONE)
-    {
         return INVALID_SERVER;
-    }
 	
     // Find a socket to use
     if (iUdp.begin(1024+(millis() & 0xF)) == 1)
@@ -177,49 +167,21 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
 
 uint16_t DNSClient::BuildRequest(const char* aName)
 {
-    // Build header
-    //                                    1  1  1  1  1  1
-    //      0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |                      ID                       |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |                    QDCOUNT                    |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |                    ANCOUNT                    |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |                    NSCOUNT                    |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    //    |                    ARCOUNT                    |
-    //    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    // As we only support one request at a time at present, we can simplify
-    // some of this header
     iRequestId = millis();
     uint16_t twoByteBuffer;
-
-    // FIXME We should also check that there's enough space available to write to, rather
-    // FIXME than assume there's enough space (as the code does at present)
     iUdp.write((uint8_t*)&iRequestId, sizeof(iRequestId));
-
     twoByteBuffer = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY | RECURSION_DESIRED_FLAG);
     iUdp.write((uint8_t*)&twoByteBuffer, sizeof(twoByteBuffer));
-
     twoByteBuffer = htons(1);  // One question record
     iUdp.write((uint8_t*)&twoByteBuffer, sizeof(twoByteBuffer));
-
     twoByteBuffer = 0;  // Zero answer records
     iUdp.write((uint8_t*)&twoByteBuffer, sizeof(twoByteBuffer));
-
     iUdp.write((uint8_t*)&twoByteBuffer, sizeof(twoByteBuffer));
-    // and zero additional records
     iUdp.write((uint8_t*)&twoByteBuffer, sizeof(twoByteBuffer));
-
-    // Build question
     const char* start =aName;
     const char* end =start;
     uint8_t len;
-    // Run through the name being requested
+
     while (*end)
     {
         // Find out how long this section of the name is
@@ -270,19 +232,14 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
     // We've had a reply!
     // Read the UDP header
     uint8_t header[DNS_HEADER_SIZE]; // Enough space to reuse for the DNS header
-    // Check that it's a response from the right server and the right port
-    if ( (iDNSServer != iUdp.remoteIP()) || 
-        (iUdp.remotePort() != DNS_PORT) )
-    {
-        // It's not from who we expected
+
+    if ( (iDNSServer != iUdp.remoteIP()) || (iUdp.remotePort() != DNS_PORT) )
         return INVALID_SERVER;
-    }
 
     // Read through the rest of the response
     if (iUdp.available() < DNS_HEADER_SIZE)
-    {
         return TRUNCATED;
-    }
+    
     iUdp.read(header, DNS_HEADER_SIZE);
 
     uint16_t header_flags = htons(*((uint16_t*)&header[2]));

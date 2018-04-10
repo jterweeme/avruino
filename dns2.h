@@ -9,8 +9,14 @@
 
 class DNSClient
 {
+protected:
+    uint16_t BuildRequest(const char* aName);
+    uint16_t ProcessResponse(uint16_t aTimeout, IPAddress& aAddress);
+    IPAddress iDNSServer;
+    uint16_t iRequestId;
+    EthernetUDP iUdp;
 public:
-    // ctor
+    DNSClient(EthernetClass *eth) : iUdp(eth) { }
     void begin(const IPAddress& aDNSServer);
 
     /** Convert a numeric IP address string into a four-byte IP address.
@@ -29,13 +35,7 @@ public:
     */
     int getHostByName(const char* aHostname, IPAddress& aResult);
 
-protected:
-    uint16_t BuildRequest(const char* aName);
-    uint16_t ProcessResponse(uint16_t aTimeout, IPAddress& aAddress);
 
-    IPAddress iDNSServer;
-    uint16_t iRequestId;
-    EthernetUDP iUdp;
 };
 
 #endif

@@ -18,22 +18,26 @@
  
  */
 
-#include "ethernet.h"
+#include "EthernetClient.h"
+#include "EthernetServer.h"
+#include <avr/interrupt.h>
+#include "util.h"
 
 int main()
 {
+    EthernetClass eth;
     uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
-    IPAddress ip(192,168,178, 32);
+    IPAddress ip(192,168,200, 100);
     IPAddress gateway(192,168,1, 1);
     IPAddress subnet(255, 255, 0, 0);
-    EthernetServer server(23);
+    EthernetServer server(&eth, 23);
     bool gotAMessage = false; // whether or not you got a message from the client yet
     sei();
     TCCR0A |= 1<<WGM01 | 1<<WGM00;
     TCCR0B |= 1<<CS01 | 1<<CS00;
     TIMSK0 |= 1<<TOIE0;
-    Ethernet.begin(mac, ip);
-    ip = Ethernet.localIP();
+    eth.begin(mac, ip);
+    //ip = Ethernet.localIP();
     server.begin();
 
     while (true)

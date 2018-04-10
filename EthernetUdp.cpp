@@ -32,9 +32,6 @@
 #include "udp2.h"
 #include "dns2.h"
 
-/* Constructor */
-EthernetUDP::EthernetUDP() : _sock(MAX_SOCK_NUM) {}
-
 /* Start EthernetUDP socket, listening at local port PORT */
 uint8_t EthernetUDP::begin(uint16_t port) {
   if (_sock != MAX_SOCK_NUM)
@@ -80,10 +77,10 @@ int EthernetUDP::beginPacket(const char *host, uint16_t port)
 {
   // Look up the host first
   int ret = 0;
-  DNSClient dns;
+  DNSClient dns(_eth);
   IPAddress remote_addr;
 
-  dns.begin(Ethernet.dnsServerIP());
+  dns.begin(_eth->dnsServerIP());
   ret = dns.getHostByName(host, remote_addr);
   if (ret == 1) {
     return beginPacket(remote_addr, port);
