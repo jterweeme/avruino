@@ -5,8 +5,11 @@ Mega SD CS: D9
 Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
-#include "uip_server.h"
+#include "EthernetClient.h"
+#include "EthernetServer.h"
 #include "fatty.h"
+#include <avr/interrupt.h>
+#include "util.h"
 
 class Buffer
 {
@@ -33,10 +36,10 @@ void Buffer::reset()
         _buf[i] = 0;
 }
 
-static UIPEthernetClass eth;
+static EthernetClass eth;
 static Fatty *g_zd;
 
-static void printDirectory(Fyle dir, uint8_t numTabs, UIPClient &os)
+static void printDirectory(Fyle dir, uint8_t numTabs, EthernetClient &os)
 {
     os.write("<table>\r\n");
 
@@ -82,7 +85,7 @@ static void printDirectory(Fyle dir, uint8_t numTabs, UIPClient &os)
     os.write("</table>\r\n");
 }
 
-static void listing(UIPClient &client, Fatty &zd)
+static void listing(EthernetClient &client, Fatty &zd)
 {
     client.write("<!DOCTYPE html>\r\n");
     client.write("<html>\r\n<head>\r\n<title>Listing</title>\r\n");
@@ -93,7 +96,7 @@ static void listing(UIPClient &client, Fatty &zd)
     client.write("</body>\r\n</html>\r\n");
 }
 
-static void serveFile(UIPClient &client, const char *fn)
+static void serveFile(EthernetClient &client, const char *fn)
 {
     FyleIfstream ifs;
     ifs.open(fn);
@@ -105,7 +108,7 @@ static void serveFile(UIPClient &client, const char *fn)
     ifs.close();
 }
 
-static void contentType(UIPClient &client, const char *ext)
+static void contentType(EthernetClient &client, const char *ext)
 {
     if (my_strncasecmp(ext, "htm", 3) == 0)
         client.write("Content-Type: text/html\r\n");
@@ -125,7 +128,7 @@ static void contentType(UIPClient &client, const char *ext)
         client.write("Content-Type: text/html\r\n");
 }
 
-static void httpGet(UIPClient &client, Fatty &zd, Buffer &buffer)
+static void httpGet(EthernetClient &client, Fatty &zd, Buffer &buffer)
 {
     char fn[100] = {0};
     char ext[10] = {0};
@@ -158,7 +161,7 @@ int main()
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
 
-    UIPServer server = UIPServer(&eth, 80);
+    EthernetServer server = EthernetServer(&eth, 80);
     Board b;
     Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
@@ -167,14 +170,12 @@ int main()
     TIMSK0 |= 1<<TOIE0;
     zei();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    //uint32_t myIP = (uint32_t)192 | (uint32_t)168<<8 | (uint32_t)200<<16 | (uint32_t)101<<24;
+    IPAddress myIP(192,168,200,101);
     DefaultUart s;
-    *p_ucsr0a |= 1<<u2x0;
-    *p_ubrr0 = 16;
     UartStream cout(&s);
     cout << "Startup\r\n";
     cout.flush();
-    eth.begin(mac); // init via DHCP
+    eth.begin(mac, myIP);
     uint32_t ip = eth.localIP();
     hex32(ip, cout);
     cout << "\r\n";
@@ -190,7 +191,7 @@ int main()
 
     while (true)
     {
-        UIPClient client = server.available();
+        EthernetClient client = server.available();
 
         if (client)
         {
@@ -250,10 +251,43 @@ int main()
     return 0;
 }
 
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
+#define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
+
+#define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
+
+#define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
+#define FRACT_MAX (1000 >> 3)
+
+volatile unsigned long timer0_overflow_count = 0;
+volatile unsigned long timer0_millis = 0;
+static unsigned char timer0_fract = 0;
+
+ISR(TIMER0_OVF_vect)
 {
-    eth.tick2();
+    unsigned long m = timer0_millis;
+    unsigned char f = timer0_fract;
+
+    m += MILLIS_INC;
+    f += FRACT_INC;
+    if (f >= FRACT_MAX) {
+        f -= FRACT_MAX;
+        m += 1;
+    }
+
+    timer0_fract = f;
+    timer0_millis = m;
+    timer0_overflow_count++;
+}
+
+unsigned long millis()
+{
+    unsigned long m;
+    uint8_t oldSREG = SREG;
+    cli();
+    m = timer0_millis;
+    SREG = oldSREG;
+
+    return m;
 }
 
 

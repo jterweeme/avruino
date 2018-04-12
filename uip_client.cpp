@@ -14,6 +14,16 @@ IPAddrezz::IPAddrezz(uint8_t oct1, uint8_t oct2, uint8_t third_octet, uint8_t fo
     _address.a8[3] = fourth_octet;
 }
 
+#define uip_close()         (uip_flags = UIP_CLOSE)
+#define uip_closed()    (uip_flags & UIP_CLOSE)
+
+#define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
+                                   uip_conn->tcpstateflags &= ~UIP_STOPPED; \
+                              } while(0)
+
+#define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
+#define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
+
 IPAddrezz& IPAddrezz::operator=(const uint8_t *address)
 {
     memcpy(_address.a8, address, sizeof(_address));
@@ -35,7 +45,7 @@ uip_userdata_t UIPClient::all_data[UIP_CONNS];
 
 UIPClient::UIPClient(UIPEthernetClass * const eth) : _eth(eth), data(NULL) { }
 
-UIPClient::UIPClient(UIPEthernetClass * const eth, uip_userdata_t* conn_data)
+UIPClient::UIPClient(UIPEthernetClass * const eth, uip_userdata_t *conn_data)
     : _eth(eth), data(conn_data)
 {
 }

@@ -9,11 +9,6 @@ extern UIPEthernetClass UIPEthernet;    // !!!!!!!!!!!!!
 uint8_t UIP_ARPHDRSIZE = 42;
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-UIPUDP::UIPUDP() : _uip_udp_conn(NULL)
-{
-    memset(&appdata,0,sizeof(appdata));
-}
-
 uint8_t UIPUDP::begin(uint16_t port)
 {
     if (!_uip_udp_conn)
@@ -44,14 +39,14 @@ void UIPUDP::stop()
     }
 }
 
-int UIPUDP::beginPacket(IPAddrezz ip, uint16_t port)
+int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
 {
     UIPEthernetClass::instance->tick();
 
     if (ip && port)
     {
         uip_ipaddr_t ripaddr;
-        uip_ip_addr(&ripaddr, ip);
+        uip_ip_addr(&ripaddr, IPAddrezz(ip));
 
         if (_uip_udp_conn)
         {
@@ -109,12 +104,6 @@ int UIPUDP::endPacket()
         }
     }
     return 0;
-}
-
-// Write a single byte into the packet
-size_t UIPUDP::write(uint8_t c)
-{
-    return write(&c,1);
 }
 
 // Write size bytes from buffer into the packet
@@ -213,13 +202,8 @@ void UIPUDP::flush()
 // Return the IP address of the host who sent the current incoming packet
 IPAddrezz UIPUDP::remoteIP()
 {
+    //return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
     return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
-}
-
-// Return the port of the host who sent the current incoming packet
-uint16_t UIPUDP::remotePort()
-{
-    return _uip_udp_conn ? ntohs(_uip_udp_conn->rport) : 0;
 }
 
 // uIP callback function

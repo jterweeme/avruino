@@ -5,42 +5,43 @@
 #define _DHCP_H_
 
 #include "uip_udp.h"
-#include <string.h>
 
-#define STATE_DHCP_START 0
-#define	STATE_DHCP_DISCOVER	1
-#define	STATE_DHCP_REQUEST	2
-#define	STATE_DHCP_LEASED	3
-#define	STATE_DHCP_REREQUEST	4
-#define	STATE_DHCP_RELEASE	5
+static constexpr uint8_t
+    STATE_DHCP_START = 0,
+    STATE_DHCP_DISCOVER = 1,
+    STATE_DHCP_REQUEST = 2,
+    STATE_DHCP_LEASED = 3,
+    STATE_DHCP_REREQUEST = 4,
+    STATE_DHCP_RELEASE = 5,
+    DHCP_SERVER_PORT = 67,
+    DHCP_CLIENT_PORT = 68,
+    DHCP_BOOTREQUEST = 1,
+    DHCP_BOOTREPLY = 2,
+    DHCP_DISCOVER = 1,
+    DHCP_OFFER = 2,
+    DHCP_REQUEST = 3,
+    DHCP_DECLINE = 4,
+    DHCP_ACK = 5,
+    DHCP_NAK = 6,
+    DHCP_RELEASE = 7,
+    DHCP_INFORM = 8,
+    DHCP_HTYPE10MB = 1,
+    DHCP_HTYPE100MB = 2,
+    DHCP_HLENETHERNET = 6,
+    DHCP_HOPS = 0,
+    DHCP_SECS = 0,
+    DHCP_CHECK_NONE = 0,
+    DHCP_CHECK_RENEW_FAIL = 1,
+    DHCP_CHECK_RENEW_OK = 2,
+    DHCP_CHECK_REBIND_FAIL = 3,
+    DHCP_CHECK_REBIND_OK = 4;
+
 #define DHCP_FLAGSBROADCAST	0x8000
-#define	DHCP_SERVER_PORT	67	/* from server to client */
-#define DHCP_CLIENT_PORT	68	/* from client to server */
-#define DHCP_BOOTREQUEST	1
-#define DHCP_BOOTREPLY		2
-#define	DHCP_DISCOVER		1
-#define DHCP_OFFER		  2
-#define	DHCP_REQUEST		3
-#define	DHCP_DECLINE		4
-#define	DHCP_ACK		    5
-#define DHCP_NAK		    6
-#define	DHCP_RELEASE		7
-#define DHCP_INFORM		  8
-#define DHCP_HTYPE10MB		1
-#define DHCP_HTYPE100MB		2
-#define DHCP_HLENETHERNET	6
-#define DHCP_HOPS		0
-#define DHCP_SECS		0
+
 #define MAGIC_COOKIE		0x63825363
 #define MAX_DHCP_OPT	16
 #define HOST_NAME "ENC28J"
 #define DEFAULT_LEASE	(900) //default lease time in seconds
-#define DHCP_CHECK_NONE         (0)
-#define DHCP_CHECK_RENEW_FAIL   (1)
-#define DHCP_CHECK_RENEW_OK     (2)
-#define DHCP_CHECK_REBIND_FAIL  (3)
-#define DHCP_CHECK_REBIND_OK    (4)
-
 enum
 {
 	padOption		=	0,
@@ -149,17 +150,20 @@ private:
     void send_DHCP_MESSAGE(uint8_t, uint16_t);
     void printByte(char *, uint8_t);
     uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
+
+    uint32_t _toInt32(uint8_t *v)
+    { return (uint32_t)v[0] | (uint32_t)v[1] << 8 | (uint32_t)v[2] << 16 | (uint32_t)v[3] << 24; }
 public:
-    IPAddrezz getLocalIp() { return IPAddrezz(_dhcpLocalIp); }
-    IPAddrezz getSubnetMask() { return IPAddrezz(_dhcpSubnetMask); }
-    IPAddrezz getGatewayIp() { return IPAddrezz(_dhcpGatewayIp); }
-    IPAddrezz getDhcpServerIp() { return IPAddrezz(_dhcpDhcpServerIp); }
-    IPAddrezz getDnsServerIp() { return IPAddrezz(_dhcpDnsServerIp); }
-
-    int beginWithDHCP(uint8_t *, unsigned long timeout = 60000,
-        unsigned long responseTimeout = 4000);
-
+    uint32_t getLocalIp() { return _toInt32(_dhcpLocalIp); }
+    uint32_t getSubnetMask() { return _toInt32(_dhcpSubnetMask); }
+    uint32_t getGatewayIp() { return _toInt32(_dhcpGatewayIp); }
+    uint32_t getDhcpServerIp() { return _toInt32(_dhcpDhcpServerIp); }
+    uint32_t getDnsServerIp() { return _toInt32(_dhcpDnsServerIp); }
+    int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, uint32_t responseTimeout = 4000);
     int checkLease();
 };
-
 #endif
+
+
+
+

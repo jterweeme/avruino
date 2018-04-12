@@ -145,15 +145,13 @@ uint8_t Sd2Card::init(uint8_t sckRateID)
     uint32_t arg;
     _cs->direction(OUTPUT);
     _cs->set();
-    *p_ddr_miso &= ~(1<<pmiso);
-    *p_ddr_mosi |= 1<<pmosi;
-    *p_ddr_sck |= 1<<psck;
-    *p_ddr_ss |= 1<<pss;
-    *p_port_ss |= 1<<pss;
-    // Enable SPI, Master, clock rate f_osc/128
-    *p_spcr = 1<<spe | 1<<mstr | 1<<spr1 | 1<<spr0;
-    // clear double speed
-    *p_spsr &= ~(1<<spi2x);
+    *p_miso_ddr &= ~(1<<miso_bit);
+    *p_mosi_ddr |= 1<<mosi_bit;
+    *p_sck_ddr |= 1<<sck_bit;
+    *p_ss_ddr |= 1<<ss_bit;
+    *p_ss_port |= 1<<ss_bit;
+    *p_spcr = 1<<spe | 1<<mstr | 1<<spr1 | 1<<spr0; // Enable SPI, Master, clock rate f_osc/128
+    *p_spsr &= ~(1<<spi2x); // clear double speed
 
     // must supply min of 74 clock cycles with CS high.
     for (uint8_t i = 0; i < 10; i++)

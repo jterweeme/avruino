@@ -32,7 +32,7 @@ private:
 public:
     static UIPEthernetClass *instance;
     UIPEthernetClass();
-    int begin(const uint8_t* mac);
+    int begin(const uint8_t *mac);
     void begin(const uint8_t* mac, IPAddrezz ip);
     void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns);
     void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns, IPAddrezz gw);
@@ -61,11 +61,11 @@ private:
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
     uint16_t ipchksum(void);
     uint16_t upper_layer_chksum(uint8_t proto);
-    friend uint16_t uip_ipchksum(void);
-    friend uint16_t uip_tcpchksum(void);
-    friend uint16_t uip_udpchksum(void);
-    friend void uipclient_appcall(void);
-    friend void uipudp_appcall(void);
+    friend uint16_t uip_ipchksum();
+    friend uint16_t uip_tcpchksum();
+    friend uint16_t uip_udpchksum();
+    friend void uipclient_appcall();
+    friend void uipudp_appcall();
 };
 #endif
 

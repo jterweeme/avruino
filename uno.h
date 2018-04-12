@@ -123,20 +123,21 @@ static constexpr uint8_t
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
     ss_bit = pb2,
-    pss = portb2,  //pin ss, moet weg
     sck_port_base = portb_base,
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
     sck_bit = pb5,
-    psck = portb5, //pin sck, moet weg
+    psck = portb5, // moet weg
     mosi_port_base = portb_base,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
-    pmosi = portb3,
+    mosi_bit = pb3,
+    pmosi = portb3, // moet weg
     miso_port_base = portb_base,
     miso_ddr = miso_port_base + 1,
     miso_port = miso_port_base + 2,
-    pmiso = portb4,
+    miso_bit = pb4,
+    pmiso = portb4, // moet weg
 
     pin0_base = portd_base,
     pin0_bit = pd0,
@@ -188,12 +189,15 @@ static constexpr uint8_t
     pinA5_bit = pc5;
 
 static volatile uint8_t
+    * const p_portb_base = (volatile uint8_t * const)portb_base,
     * const p_pinb = (volatile uint8_t * const)pinb,
     * const p_ddrb = (volatile uint8_t * const)ddrb,
     * const p_portb = (volatile uint8_t * const)portb,
+    * const p_portc_base = (volatile uint8_t * const)portc_base,
     * const p_pinc = (volatile uint8_t * const)pinc,
     * const p_ddrc = (volatile uint8_t * const)ddrc,
     * const p_portc = (volatile uint8_t * const)portc,
+    * const p_portd_base = (volatile uint8_t * const)portd_base,
     * const p_pind = (volatile uint8_t * const)pind,
     * const p_ddrd = (volatile uint8_t * const)ddrd,
     * const p_portd = (volatile uint8_t * const)portd,
@@ -234,23 +238,30 @@ static volatile uint8_t
     * const p_ubrr0h = (volatile uint8_t * const)ubrr0h,
     * const p_udr0 = (volatile uint8_t * const)udr0,
 
-    * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,
-    * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,
-    * const p_ddr_ocr2b = (volatile uint8_t * const)ocr2b_ddr,
+    * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,  // moet weg
+    * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,  // moet weg
+    * const p_ddr_ocr2b = (volatile uint8_t * const)ocr2b_ddr,  // moet weg
+    * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
+    * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
+    * const p_ocr2b_ddr = (volatile uint8_t * const)ocr2b_ddr,
 
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
 
-    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,    // moet weg
-    * const p_port_ss = (volatile uint8_t * const)ss_port,  // moet weg
     * const p_ss_ddr = (volatile uint8_t * const)ss_ddr,
     * const p_ss_port = (volatile uint8_t * const)ss_port,
-    * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,
+    * const p_sck_ddr = (volatile uint8_t * const)sck_ddr,
+    * const p_sck_port = (volatile uint8_t * const)sck_port,
+    * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,  // moet weg
     * const p_port_sck = (volatile uint8_t * const)sck_port,
-    * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,
-    * const p_port_mosi = (volatile uint8_t * const)mosi_port,
-    * const p_ddr_miso = (volatile uint8_t * const)miso_ddr,
-    * const p_port_miso = (volatile uint8_t * const)miso_port,
+    * const p_mosi_ddr = (volatile uint8_t * const)mosi_ddr,
+    * const p_mosi_port = (volatile uint8_t * const)mosi_port,
+    * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,    // moet weg
+    * const p_port_mosi = (volatile uint8_t * const)mosi_port,  // moet weg
+    * const p_ddr_miso = (volatile uint8_t * const)miso_ddr,    // moet weg
+    * const p_port_miso = (volatile uint8_t * const)miso_port,  // moet weg
+    * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
+    * const p_miso_port = (volatile uint8_t * const)miso_port,
 
     * const p_pin0_base = (volatile uint8_t * const)pin0_base,
     * const p_pin1_base = (volatile uint8_t * const)pin1_base,
@@ -285,9 +296,9 @@ static volatile uint16_t
 struct Board
 {
     Port
-        portB { (uint8_t *)portb_base },
-        portC { (uint8_t *)portc_base },
-        portD { (uint8_t *)portd_base };
+        portB { p_portb_base },
+        portC { p_portc_base },
+        portD { p_portd_base };
 
     Pin
         pin0 {portD, BIT0},

@@ -5,6 +5,8 @@
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
+#define uip_input()        uip_process(UIP_DATA)
+
 static uint32_t g_millis = 0;
 
 uint32_t millis()
@@ -13,15 +15,12 @@ uint32_t millis()
 }
 
 UIPEthernetClass *UIPEthernetClass::instance;
-
 memhandle UIPEthernetClass::in_packet(NOBLOCK);
 memhandle UIPEthernetClass::uip_packet(NOBLOCK);
 uint8_t UIPEthernetClass::uip_hdrlen(0);
 uint8_t UIPEthernetClass::packetstate(0);
-
 IPAddrezz UIPEthernetClass::_dnsServerAddress;
 DhcpClass* UIPEthernetClass::_dhcp(NULL);
-
 unsigned long UIPEthernetClass::periodic_timer;
 
 UIPEthernetClass::UIPEthernetClass()
@@ -44,6 +43,12 @@ int UIPEthernetClass::begin(const uint8_t* mac)
     }
     return ret;
 }
+
+#define uip_sethostaddr(addr) uip_ipaddr_copy(uip_hostaddr, (addr))
+#define uip_setdraddr(addr) uip_ipaddr_copy(uip_draddr, (addr))
+#define uip_setnetmask(addr) uip_ipaddr_copy(uip_netmask, (addr))
+#define uip_getdraddr(addr) uip_ipaddr_copy((addr), uip_draddr)
+#define uip_getnetmask(addr) uip_ipaddr_copy((addr), uip_netmask)
 
 void UIPEthernetClass::tick2()
 {
@@ -106,10 +111,10 @@ int UIPEthernetClass::maintain()
 
 IPAddrezz UIPEthernetClass::localIP()
 {
-  IPAddrezz ret;
-  uip_ipaddr_t a;
-  uip_gethostaddr(a);
-  return ip_addr_uip(a);
+    IPAddrezz ret;
+    uip_ipaddr_t a;
+    uip_ipaddr_copy(a, uip_hostaddr);
+    return ip_addr_uip(a);
 }
 
 IPAddrezz UIPEthernetClass::subnetMask()

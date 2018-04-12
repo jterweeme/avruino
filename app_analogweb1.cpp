@@ -24,19 +24,24 @@ int main()
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
 
+    DefaultUart s;
+    *p_ucsr0a |= 1<<u2x0;
+    *p_ubrr0 = 16;
+    UartStream cout(&s);
     UIPServer server = UIPServer(&eth, 80);
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    //IPAddrezz myIP(192,168,178,40);
-    eth.begin(mac); // init via DHCP
+    cout << "Contacting DHCP\r\n";
+    IPAddrezz myIP(192,168,178,32);
+    eth.begin(mac, myIP); // init via DHCP
     uint32_t ip = eth.localIP();
-    DefaultUart s;
-    UartStream cout(&s);
+    cout << "IP: ";
     hex32(ip, cout);
     cout << "\r\n";
     server.begin();
+    cout << "Server started\r\n";
 
     while (true)
     {
@@ -44,6 +49,7 @@ int main()
 
         if (client)
         {
+            cout << "Client\r\n";
             bool currentLineIsBlank = true;
         
             while (client.connected())

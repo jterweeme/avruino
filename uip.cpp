@@ -3,6 +3,10 @@
 #include "uip.h"
 #include <string.h>
 
+#define UIP_PROTO_ICMP  1
+#define UIP_PROTO_ICMP6 58
+
+
 static const uint8_t UIP_RTO = 3, UIP_MAXRTX = 8;
 #define UIP_MAXSYNRTX      5
 #define UIP_FIXEDETHADDR 0
@@ -10,12 +14,11 @@ static const uint8_t UIP_RTO = 3, UIP_MAXRTX = 8;
 static const uint8_t UIP_TTL = 64, UIP_REASSEMBLY = 0, UIP_REASS_MAXAGE = 40;
 
 void uip_add32(uint8_t *op32, uint16_t op16);
-uint16_t uip_chksum(uint16_t *buf, uint16_t len);
 uint16_t uip_ipchksum(void);
 uint16_t uip_tcpchksum(void);
 uint16_t uip_udpchksum(void);
 
-
+#define UIP_APPCALL uipclient_appcall
 
 
 #if UIP_FIXEDADDR > 0
@@ -32,23 +35,12 @@ const uip_ipaddr_t uip_netmask =
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 #endif /* UIP_FIXEDADDR */
 
-static const uip_ipaddr_t all_ones_addr =
-#if UIP_CONF_IPV6
-  {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff};
-#else /* UIP_CONF_IPV6 */
-  {0xffff,0xffff};
-#endif /* UIP_CONF_IPV6 */
-static const uip_ipaddr_t all_zeroes_addr =
-#if UIP_CONF_IPV6
-  {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
-#else /* UIP_CONF_IPV6 */
-  {0x0000,0x0000};
-#endif /* UIP_CONF_IPV6 */
-
+static const uip_ipaddr_t all_ones_addr = {0xffff,0xffff};
+static const uip_ipaddr_t all_zeroes_addr = {0x0000,0x0000};
 
 #if UIP_FIXEDETHADDR
 const struct uip_eth_addr uip_ethaddr = {{UIP_ETHADDR0, UIP_ETHADDR1,
-					  UIP_ETHADDR2, UIP_ETHADDR3, UIP_ETHADDR4, UIP_ETHADDR5}};
+        UIP_ETHADDR2, UIP_ETHADDR3, UIP_ETHADDR4, UIP_ETHADDR5}};
 #else
 struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
 #endif
@@ -111,8 +103,41 @@ static const uint8_t TCP_OPT_MSS_LEN = 4;   /* Length of TCP MSS option. */
 #define ICMP6_OPTION_SOURCE_LINK_ADDRESS 1
 #define ICMP6_OPTION_TARGET_LINK_ADDRESS 2
 
+/* The ICMP and IP headers. */
+struct uip_icmpip_hdr {
+#if UIP_CONF_IPV6
+  /* IPv6 header. */
+  uint8_t vtc, tcf;
+  uint16_t flow;
+  uint8_t len[2];
+  uint8_t proto, ttl;
+  uip_ip6addr_t srcipaddr, destipaddr;
+#else /* UIP_CONF_IPV6 */
+  /* IPv4 header. */
+  uint8_t vhl,
+    tos,
+    len[2],
+    ipid[2],
+    ipoffset[2],
+    ttl,
+    proto;
+  uint16_t ipchksum;
+  uint16_t srcipaddr[2],
+    destipaddr[2];
+#endif /* UIP_CONF_IPV6 */
 
-/* Macros. */
+  /* ICMP (echo) header. */
+  uint8_t type, icode;
+  uint16_t icmpchksum;
+#if !UIP_CONF_IPV6
+  uint16_t id, seqno;
+#else /* !UIP_CONF_IPV6 */
+  uint8_t flags, reserved1, reserved2, reserved3;
+  uint8_t icmp6data[16];
+  uint8_t options[1];
+#endif /* !UIP_CONF_IPV6 */
+};
+
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define FBUF ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
 #define ICMPBUF ((struct uip_icmpip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -194,11 +219,6 @@ static uint16_t chksum(uint16_t sum, const uint8_t *data, uint16_t len)
   return sum;
 }
 
-uint16_t uip_chksum(uint16_t *data, uint16_t len)
-{
-    return htons(chksum(0, (uint8_t *)data, len));
-}
-
 #ifndef UIP_ARCH_IPCHKSUM
 uint16_t uip_ipchksum(void)
 {
@@ -252,8 +272,7 @@ void uip_init(void)
 }
 
 #if UIP_ACTIVE_OPEN
-struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
+struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
   
@@ -494,12 +513,14 @@ static uint8_t uip_reass()
 #endif /* UIP_REASSEMBLY */
 static void uip_add_rcv_nxt(uint16_t n)
 {
-  uip_add32(uip_conn->rcv_nxt, n);
-  uip_conn->rcv_nxt[0] = uip_acc32[0];
-  uip_conn->rcv_nxt[1] = uip_acc32[1];
-  uip_conn->rcv_nxt[2] = uip_acc32[2];
-  uip_conn->rcv_nxt[3] = uip_acc32[3];
+    uip_add32(uip_conn->rcv_nxt, n);
+    uip_conn->rcv_nxt[0] = uip_acc32[0];
+    uip_conn->rcv_nxt[1] = uip_acc32[1];
+    uip_conn->rcv_nxt[2] = uip_acc32[2];
+    uip_conn->rcv_nxt[3] = uip_acc32[3];
 }
+
+#define uip_outstanding(conn) ((conn)->len)
 
 void uip_process(uint8_t flag)
 {
@@ -1380,11 +1401,6 @@ void uip_process(uint8_t flag)
 #endif /* UIP_URGDATA > 0 */
     }
 
-    /* If uip_len > 0 we have TCP data in the packet, and we flag this
-       by setting the UIP_NEWDATA flag and update the sequence number
-       we acknowledge. If the application has stopped the dataflow
-       using uip_stop(), we must not accept any data packets from the
-       remote host. */
     if(uip_len > 0 && !(uip_connr->tcpstateflags & UIP_STOPPED)) {
       uip_flags |= UIP_NEWDATA;
       uip_add_rcv_nxt(uip_len);
@@ -1542,40 +1558,34 @@ void uip_process(uint8_t flag)
   goto drop;
   
 tcp_send_ack:
-  BUF->flags = TCP_ACK;
+    BUF->flags = TCP_ACK;
 tcp_send_nodata:
-  uip_len = UIP_IPTCPH_LEN;
+    uip_len = UIP_IPTCPH_LEN;
 tcp_send_noopts:
-  BUF->tcpoffset = (UIP_TCPH_LEN / 4) << 4;
+    BUF->tcpoffset = (UIP_TCPH_LEN / 4) << 4;
 tcp_send:
-  BUF->ackno[0] = uip_connr->rcv_nxt[0];
-  BUF->ackno[1] = uip_connr->rcv_nxt[1];
-  BUF->ackno[2] = uip_connr->rcv_nxt[2];
-  BUF->ackno[3] = uip_connr->rcv_nxt[3];
-  
-  BUF->seqno[0] = uip_connr->snd_nxt[0];
-  BUF->seqno[1] = uip_connr->snd_nxt[1];
-  BUF->seqno[2] = uip_connr->snd_nxt[2];
-  BUF->seqno[3] = uip_connr->snd_nxt[3];
+    BUF->ackno[0] = uip_connr->rcv_nxt[0];
+    BUF->ackno[1] = uip_connr->rcv_nxt[1];
+    BUF->ackno[2] = uip_connr->rcv_nxt[2];
+    BUF->ackno[3] = uip_connr->rcv_nxt[3];
+    BUF->seqno[0] = uip_connr->snd_nxt[0];
+    BUF->seqno[1] = uip_connr->snd_nxt[1];
+    BUF->seqno[2] = uip_connr->snd_nxt[2];
+    BUF->seqno[3] = uip_connr->snd_nxt[3];
+    BUF->proto = UIP_PROTO_TCP;
+    BUF->srcport  = uip_connr->lport;
+    BUF->destport = uip_connr->rport;
+    uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
+    uip_ipaddr_copy(BUF->destipaddr, uip_connr->ripaddr);
 
-  BUF->proto = UIP_PROTO_TCP;
-  
-  BUF->srcport  = uip_connr->lport;
-  BUF->destport = uip_connr->rport;
+    if(uip_connr->tcpstateflags & UIP_STOPPED) {
+        BUF->wnd[0] = BUF->wnd[1] = 0;
+    } else {
+        BUF->wnd[0] = ((UIP_RECEIVE_WINDOW) >> 8);
+        BUF->wnd[1] = ((UIP_RECEIVE_WINDOW) & 0xff);
+    }
 
-  uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
-  uip_ipaddr_copy(BUF->destipaddr, uip_connr->ripaddr);
-
-  if(uip_connr->tcpstateflags & UIP_STOPPED) {
-    /* If the connection has issued uip_stop(), we advertise a zero
-       window so that the remote host will stop sending data. */
-    BUF->wnd[0] = BUF->wnd[1] = 0;
-  } else {
-    BUF->wnd[0] = ((UIP_RECEIVE_WINDOW) >> 8);
-    BUF->wnd[1] = ((UIP_RECEIVE_WINDOW) & 0xff);
-  }
-
- tcp_send_noconn:
+tcp_send_noconn:
   BUF->ttl = UIP_TTL;
 #if UIP_CONF_IPV6
   /* For IPv6, the IP length field does not include the IPv6 IP header

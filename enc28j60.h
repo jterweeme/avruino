@@ -242,7 +242,7 @@ static constexpr uint8_t
     cs_pin = pin10_bit,
 #else
     cs_port_base = ss_port_base,
-    cs_pin = pss,
+    cs_pin = ss_bit,
 #endif
     cs_ddr = cs_port_base + 1,
     cs_port = cs_port_base + 2;

@@ -63,8 +63,8 @@ void SPIClass::begin()
     *p_ss_port |= 1<<ss_bit;
     *p_ss_ddr |= 1<<ss_bit;
     *p_spcr |= 1<<mstr | 1<<spe;
-    *p_ddr_sck |= 1<<psck;
-    *p_ddr_mosi |= 1<<pmosi;
+    *p_sck_ddr |= 1<<sck_bit;
+    *p_mosi_ddr |= 1<<mosi_bit;
 }
 
 void SPIClass::setBitOrder(uint8_t bitOrder)
@@ -212,7 +212,7 @@ uint16_t W5100Class::write(uint16_t _addr, const uint8_t *_buf, uint16_t _len)
 {
     for (uint16_t i=0; i<_len; i++)
     {
-        *p_ss_port &= ~(1<<pss);
+        *p_ss_port &= ~(1<<ss_bit);
         SPI.transfer(0xF0);
         SPI.transfer(_addr >> 8);
         SPI.transfer(_addr & 0xFF);

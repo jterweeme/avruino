@@ -226,7 +226,13 @@ void uip_arp_arpin(void)
  * buffer, and the length of the packet is in the global variable
  * uip_len.
  */
-/*-----------------------------------------------------------------------------------*/
+
+#define uip_ipaddr_maskcmp(addr1, addr2, mask) \
+                          (((((uint16_t *)addr1)[0] & ((uint16_t *)mask)[0]) == \
+                            (((uint16_t *)addr2)[0] & ((uint16_t *)mask)[0])) && \
+                           ((((uint16_t *)addr1)[1] & ((uint16_t *)mask)[1]) == \
+                            (((uint16_t *)addr2)[1] & ((uint16_t *)mask)[1])))
+
 void uip_arp_out(void)
 {
   struct arp_entry *tabptr;

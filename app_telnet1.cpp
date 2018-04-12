@@ -21,9 +21,11 @@ static inline char convertCase(char c)
 int main()
 {
     UIPServer server = UIPServer(&eth, 23);
+    *p_tccr0b = cs02; // | CS00;
+    *p_timsk0 |= 1<<toie0;
+    zei();
     uint8_t mac[6] = {0,1,2,3,4,5};
-    IPAddrezz myIP(192,168,178,40);
-    eth.begin(mac, myIP);
+    eth.begin(mac);
     server.begin();
 #if defined (__AVR_ATmega2560__)
     UartBase uart1(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b);
@@ -63,5 +65,12 @@ int main()
     }
     return 0;
 }
+
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
+{
+    eth.tick2();
+}
+
 
 

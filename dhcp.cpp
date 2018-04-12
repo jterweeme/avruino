@@ -24,7 +24,7 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTi
     return request_DHCP_lease();
 }
 
-uint32_t random(uint32_t x, uint32_t y)
+static uint32_t random(uint32_t x, uint32_t y)
 {
     return random();
 }
@@ -275,15 +275,14 @@ uint8_t DhcpClass::parseDHCPResponse(uint32_t responseTimeout, uint32_t& transac
         {
             switch (_dhcpUdpSocket.read()) 
             {
-                case endOption :
-                    break;
-                case padOption :
+                case endOption:
+                case padOption:
                     break;
                 case dhcpMessageType :
                     opt_len = _dhcpUdpSocket.read();
                     type = _dhcpUdpSocket.read();
                     break;
-                case subnetMask :
+                case subnetMask:
                     opt_len = _dhcpUdpSocket.read();
                     _dhcpUdpSocket.read(_dhcpSubnetMask, 4);
                     break;
@@ -371,7 +370,8 @@ int DhcpClass::checkLease()
     //this uses a signed / unsigned trick to deal with millis overflow
     unsigned long now = millis();
     signed long snow = (long)now;
-    int rc=DHCP_CHECK_NONE;
+    int rc = DHCP_CHECK_NONE;
+
     if (_lastCheck != 0){
         signed long factor;
         //calc how many ms past the timeout we are

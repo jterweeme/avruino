@@ -25,23 +25,23 @@ private:
     struct uip_udp_conn *_uip_udp_conn;
     uip_udp_userdata_t appdata;
 public:
-    UIPUDP();
+    UIPUDP() : _uip_udp_conn(NULL) { memset(&appdata, 0, sizeof(appdata)); }
     uint8_t begin(uint16_t);
     void stop();
-    int beginPacket(IPAddrezz ip, uint16_t port);
+    int beginPacket(uint32_t ip, uint16_t port);
     int beginPacket(const char *host, uint16_t port);
     int endPacket();
-    size_t write(uint8_t);
     size_t write(const uint8_t *buffer, size_t size);
+    size_t write(uint8_t c) { return write(&c, 1); }
     int parsePacket();
     int available();
     int read();
-    int read(unsigned char* buffer, size_t len);
-    int read(char* buffer, size_t len) { return read((unsigned char*) buffer, len); }
+    int read(uint8_t *buffer, size_t len);
+    int read(char* buffer, size_t len) { return read((uint8_t *) buffer, len); }
     int peek();
     void flush();	// Finish reading the current packet
     IPAddrezz remoteIP();
-    uint16_t remotePort();
+    uint16_t remotePort() { return _uip_udp_conn ? ntohs(_uip_udp_conn->rport) : 0; }
 private:
     friend void uipudp_appcall(void);
     friend class UIPEthernetClass;

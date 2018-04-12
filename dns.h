@@ -5,7 +5,7 @@
 class DNSClient
 {
 public:
-    void begin(const IPAddrezz& aDNSServer);
+    void begin(uint32_t ip);
     int inet_aton(const char *aIPAddrString, IPAddrezz& aResult);
     int getHostByName(const char* aHostname, IPAddrezz& aResult);
 protected:

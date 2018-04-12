@@ -24,11 +24,11 @@ void Enc28J60Network::init(uint8_t* macaddr)
     MemoryPool::init();
     *p_cs_ddr |= 1<<cs_pin;
     *p_cs_port |= 1<<cs_pin;
-    *p_ddr_mosi |= 1<<pmosi;
-    *p_ddr_sck |= 1<<psck;
-    *p_ddr_miso &= ~(1<<pmiso);
-    *p_port_mosi &= ~(1<<pmosi);
-    *p_port_sck &= ~(1<<psck);
+    *p_mosi_ddr |= 1<<mosi_bit;
+    *p_sck_ddr |= 1<<sck_bit;
+    *p_miso_ddr &= ~(1<<miso_bit);
+    *p_mosi_port &= ~(1<<mosi_bit);
+    *p_sck_port &= ~(1<<sck_bit);
     *p_spcr = 1<<spe | 1<<mstr;
     *p_spsr |= 1<<spi2x;
     writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
@@ -379,27 +379,21 @@ void Enc28J60Network::setBank(uint8_t address)
 
 uint8_t Enc28J60Network::readReg(uint8_t address)
 {
-  // set the bank
-  setBank(address);
-  // do the read
-  return readOp(ENC28J60_READ_CTRL_REG, address);
+    setBank(address);
+    return readOp(ENC28J60_READ_CTRL_REG, address);
 }
 
 void Enc28J60Network::writeReg(uint8_t address, uint8_t data)
 {
-  // set the bank
-  setBank(address);
-  // do the write
-  writeOp(ENC28J60_WRITE_CTRL_REG, address, data);
+    setBank(address);
+    writeOp(ENC28J60_WRITE_CTRL_REG, address, data);
 }
 
 void Enc28J60Network::writeRegPair(uint8_t address, uint16_t data)
 {
-  // set the bank
-  setBank(address);
-  // do the write
-  writeOp(ENC28J60_WRITE_CTRL_REG, address, (data&0xFF));
-  writeOp(ENC28J60_WRITE_CTRL_REG, address+1, (data) >> 8);
+    setBank(address);
+    writeOp(ENC28J60_WRITE_CTRL_REG, address, (data&0xFF));
+    writeOp(ENC28J60_WRITE_CTRL_REG, address+1, (data) >> 8);
 }
 
 void Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
