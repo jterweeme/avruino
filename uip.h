@@ -40,9 +40,9 @@ void uipudp_appcall(void);
 
 #ifdef UIP_CONF_PINGADDRCONF
 #define UIP_PINGADDRCONF UIP_CONF_PINGADDRCONF
-#else /* UIP_CONF_PINGADDRCONF */
+#else
 #define UIP_PINGADDRCONF 0
-#endif /* UIP_CONF_PINGADDRCONF */
+#endif
 
 #define UIP_UDP UIP_CONF_UDP
 
@@ -54,17 +54,17 @@ void uipudp_appcall(void);
 
 #ifdef UIP_CONF_UDP_CONNS
 #define UIP_UDP_CONNS UIP_CONF_UDP_CONNS
-#else /* UIP_CONF_UDP_CONNS */
+#else
 #define UIP_UDP_CONNS    10
-#endif /* UIP_CONF_UDP_CONNS */
+#endif
 
 #define UIP_ACTIVE_OPEN 1
 
 #ifndef UIP_CONF_MAX_CONNECTIONS
 #define UIP_CONNS       10
-#else /* UIP_CONF_MAX_CONNECTIONS */
+#else
 #define UIP_CONNS UIP_CONF_MAX_CONNECTIONS
-#endif /* UIP_CONF_MAX_CONNECTIONS */
+#endif
 
 #ifndef UIP_CONF_MAX_LISTENPORTS
 #define UIP_LISTENPORTS 20
@@ -114,16 +114,16 @@ void uipudp_appcall(void);
 
 #ifdef UIP_CONF_LLH_LEN
 #define UIP_LLH_LEN UIP_CONF_LLH_LEN
-#else /* UIP_CONF_LLH_LEN */
+#else
 #define UIP_LLH_LEN     14
-#endif /* UIP_CONF_LLH_LEN */
+#endif
 
 
 #ifdef UIP_CONF_BYTE_ORDER
 #define UIP_BYTE_ORDER     UIP_CONF_BYTE_ORDER
-#else /* UIP_CONF_BYTE_ORDER */
+#else
 #define UIP_BYTE_ORDER     UIP_LITTLE_ENDIAN
-#endif /* UIP_CONF_BYTE_ORDER */
+#endif
 
 #define UIP_URGDATA      0
 #define UIP_FIXEDADDR    0
@@ -131,23 +131,8 @@ void uipudp_appcall(void);
 typedef uint16_t uip_ip4addr_t[2];
 typedef uint16_t uip_ip6addr_t[8];
 typedef uip_ip4addr_t uip_ipaddr_t;
-
 void uip_init(void);
 void uip_setipid(uint16_t id);
-
-#define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED)
-
-#define uip_poll_conn(conn) do { uip_conn = conn; \
-                                 uip_process(UIP_POLL_REQUEST); } while (0)
-
-
-#define uip_udp_periodic(conn) do { uip_udp_conn = &uip_udp_conns[conn]; \
-                                uip_process(UIP_UDP_TIMER); } while (0)
-
-#define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
-                                         uip_process(UIP_UDP_TIMER); } while (0)
-
-
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
 void uip_listen(uint16_t port);
 void uip_unlisten(uint16_t port);
@@ -177,21 +162,13 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
                   } while(0)
 
 
-#if !UIP_CONF_IPV6
 #define uip_ipaddr_copy(dest, src) do { \
                      ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
                      ((uint16_t *)dest)[1] = ((uint16_t *)src)[1]; \
                   } while(0)
-#else /* !UIP_CONF_IPV6 */
-#define uip_ipaddr_copy(dest, src) memcpy(dest, src, sizeof(uip_ip6addr_t))
-#endif /* !UIP_CONF_IPV6 */
 
-#if !UIP_CONF_IPV6
 #define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
 				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
-#else /* !UIP_CONF_IPV6 */
-#define uip_ipaddr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
-#endif /* !UIP_CONF_IPV6 */
 
 #ifndef HTONS
 #   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
@@ -206,7 +183,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 
 #ifndef htons
 uint16_t htons(uint16_t val);
-#endif /* htons */
+#endif
 #ifndef ntohs
 #define ntohs htons
 #endif
@@ -223,7 +200,7 @@ extern uint16_t uip_len;
 
 #if UIP_URGDATA > 0
 extern uint16_t uip_urglen, uip_surglen;
-#endif /* UIP_URGDATA > 0 */
+#endif
 
 struct uip_conn {
     uip_ipaddr_t ripaddr;   /**< The IP address of the remote host. */
@@ -260,7 +237,7 @@ struct uip_udp_conn {
 
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
-#endif /* UIP_UDP */
+#endif
 
 
 struct uip_stats {
@@ -315,16 +292,6 @@ struct uip_stats {
 
 extern struct uip_stats uip_stat;
 extern uint8_t uip_flags;
-
-#define UIP_ACKDATA   1
-#define UIP_NEWDATA   2
-#define UIP_REXMIT    4
-#define UIP_POLL      8
-#define UIP_CLOSE     16
-#define UIP_ABORT     32
-#define UIP_CONNECTED 64
-#define UIP_TIMEDOUT  128
-
 void uip_process(uint8_t flag);
 
 #define UIP_DATA          1
@@ -334,7 +301,7 @@ void uip_process(uint8_t flag);
 
 #if UIP_UDP
 #define UIP_UDP_TIMER     5
-#endif /* UIP_UDP */
+#endif
 
 static constexpr uint8_t
     UIP_CLOSED = 0,
@@ -349,7 +316,15 @@ static constexpr uint8_t
     UIP_TS_MASK = 15,
     UIP_STOPPED = 16,
     UIP_PROTO_TCP = 6,
-    UIP_PROTO_UDP = 17;
+    UIP_PROTO_UDP = 17,
+    UIP_ACKDATA = 1,
+    UIP_NEWDATA = 2,
+    UIP_REXMIT  = 4,
+    UIP_POLL    = 8,
+    UIP_CLOSE   = 16,
+    UIP_ABORT   = 32,
+    UIP_CONNECTED = 64,
+    UIP_TIMEDOUT = 128;
 
 struct uip_tcpip_hdr {
 
@@ -377,9 +352,9 @@ struct uip_udpip_hdr
     uint16_t srcport, destport, udplen, udpchksum;
 };
 
-#define UIP_IPH_LEN    20    /* Size of IP header */
-#define UIP_UDPH_LEN    8    /* Size of UDP header */
-#define UIP_TCPH_LEN   20    /* Size of TCP header */
+#define UIP_IPH_LEN    20
+#define UIP_UDPH_LEN    8
+#define UIP_TCPH_LEN   20
 #define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)
 #define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)
 #define UIP_TCPIP_HLEN UIP_IPTCPH_LEN

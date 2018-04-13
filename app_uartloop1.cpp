@@ -8,9 +8,8 @@ Loop on standard UART using polling method
 int main()
 {
     DefaultUart uart;
-#if defined (__AVR_AT90USB1286__)
+    //*p_ucsr1a |= 1<<u2x1;
     *p_ubrr1 = 103;
-#endif
     uart.enableRead();
     uart.puts("Testbericht\r\n");
 

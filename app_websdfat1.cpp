@@ -169,8 +169,8 @@ int main()
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     //uint32_t myIP = (uint32_t)192 | (uint32_t)168<<8 | (uint32_t)200<<16 | (uint32_t)101<<24;
     DefaultUart s;
-    *p_ucsr0a |= 1<<u2x0;
-    *p_ubrr0 = 16;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
     UartStream cout(&s);
     cout << "Startup\r\n";
     cout.flush();

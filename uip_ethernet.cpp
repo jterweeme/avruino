@@ -72,8 +72,8 @@ void UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns)
 void
 UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway)
 {
-  IPAddrezz subnet(255, 255, 255, 0);
-  begin(mac, ip, dns, gateway, subnet);
+    IPAddrezz subnet(255, 255, 255, 0);
+    begin(mac, ip, dns, gateway, subnet);
 }
 
 void
@@ -169,12 +169,11 @@ void UIPEthernetClass::tick()
                 uip_arp_arpin();
 
                 if (uip_len > 0)
-                {
                     network_send();
-                }
             }
         }
-      if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
+
+        if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
         {
           _nw.freePacket();
           in_packet = NOBLOCK;
@@ -184,8 +183,9 @@ void UIPEthernetClass::tick()
   unsigned long now = millis();
 
 #if UIP_CLIENT_TIMER >= 0
-  bool periodic = (long)( now - periodic_timer ) >= 0;
-  for (int i = 0; i < UIP_CONNS; i++)
+    bool periodic = (long)(now - periodic_timer) >= 0;
+
+    for (int i = 0; i < UIP_CONNS; i++)
     {
 #else
   if ((long)( now - periodic_timer ) >= 0)
@@ -218,16 +218,18 @@ void UIPEthernetClass::tick()
         }
     }
 #if UIP_CLIENT_TIMER >= 0
-  if (periodic)
+    if (periodic)
     {
-      periodic_timer = now + UIP_PERIODIC_TIMER;
+        periodic_timer = now + UIP_PERIODIC_TIMER;
 #endif
-      for (int i = 0; i < UIP_UDP_CONNS; i++)
+        for (int i = 0; i < UIP_UDP_CONNS; i++)
         {
-          uip_udp_periodic(i);
-          if (uip_len > 0)
+            uip_udp_conn = &uip_udp_conns[i];
+            uip_process(UIP_UDP_TIMER);
+
+            if (uip_len > 0)
             {
-              UIPUDP::_send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
+                UIPUDP::_send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
             }
         }
     }
@@ -363,18 +365,18 @@ uip_tcpchksum(void)
   return (sum == 0) ? 0xffff : htons(sum);
 }
 
-uint16_t uip_ipchksum(void)
+uint16_t uip_ipchksum()
 {
     return UIPEthernet.ipchksum();
 }
 
-uint16_t uip_tcpchksum(void)
+uint16_t uip_tcpchksum()
 {
     uint16_t sum = UIPEthernet.upper_layer_chksum(UIP_PROTO_TCP);
     return sum;
 }
 
-uint16_t uip_udpchksum(void)
+uint16_t uip_udpchksum()
 {
     uint16_t sum = UIPEthernet.upper_layer_chksum(UIP_PROTO_UDP);
     return sum;

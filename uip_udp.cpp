@@ -9,6 +9,9 @@ extern UIPEthernetClass UIPEthernet;    // !!!!!!!!!!!!!
 uint8_t UIP_ARPHDRSIZE = 42;
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
+#define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
+                                         uip_process(UIP_UDP_TIMER); } while (0)
+
 uint8_t UIPUDP::begin(uint16_t port)
 {
     if (!_uip_udp_conn)

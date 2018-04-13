@@ -148,6 +148,14 @@ static constexpr uint8_t
     ubrr1h = 0xcd,
     udr1 = 0xce,
 
+    ucsr9a = 0xc0,
+        rxc9 = 7, txc9 = 6, udre9 = 5, fe9 = 4, dor9 = 3, upe9 = 2, mpcm9 = 0, u2x9 = 1,
+    ucsr9b = 0xc1,
+    ucsr9c = 0xc2,
+    ubrr9 = 0xc4,
+    udr9 = 0xc6,
+    
+
     ocr1a_port_base = portb_base,
     ocr1a_ddr = ocr1a_port_base + 1,
     ocr1a_port = ocr1a_port_base + 2,
@@ -285,6 +293,9 @@ static volatile uint8_t
     * const p_ubrr1l = (volatile uint8_t * const)ubrr1l,
     * const p_ubrr1h = (volatile uint8_t * const)ubrr1h,
     * const p_udr1 = (volatile uint8_t * const)udr1,
+
+    * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
+    * const p_ubrr9 = (volatile uint8_t * const)ubrr9,
 
     * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,
     * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,
