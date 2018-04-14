@@ -5,7 +5,7 @@
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
-#define uip_input()        uip_process(UIP_DATA)
+
 
 static uint32_t g_millis = 0;
 
@@ -23,11 +23,6 @@ IPAddrezz UIPEthernetClass::_dnsServerAddress;
 DhcpClass* UIPEthernetClass::_dhcp(NULL);
 unsigned long UIPEthernetClass::periodic_timer;
 
-UIPEthernetClass::UIPEthernetClass()
-{
-    instance = this;
-}
-
 static DhcpClass s_dhcp;
 
 int UIPEthernetClass::begin(const uint8_t* mac)
@@ -43,12 +38,6 @@ int UIPEthernetClass::begin(const uint8_t* mac)
     }
     return ret;
 }
-
-#define uip_sethostaddr(addr) uip_ipaddr_copy(uip_hostaddr, (addr))
-#define uip_setdraddr(addr) uip_ipaddr_copy(uip_draddr, (addr))
-#define uip_setnetmask(addr) uip_ipaddr_copy(uip_netmask, (addr))
-#define uip_getdraddr(addr) uip_ipaddr_copy((addr), uip_draddr)
-#define uip_getnetmask(addr) uip_ipaddr_copy((addr), uip_netmask)
 
 void UIPEthernetClass::tick2()
 {
@@ -121,7 +110,7 @@ IPAddrezz UIPEthernetClass::subnetMask()
 {
     IPAddrezz ret;
     uip_ipaddr_t a;
-    uip_getnetmask(a);
+    uip_ipaddr_copy(a, uip_netmask);
     return ip_addr_uip(a);
 }
 
@@ -129,7 +118,7 @@ IPAddrezz UIPEthernetClass::gatewayIP()
 {
     IPAddrezz ret;
     uip_ipaddr_t a;
-    uip_getdraddr(a);
+    uip_ipaddr_copy(a, uip_draddr);
     return ip_addr_uip(a);
 }
 
@@ -156,7 +145,7 @@ void UIPEthernetClass::tick()
             {
                 uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
                 uip_arp_ipin();
-                uip_input();
+                uip_process(UIP_DATA);
 
                 if (uip_len > 0)
                 {
@@ -274,11 +263,11 @@ void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
 {
     uip_ipaddr_t ipaddr;
     uip_ip_addr(ipaddr, ip);
-    uip_sethostaddr(ipaddr);
+    uip_ipaddr_copy(uip_hostaddr, ipaddr);
     uip_ip_addr(ipaddr, gateway);
-    uip_setdraddr(ipaddr);
+    uip_ipaddr_copy(uip_draddr, ipaddr);
     uip_ip_addr(ipaddr, subnet);
-    uip_setnetmask(ipaddr);
+    uip_ipaddr_copy(uip_netmask, ipaddr);
     _dnsServerAddress = dns;
 }
 
@@ -286,21 +275,21 @@ UIPEthernetClass UIPEthernet;
 
 uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
-  uint16_t t;
-  const uint8_t *dataptr;
-  const uint8_t *last_byte;
+    uint16_t t;
+    const uint8_t *dataptr;
+    const uint8_t *last_byte;
 
-  dataptr = data;
-  last_byte = data + len - 1;
+    dataptr = data;
+    last_byte = data + len - 1;
 
-  while(dataptr < last_byte) {  /* At least two more bytes */
-    t = (dataptr[0] << 8) + dataptr[1];
-    sum += t;
-    if(sum < t) {
-      sum++;            /* carry */
+    while(dataptr < last_byte) {  /* At least two more bytes */
+        t = (dataptr[0] << 8) + dataptr[1];
+        sum += t;
+        if(sum < t) {
+            sum++;            /* carry */
+        }
+        dataptr += 2;
     }
-    dataptr += 2;
-  }
 
   if(dataptr == last_byte) {
     t = (dataptr[0] << 8) + 0;
@@ -341,7 +330,6 @@ uip_tcpchksum(void)
 #else
   sum = upper_layer_len + UIP_PROTO_TCP;
 #endif
-  /* Sum IP source and destination addresses. */
   sum = UIPEthernetClass::chksum(sum, (uint8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
 
   uint8_t upper_layer_memlen;

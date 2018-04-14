@@ -5,9 +5,7 @@
 #include "timer.h"
 #include "uart.h"
 
-Uart::Uart()
-  :
-    UartBase((uint16_t *)ubrr0, (uint8_t *)udr0, (uint8_t *)ucsr0a, (uint8_t *)ucsr0b)
+Uart::Uart() : UartBase(p_ubrr9, p_udr9, p_ucsr9a, p_ucsr9b)
 {
     instance = this;
 }

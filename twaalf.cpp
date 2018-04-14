@@ -5,9 +5,7 @@
 #include "timer.h"
 #include "uart.h"
 
-Uart::Uart()
-  :
-    UartBase((uint16_t *)ubrr1, (uint8_t *)udr1, (uint8_t *)ucsr1a, (uint8_t *)ucsr1b)
+Uart::Uart() : UartBase(p_ubrr9, p_udr9, p_ucsr9a, p_ucsr9b)
 {
     instance = this;
 }
@@ -44,7 +42,6 @@ Timer1 *Timer1::instance;
 Timer0 *Timer0::instance;
 Uart *Uart::instance;
 
-static volatile unsigned long timer0_millis = 0;
 
 
 

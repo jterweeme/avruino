@@ -111,18 +111,16 @@ static uint8_t zlip_recv(uint8_t *a_buff, uint8_t a_buflen)
 
 static void serial_send(uint8_t c)
 {
-    while ((*p_ucsr0a & 1<<udre0) == 0)
-        ;
-
-    *p_udr0 = c;
+    while ((*p_ucsr9a & 1<<udre9) == 0);
+    *p_udr9 = c;
 }
 
 static void serial_flush()
 {
     unsigned char dummy __attribute__((unused)) = 0x00;
 
-    while (*p_ucsr0a & 1<<rxc0)
-        dummy = *p_udr0;
+    while (*p_ucsr9a & 1<<rxc9)
+        dummy = *p_udr9;
 }
 
 static inline void serial_collect_samples(volatile struct packet *a_data)
@@ -147,14 +145,14 @@ static inline void serial_collect_samples(volatile struct packet *a_data)
 
 int main(void)
 {
-    *p_ucsr0a = 0x00;
-    *p_ucsr0a |= 1<<u2x0;
-    *p_ubrr0l = 8;
-    *p_ucsr0c |= 1<<ucsz01 | 1<<ucsz00;
-    *p_ucsr0b |= 1<<rxen0 | 1<<txen0;
+    *p_ucsr9a = 0x00;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9l = 8;
+    *p_ucsr9c |= 1<<ucsz91 | 1<<ucsz90;
+    *p_ucsr9b |= 1<<rxen9 | 1<<txen9;
     serial_flush();
-    *p_ucsr0b &= ~(1<<txcie0);
-    *p_ucsr0b |= 1<<rxcie0;
+    *p_ucsr9b &= ~(1<<txcie9);
+    *p_ucsr9b |= 1<<rxcie9;
     zei();
 	serial_flush();
 	max_samples = PWM_SAMPLES_BUFFER * PWM_BUFFERS;
@@ -162,7 +160,7 @@ int main(void)
     *p_tccr1b = 1<<wgm13;
     *p_ocr1a = 0;
     *p_tccr1a |= 1<<com1a1;
-    *p_ddr_ocr1a |= 1<<ocr1a_bit;
+    *p_ocr1a_ddr |= 1<<ocr1a_bit;
     *p_tccr1b |= 1<<cs10;
     *p_icr1 = (1<<8) - 1;
     *p_tccr0a = 1<<wgm01;
@@ -195,13 +193,13 @@ void TIMER0_COMPA
 extern "C" void USART_RX __attribute__ ((signal, used, externally_visible));
 void USART_RX
 {
-    if (*p_ucsr0a & 1<<fe0)    // framing error
+    if (*p_ucsr9a & 1<<fe9)    // framing error
     {
-        volatile uint8_t data __attribute__ ((unused)) = *p_udr0;
+        volatile uint8_t data __attribute__ ((unused)) = *p_udr9;
         return;
     }
 
-    volatile uint8_t data = *p_udr0;
+    volatile uint8_t data = *p_udr9;
     g_rx_buf.push(data);
 }
 

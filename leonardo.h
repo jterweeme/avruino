@@ -163,6 +163,14 @@ static constexpr uint8_t
     uebchx = 0xf3,
     ueint = 0xf4,
 
+    ucsr9a = ucsr1a,
+        mpcm9 = 0, u2x9 = 1, upe9 = 2, dor9 = 3, fe9 = 4, udre9 = 5, txc9 = 6, rxc9 = 7,
+    ucsr9b = ucsr1b,
+        txb89 = 0, rxb89 = 1, ucsz92 = 2, txen9 = 3,
+        rxen9 = 4, udrie9 = 5, txcie9 = 6, rxcie9 = 7,
+    ubrr9 = ubrr1,
+    udr9 = udr1,
+
     ocr1a_port_base = portb_base,
     ocr1a_ddr = ocr1a_port_base + 1,
     ocr1a_port = ocr1a_port_base + 2,
@@ -180,19 +188,19 @@ static constexpr uint8_t
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
-    pss = pb0,
+    ss_bit = pb0,
     sck_port_base = portb_base,
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
-    psck = pb1,
+    sck_bit = pb1,
     mosi_port_base = portb_base,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
-    pmosi = pb2,
+    mosi_bit = pb2,
     miso_port_base = portb_base,
     miso_ddr = miso_port_base + 1,
     miso_port = miso_port_base + 2,
-    pmiso = pb3,
+    miso_bit = pb3,
 
     pin0_base = portd_base,
     pin0_bit = pd2,
@@ -313,17 +321,21 @@ static volatile uint8_t
     * const p_uebchx = (volatile uint8_t * const)uebchx,
     * const p_ueint = (volatile uint8_t * const)ueint,
 
+    * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
+    * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
+    * const p_udr9 = (volatile uint8_t * const)udr9,
+
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
 
-    * const p_ddr_ss = (volatile uint8_t * const)ss_ddr,
-    * const p_port_ss = (volatile uint8_t * const)ss_port,
-    * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,
-    * const p_port_sck = (volatile uint8_t * const)sck_port,
-    * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,
-    * const p_port_mosi = (volatile uint8_t * const)mosi_port,
-    * const p_ddr_miso = (volatile uint8_t * const)miso_ddr,
-    * const p_port_miso = (volatile uint8_t * const)miso_port,
+    * const p_ss_ddr = (volatile uint8_t * const)ss_ddr,
+    * const p_ss_port = (volatile uint8_t * const)ss_port,
+    * const p_sck_ddr = (volatile uint8_t * const)sck_ddr,
+    * const p_sck_port = (volatile uint8_t * const)sck_port,
+    * const p_mosi_ddr = (volatile uint8_t * const)mosi_ddr,
+    * const p_mosi_port = (volatile uint8_t * const)mosi_port,
+    * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
+    * const p_miso_port = (volatile uint8_t * const)miso_port,
 
     * const p_pin0_base = (volatile uint8_t * const)pin0_base,
     * const p_pin1_base = (volatile uint8_t * const)pin1_base,
@@ -351,6 +363,7 @@ static volatile uint8_t
 
 static volatile uint16_t
     * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
+    * const p_ubrr9 = (volatile uint16_t * const)ubrr9,
     * const p_udfnum = (volatile uint16_t * const)udfnum;
 
 class Timer3 : public Timer<uint16_t>
@@ -381,12 +394,12 @@ struct Board
         portF { (uint8_t *)portf_base };
 
     Pin
-        pin0 { portD, BIT2 },
-        pin1 { portD, BIT3 },
-        pin2 { portD, BIT1 },
-        pin3 { portD, BIT0 },
-        pin4 { portD, BIT4 },
-        pin5 { portC, BIT6 },
+        pin0 { portD, pd2 },
+        pin1 { portD, pd3 },
+        pin2 { portD, pd1 },
+        pin3 { portD, pd0 },
+        pin4 { portD, pd4 },
+        pin5 { portC, pc6 },
         pin6 { portD, BIT7 },
         pin7 { portE, BIT6 },
         pin8 { portB, BIT4 },

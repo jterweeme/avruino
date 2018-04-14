@@ -11,8 +11,8 @@ extern ostream *g_dout;
 int16_t XReceiver::_read(uint32_t timeout = 0xffffffff)
 {
     for (uint32_t i = 0; i <= timeout; i++)
-        if (*p_ucsr0a & 1<<rxc0)
-            return *p_udr0;
+        if (*p_ucsr9a & 1<<rxc9)
+            return *p_udr9;
 
     return -1;  // timeout
 }

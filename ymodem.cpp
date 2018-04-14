@@ -163,8 +163,8 @@ int YSender::send(istream &is, const char *fn, uint32_t filesize, uint16_t time,
 int16_t YReceiver::_read(uint32_t timeout)
 {
     for (uint32_t i = 0; i <= timeout; i++)
-        if (*p_ucsr0a & 1<<rxc0)
-            return *p_udr0;
+        if (*p_ucsr9a & 1<<rxc9)
+            return *p_udr9;
 
     return -1;  // timeout
 }

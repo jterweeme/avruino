@@ -37,16 +37,24 @@ static constexpr uint8_t
     eifr = 0x3c,
     eimsk = 0x3d,
     gpior0 = 0x3e,
+    eecr = 0x3f, eere = 0, eepe = 1, eempe = 2, eerie = 3, eepm0 = 4, eepm1 = 5,
+    eedr = 0x40,
+    eear = 0x41, eearl = 0x41, eearh = 0x42,
+    gtccr = 0x43, psrsync = 0, psrasy = 1, tsm = 7,
     tccr0a = 0x44, wgm00 = 0, wgm01 = 1, com0b0 = 4, com0b1 = 5, com0a0 = 6, com0a1 = 7,
+    tccr0b = 0x45, cs00 = 0, cs01 = 1, cs02 = 2, wgm02 = 3, foc0b = 6, foc0a = 7,
     tcnt0 = 0x46,
-    pllcsr = 0x49,
+    ocr0a = 0x47,
+    ocr0b = 0x48,
+    pllcsr = 0x49, plock = 0, plee = 1, pllp0 = 2, pllp1 = 3, pllp2 = 4,
     gpior1 = 0x4a,
     gpior2 = 0x4b,
-    spcr = 0x2c, spr0 = 0, spr1 = 1, cpha = 2, cpol = 3, mstr = 4, dord = 5, spe = 6, spie = 7,
-    spsr = 0x2d, spi2x = 0, wcol = 6, spif = 7,
-    spdr = 0x2e,
-    timsk0 = 0x6e,
-    timsk1 = 0x6f,
+    spcr = 0x4c, spr0 = 0, spr1 = 1, cpha = 2, cpol = 3, mstr = 4, dord = 5, spe = 6, spie = 7,
+    spsr = 0x4d, spi2x = 0, wcol = 6, spif = 7,
+    spdr = 0x4e,
+    acsr = 0x50, acis0 = 0, acis1 = 1, acic = 2, acie = 3, aci = 4,
+    timsk0 = 0x6e, toie0 = 0, ocie0a = 1, ocie0b = 2,
+    timsk1 = 0x6f, toie1 = 0, ocie1a = 1, ocie1b = 2, ocie1c = 3, icie1 = 5,
     timsk2 = 0x70, toie2 = 0, ocie2a = 1, ocie2b = 2,
     timsk3 = 0x71, toie3 = 0, ocie3a = 1, ocie3b = 2, ocie3c = 3, icie3 = 5,
     adc = 0x78, adcw = 0x78, adcl = 0x78, adch = 0x79,
@@ -55,6 +63,16 @@ static constexpr uint8_t
     adcsrb = 0x7b, adts0 = 0, adts1 = 1, adts2 = 2, acme = 6, adhsm = 7,
     admux = 0x7c,
         mux0 = 0, mux1 = 1, mux2 = 2, mux3 = 3, mux4 = 4, adlar = 5, refs0 = 6, refs1 = 7,
+    tccr1a = 0x80,
+        wgm10 = 0, wgm11 = 1, com1c0 = 2, com1c1 = 3,
+        com1b0 = 4, com1b1 = 5, com1a0 = 6, com1a1 = 7,
+    tccr1b = 0x81, cs10 = 0, cs11 = 1, cs12 = 2, wgm12 = 3, wgm13 = 4, ices1 = 6, icnc1 = 7,
+    tccr1c = 0x82, foc1c = 5, foc1b = 6, foc1a = 7,
+    tcnt1 = 0x84, tcnt1l = 0x84, tcnt1h = 0x85,
+    icr1 = 0x86, icr1l = 0x86, icr1h = 0x87,
+    ocr1a = 0x88, ocr1al = 0x88, ocr1ah = 0x89,
+    ocr1b = 0x8a,
+    ocr1c = 0x8c, ocr1cl = 0x8c, ocr1ch = 0x8d,
     tccr3a = 0x90,
     tccr3b = 0x91,
     tccr3c = 0x92,
@@ -75,10 +93,14 @@ static constexpr uint8_t
     twbr = 0xb8,
     twar = 0xba,
     twdr = 0xbb,
-    ucsr1a = 0xc8, mpcm1 = 0, u2x1 = 1, upe1 = 2, dor1 = 3, fe1 = 4, udre1 = 5, txc1 = 6, rxc1 = 7,
+    ucsr1a = 0xc8,
+        mpcm1 = 0, u2x1 = 1, upe1 = 2, dor1 = 3, fe1 = 4, udre1 = 5, txc1 = 6, rxc1 = 7,
     ucsr1b = 0xc9,
-        txb81 = 0, rxb81 = 1, ucsz12 = 2, txen1 = 3, rxen1 = 4, udrie1 = 5, txcie1 = 6, rxcie1 = 7,
+        txb81 = 0, rxb81 = 1, ucsz12 = 2, txen1 = 3,
+        rxen1 = 4, udrie1 = 5, txcie1 = 6, rxcie1 = 7,
     ucsr1c = 0xca,
+        ucpol1 = 0, ucsz10 = 1, ucsz11 = 2, usbs1 = 3,
+        upm10 = 4, upm11 = 5, umsel10 = 6, umsel11 = 7,
     ubrr1 = 0xcc,
     ubrr1l = 0xcc,
     ubrr1h = 0xcd,
@@ -88,12 +110,29 @@ static constexpr uint8_t
     udien = 0xe2,
     udaddr = 0xe3,
 
-    ucsr9a = 0xc8,
+    ucsr9a = ucsr1a,
         mpcm9 = 0, u2x9 = 1, upe9 = 2, dor9 = 3, fe9 = 4, udre9 = 5, txc9 = 6, rxc9 = 7,
-    ucsr9b = 0xc9,
+    ucsr9b = ucsr1b,
         txb89 = 0, rxb89 = 1, ucsz92 = 2, txen9 = 3,
         rxen9 = 4, udrie9 = 5, txcie9 = 6, rxcie9 = 7,
-    ubrr9 = 0xcc,
+    ucsr9c = ucsr1c,
+        ucpol9 = ucpol1, ucsz90 = ucsz10, ucsz91 = ucsz11, usbs9 = usbs1,
+        upm90 = upm10, upm91 = upm11, umsel90 = umsel10, umsel91 = umsel11,
+    ubrr9 = ubrr1,
+    ubrr9l = ubrr1l,
+    ubrr9h = ubrr1h,
+    udr9 = udr1,
+
+    ocr0b_bit = pd0,
+    ocr1a_port_base = portb_base,
+    ocr1a_ddr = ocr1a_port_base + 1,
+    ocr1a_port = ocr1a_port_base + 2,
+    ocr1a_bit = pb5,
+    ocr2a_port_base = portb_base,
+    ocr2a_ddr = ocr2a_port_base + 1,
+    ocr2a_port = ocr2a_port_base + 2,
+    ocr2a_bit = pb4,
+    ocr2b_bit = pd1,
 
     ss_port_base = portb_base,
     ss_ddr = ss_port_base + 1,
@@ -110,7 +149,7 @@ static constexpr uint8_t
     miso_port_base = portb_base,
     miso_ddr = miso_port_base + 1,
     miso_port = miso_port_base + 2,
-    miso_bit = pb4,
+    miso_bit = pb3,
 
     pin1_bit = pd2,
     pin2_bit = pd1,
@@ -150,7 +189,11 @@ static volatile uint8_t
     * const p_tifr1 = (volatile uint8_t * const)tifr1,
     * const p_tifr2 = (volatile uint8_t * const)tifr2,
     * const p_tifr3 = (volatile uint8_t * const)tifr3,
+    * const p_tccr0a = (volatile uint8_t * const)tccr0a,
+    * const p_tccr0b = (volatile uint8_t * const)tccr0b,
     * const p_tcnt0 = (volatile uint8_t * const)tcnt0,
+    * const p_ocr0a = (volatile uint8_t * const)ocr0a,
+    * const p_ocr0b = (volatile uint8_t * const)ocr0b,
     * const p_gpior1 = (volatile uint8_t * const)gpior1,
     * const p_gpior2 = (volatile uint8_t * const)gpior2,
     * const p_spcr = (volatile uint8_t * const)spcr,
@@ -165,6 +208,9 @@ static volatile uint8_t
     * const p_adcsra = (volatile uint8_t * const)adcsra,
     * const p_adcsrb = (volatile uint8_t * const)adcsrb,
     * const p_admux = (volatile uint8_t * const)admux,
+    * const p_tccr1a = (volatile uint8_t * const)tccr1a,
+    * const p_tccr1b = (volatile uint8_t * const)tccr1b,
+    * const p_tccr1c = (volatile uint8_t * const)tccr1c,
     * const p_twbr = (volatile uint8_t * const)twbr,
     * const p_twar = (volatile uint8_t * const)twar,
     * const p_twdr = (volatile uint8_t * const)twdr,
@@ -174,11 +220,19 @@ static volatile uint8_t
     * const p_udr1 = (volatile uint8_t * const)udr1,
 
     * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
-    * const p_ubrr9 = (volatile uint8_t * const)ubrr9,
+    * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
+    * const p_ucsr9c = (volatile uint8_t * const)ucsr9c,
+    * const p_ubrr9l = (volatile uint8_t * const)ubrr9l,
+    * const p_ubrr9h = (volatile uint8_t * const)ubrr9h,
+    * const p_udr9 = (volatile uint8_t * const)udr9,
+
+    //* const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,  // moet weg
+    * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
 
     * const p_ss_ddr = (volatile uint8_t * const)ss_ddr,
     * const p_ss_port = (volatile uint8_t * const)ss_port,
     * const p_sck_ddr = (volatile uint8_t * const)sck_ddr,
+    * const p_sck_port = (volatile uint8_t * const)sck_port,
     * const p_mosi_ddr = (volatile uint8_t * const)mosi_ddr,
     * const p_mosi_port = (volatile uint8_t * const)mosi_port,
     * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
@@ -189,7 +243,11 @@ static volatile uint8_t
     * const p_pinA0_port = (volatile uint8_t * const)pinA0_port;
 
 static volatile uint16_t
-    * const p_ubrr1 = (volatile uint16_t * const)ubrr1;
+    * const p_tcnt1 = (volatile uint16_t * const)tcnt1,
+    * const p_icr1 = (volatile uint16_t * const)icr1,
+    * const p_ocr1a = (volatile uint16_t * const)ocr1a,
+    * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
+    * const p_ubrr9 = (volatile uint16_t * const)ubrr9;
 
 struct Board
 {
@@ -219,6 +277,13 @@ struct Board
         pinA4 {portC, pc3},
         pinA5 {portC, pc4};
 };
+
+#define TIMER0_COMPA __vector_21()
+#define TIMER0_COMPB __vector_22()
+#define TIMER0_OVF __vector_23()
+#define USART_RX __vector_25()
+
+
 #endif
 
 

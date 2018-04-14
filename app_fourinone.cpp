@@ -480,14 +480,14 @@ void VGAX::begin(bool enableTone)
     *p_ocr0a=0;
     *p_ocr0b=0;
     *p_tcnt0=0;
-    *p_ddr_ocr1a |= 1<<ocr1a_bit;
+    *p_ocr1a_ddr |= 1<<ocr1a_bit;
     *p_tccr1a = 1<<wgm11 | 1<<com1a1;
     *p_tccr1b = 1<<wgm12 | 1<<wgm13 | 1<<cs12 | 1<<cs10; //1024 prescaler
     *p_icr1=259; //16666 / 64 uS=260 (less one)
     *p_ocr1a=0; //64 / 64 uS=1 (less one)
     *p_tifr1 = 1<<tov1; //clear overflow flag
     *p_timsk1 = 1<<toie1; //interrupt on overflow on TIMER1
-    *p_ddr_ocr2b |= 1<<ocr2b_bit;
+    *p_ocr2b_ddr |= 1<<ocr2b_bit;
     *p_tccr2a = 1<<wgm20 | 1<<wgm21 | 1<<com2b1; //pin3=COM2B1
     *p_tccr2b = 1<<wgm22 | 1<<cs21; //8 prescaler
     *p_ocr2a = 63; //32 / 0.5 uS=64 (less one)

@@ -148,13 +148,19 @@ static constexpr uint8_t
     ubrr1h = 0xcd,
     udr1 = 0xce,
 
-    ucsr9a = 0xc0,
-        rxc9 = 7, txc9 = 6, udre9 = 5, fe9 = 4, dor9 = 3, upe9 = 2, mpcm9 = 0, u2x9 = 1,
-    ucsr9b = 0xc1,
-    ucsr9c = 0xc2,
-    ubrr9 = 0xc4,
-    udr9 = 0xc6,
-    
+    ucsr9a = ucsr0a,
+        rxc9 = rxc0, txc9 = txc0, udre9 = udre0, fe9 = fe0,
+        dor9 = dor0, upe9 = upe0, mpcm9 = mpcm0, u2x9 = u2x0,
+    ucsr9b = ucsr0b,
+        txb89 = txb80, rxb89 = rxb80, ucxz92 = ucxz02, txen9 = txen0,
+        rxen9 = rxen0, udrie9 = udrie0, txcie9 = txcie0, rxcie9 = rxcie0,
+    ucsr9c = ucsr0c,
+        umsel91 = 7, umsel90 = 6, upm91 = 5, upm90 = 4,
+        usbs9 = 3, ucsz91 = 2, ucsz90 = 1, ucpol9 = 0,
+    ubrr9 = ubrr0,
+    ubrr9l = ubrr0l,
+    ubrr9h = ubrr0h,
+    udr9 = udr0,
 
     ocr1a_port_base = portb_base,
     ocr1a_ddr = ocr1a_port_base + 1,
@@ -295,11 +301,15 @@ static volatile uint8_t
     * const p_udr1 = (volatile uint8_t * const)udr1,
 
     * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
-    * const p_ubrr9 = (volatile uint8_t * const)ubrr9,
+    * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
+    * const p_ucsr9c = (volatile uint8_t * const)ucsr9c,
+    * const p_ubrr9l = (volatile uint8_t * const)ubrr9l,
+    * const p_ubrr9h = (volatile uint8_t * const)ubrr9h,
+    * const p_udr9 = (volatile uint8_t * const)udr9,
 
-    * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,
-    * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,
-    * const p_ddr_ocr2b = (volatile uint8_t * const)ocr2b_ddr,
+    * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
+    * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
+    * const p_ocr2b_ddr = (volatile uint8_t * const)ocr2b_ddr,
 
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
@@ -327,7 +337,8 @@ static volatile uint16_t
     * const p_ocr1b = (volatile uint16_t * const)ocr1b,
     * const p_icr1 = (volatile uint16_t * const)icr1,
     * const p_ubrr0 = (volatile uint16_t * const)ubrr0,
-    * const p_ubrr1 = (volatile uint16_t * const)ubrr1;
+    * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
+    * const p_ubrr9 = (volatile uint16_t * const)ubrr9;
 
 struct Board
 {

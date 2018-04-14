@@ -101,6 +101,19 @@ static constexpr uint8_t
     ubrr0h = 0xc5,
     udr0 = 0xc6,
 
+    ucsr9a = ucsr0a,
+        mpcm9 = 0, u2x9 = 1, upe9 = 2, dor9 = 3, fe9 = 4, udre9 = 5, txc9 = 6, rxc9 = 7,
+    ucsr9b = ucsr0b,
+        txb89 = 0, rxb89 = 1, ucxz92 = 2, txen9 = txen0,
+        rxen9 = 4, udrie9 = 5, txcie9 = 6, rxcie9 = rxcie0,
+    ucsr9c = ucsr0c,
+        ucpol9 = 0, ucsz90 = 1, ucpha9 = 1, ucsz91 = 2, udord9 = 2, usbs9 = 3,
+        upm90 = 4, upm91 = 5, umsel90 = 6, umsel91 = 7,
+    ubrr9 = ubrr0,
+    ubrr9l = ubrr0l,
+    ubrr9h = ubrr0h,
+    udr9 = udr0,
+
     ocr1a_port_base = portb_base,
     ocr1a_ddr = ocr1a_port_base + 1,
     ocr1a_port = ocr1a_port_base + 2,
@@ -127,17 +140,14 @@ static constexpr uint8_t
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
     sck_bit = pb5,
-    psck = portb5, // moet weg
     mosi_port_base = portb_base,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
     mosi_bit = pb3,
-    pmosi = portb3, // moet weg
     miso_port_base = portb_base,
     miso_ddr = miso_port_base + 1,
     miso_port = miso_port_base + 2,
     miso_bit = pb4,
-    pmiso = portb4, // moet weg
 
     pin0_base = portd_base,
     pin0_bit = pd0,
@@ -238,9 +248,13 @@ static volatile uint8_t
     * const p_ubrr0h = (volatile uint8_t * const)ubrr0h,
     * const p_udr0 = (volatile uint8_t * const)udr0,
 
-    * const p_ddr_ocr1a = (volatile uint8_t * const)ocr1a_ddr,  // moet weg
-    * const p_ddr_ocr1b = (volatile uint8_t * const)ocr1b_ddr,  // moet weg
-    * const p_ddr_ocr2b = (volatile uint8_t * const)ocr2b_ddr,  // moet weg
+    * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
+    * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
+    * const p_ucsr9c = (volatile uint8_t * const)ucsr9c,
+    * const p_ubrr9l = (volatile uint8_t * const)ubrr9l,
+    * const p_ubrr9h = (volatile uint8_t * const)ubrr9h,
+    * const p_udr9 = (volatile uint8_t * const)udr9,
+
     * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
     * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
     * const p_ocr2b_ddr = (volatile uint8_t * const)ocr2b_ddr,
@@ -252,14 +266,9 @@ static volatile uint8_t
     * const p_ss_port = (volatile uint8_t * const)ss_port,
     * const p_sck_ddr = (volatile uint8_t * const)sck_ddr,
     * const p_sck_port = (volatile uint8_t * const)sck_port,
-    * const p_ddr_sck = (volatile uint8_t * const)sck_ddr,  // moet weg
     * const p_port_sck = (volatile uint8_t * const)sck_port,
     * const p_mosi_ddr = (volatile uint8_t * const)mosi_ddr,
     * const p_mosi_port = (volatile uint8_t * const)mosi_port,
-    * const p_ddr_mosi = (volatile uint8_t * const)mosi_ddr,    // moet weg
-    * const p_port_mosi = (volatile uint8_t * const)mosi_port,  // moet weg
-    * const p_ddr_miso = (volatile uint8_t * const)miso_ddr,    // moet weg
-    * const p_port_miso = (volatile uint8_t * const)miso_port,  // moet weg
     * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
     * const p_miso_port = (volatile uint8_t * const)miso_port,
 
@@ -291,7 +300,8 @@ static volatile uint16_t
     * const p_ocr1a = (volatile uint16_t * const)ocr1a,
     * const p_ocr1b = (volatile uint16_t * const)ocr1b,
     * const p_icr1 = (volatile uint16_t * const)icr1,
-    * const p_ubrr0 = (volatile uint16_t * const)ubrr0;
+    * const p_ubrr0 = (volatile uint16_t * const)ubrr0,
+    * const p_ubrr9 = (volatile uint16_t * const)ubrr9;
 
 struct Board
 {

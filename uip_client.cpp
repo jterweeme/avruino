@@ -4,7 +4,7 @@
 
 #define UIP_TCP_PHYH_LEN UIP_LLH_LEN+UIP_IPTCPH_LEN
 
-//extern uint32_t millis();
+extern uint32_t millis();
 
 IPAddrezz::IPAddrezz(uint8_t oct1, uint8_t oct2, uint8_t third_octet, uint8_t fourth_octet)
 {
@@ -59,7 +59,7 @@ int UIPClient::connect(IPAddrezz ip, uint16_t port)
 
     if (conn)
     {
-#if 0
+#if 1
         int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
 #endif
         while((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
@@ -71,7 +71,7 @@ int UIPClient::connect(IPAddrezz ip, uint16_t port)
                 data = (uip_userdata_t*) conn->appstate;
                 return 1;
             }
-#if 0
+#if 1
             if (((int32_t)(millis() - timeout)) > 0)
             {
                 conn->tcpstateflags = UIP_CLOSED;
@@ -175,7 +175,7 @@ newpacket:
           goto newpacket;
         }
 ready:
-#if  0
+#if  1
       u->timer = millis()+UIP_CLIENT_TIMER;
 #endif
       return size-remain;

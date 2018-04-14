@@ -207,14 +207,14 @@ Display::Display()
     *p_timsk0 = 0;
     *p_ocr0a = 0;
     *p_ocr0b = 0;
-    *p_ddr_ocr1b |= 1<<ocr1b_bit;
+    *p_ocr1b_ddr |= 1<<ocr1b_bit;
     *p_tccr1a = 1<<wgm10 | 1<<wgm11 | 1<<com1b1;  
     *p_tccr1b = 1<<wgm12 | 1<<wgm13 | 5;
     *p_ocr1a = 259;
     *p_ocr1b = 0;
     *p_tifr1 = 1<<tov1;
     *p_timsk1 = 1<<toie1;
-    *p_ddr_ocr2b |= 1<<ocr2b_bit;
+    *p_ocr2b_ddr |= 1<<ocr2b_bit;
     *p_tccr2a = 1<<wgm20 | 1<<wgm21 | 1<<com2b1;
     *p_tccr2b = 1<<wgm22 | 2;
     *p_ocr2a = 63;

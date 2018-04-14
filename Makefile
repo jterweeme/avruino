@@ -3,6 +3,7 @@ BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
+POOL3 = nee
 
 ifeq ($(BOARD), helios)
 PART = m32u4
@@ -10,7 +11,9 @@ MMCU = atmega32u4
 BSP = helios.o misc.o
 BOARDDEF = HELIOS
 USBOPT = $(USBO)
+POOL1 = nee
 POOL2 = ja
+POOL3 = nee
 else ifeq ($(BOARD), mega)
 PART = m2560
 MMCU = atmega2560
@@ -18,24 +21,34 @@ BSP = mega.o misc.o
 BOARDDEF = MEGA
 USBOPT =
 POOL1 = ja
+POOL2 = nee
+POOL3 = ja
 else ifeq ($(BOARD), ocho)
 PART = m8
 MMCU = atmega8
 BSP = uno.o misc.o
 BOARDDEF = UNO
 USBOPT =
+POOL1 = nee
+POOL2 = nee
+POOL3 = nee
 else ifeq ($(BOARD), leonardo)
 PART = m32u4
 MMCU = atmega32u4
 BSP = leonardo.o misc.o
 BOARDREF = LEONARDO
 USBOPT = $(USBO)
+POOL1 = nee
 POOL2 = ja
+POOL3 = nee
 else ifeq ($(BOARD), twaalf)
 PART = usb1286
 MMCU = at90usb1286
 BSP = twaalf.o misc.o
 BOARDREF = TWAALF
+POOL1 = nee
+POOL2 = nee
+POOL3 = nee
 else
 PART = m328p
 MMCU = atmega328p
@@ -43,16 +56,18 @@ BSP = uno.o misc.o
 BOARDDEF = UNO
 USBOPT = 
 POOL1 = ja
+POOL2 = nee
+POOL3 = ja
 endif
 
 TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_blink1.elf app_test1.elf app_i2cscan1.elf app_chatserver1.elf \
-    app_pcf8563test2.elf app_lcdtest1.elf app_pi1.elf app_minos1.elf\
-    app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf app_sound1.elf \
-    app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf app_ps2kb2.elf \
+    app_pcf8563test2.elf app_lcdtest1.elf app_pi1.elf app_minos1.elf \
+    app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
+    app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf  \
     app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_blink3.elf app_megaboot4.hex app_analogweb1.elf app_analogweb2.elf \
-    app_websdfat1.elf app_websdfat2.elf app_nslookup1.elf \
+    app_blink3.elf app_megaboot4.hex \
+    app_websdfat1.elf app_websdfat2.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
 ifeq ($(POOL1), ja)
@@ -67,6 +82,11 @@ TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
     app_usbpiano1.elf app_rndis1.elf app_rndis2.elf \
     app_rndisping1.elf app_rndisbridge1.elf
+endif
+
+ifeq ($(POOL3), ja)
+TARGETS += app_sound1.elf app_analogweb1.elf app_analogweb2.elf app_nslookup1.elf \
+    app_ps2kb2.elf
 endif
 
 %.o: %.cpp

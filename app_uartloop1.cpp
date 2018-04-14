@@ -8,8 +8,8 @@ Loop on standard UART using polling method
 int main()
 {
     DefaultUart uart;
-    //*p_ucsr1a |= 1<<u2x1;
-    *p_ubrr1 = 103;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
     uart.enableRead();
     uart.puts("Testbericht\r\n");
 

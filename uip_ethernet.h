@@ -29,9 +29,23 @@ class UIPEthernetClass
 {
 private:
     Enc28J60Network _nw;
+    static DhcpClass *_dhcp;
+    static unsigned long periodic_timer;
+    void init(const uint8_t* mac);
+    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
+    uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
 public:
+    uint16_t ipchksum();
+    uint16_t upper_layer_chksum(uint8_t proto);
+    static memhandle in_packet;
+    static uint8_t uip_hdrlen;
+    bool network_send();
+    static memhandle uip_packet;
+    static uint8_t packetstate;
+    static IPAddrezz _dnsServerAddress;
+    void tick();
     static UIPEthernetClass *instance;
-    UIPEthernetClass();
+    UIPEthernetClass() { instance = this; }
     int begin(const uint8_t *mac);
     void begin(const uint8_t* mac, IPAddrezz ip);
     void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns);
@@ -43,29 +57,6 @@ public:
     IPAddrezz gatewayIP();
     IPAddrezz dnsServerIP();
     void tick2();
-private:
-    static memhandle in_packet;
-    static memhandle uip_packet;
-    static uint8_t uip_hdrlen;
-    static uint8_t packetstate;
-    static IPAddrezz _dnsServerAddress;
-    static DhcpClass* _dhcp;
-    static unsigned long periodic_timer;
-    void init(const uint8_t* mac);
-    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
-    void tick();
-    bool network_send();
-    friend class UIPServer;
-    friend class UIPClient;
-    friend class UIPUDP;
-    uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
-    uint16_t ipchksum(void);
-    uint16_t upper_layer_chksum(uint8_t proto);
-    friend uint16_t uip_ipchksum();
-    friend uint16_t uip_tcpchksum();
-    friend uint16_t uip_udpchksum();
-    friend void uipclient_appcall();
-    friend void uipudp_appcall();
 };
 #endif
 
