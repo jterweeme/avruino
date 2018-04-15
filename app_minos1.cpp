@@ -14,6 +14,10 @@
 #define ENABLE_YSENDER
 #endif
 
+#ifndef MD5SUM
+#define MD5SUM
+#endif
+
 UartBase *g_uart1;
 UartStream *g_dout;
 
@@ -174,13 +178,18 @@ private:
 #ifdef ENABLE_XRECEIVER
     void _rx(Fatty &zd, istream *is, ostream *os);
 #endif
+#ifdef ENABLE_YRECEIVER
     void _rb(Fatty &zd, istream *is, ostream *os);
+#endif
 #ifdef ENABLE_YSENDER
     void _sb(Fatty &zd, istream *is, ostream *os);
 #endif
+#ifdef MD5SUM
     void _md5sum(Fatty &zd, ostream &os);
+#endif
     void _rm(Fatty &zd, ostream &os);
     void _od(Fatty &zd, ostream &os);
+    void _mkdir(Fatty &zd);
 public:
     int run();
 };
@@ -201,6 +210,13 @@ void App::_cat(Fatty &zd, ostream &os)
     {
         os << "No such file\r\n";
     }
+}
+
+void App::_mkdir(Fatty &zd)
+{
+    char dirname[50] = {0};
+    _buf.token2(dirname);
+    zd.mkdir(dirname);
 }
 
 void App::_rm(Fatty &zd, ostream &os)
@@ -302,6 +318,7 @@ void App::_sb(Fatty &zd, istream *is, ostream *os)
 }
 #endif
 
+#ifdef MD5SUM
 void App::_md5sum(Fatty &zd, ostream &os)
 {
     char fn[50] = {0};
@@ -323,6 +340,7 @@ void App::_md5sum(Fatty &zd, ostream &os)
         os << "File does not exists\r\n";
     }
 }
+#endif
 
 int App::run()
 {
@@ -395,8 +413,12 @@ int App::run()
             if (_buf.comp("sx"))
                 _sx(zd, &cin, &cout);
 #endif
+#ifdef MD5SUM
             if (_buf.comp("md5sum"))
                 _md5sum(zd, cout);
+#endif
+            if (_buf.comp("mkdir"))
+                _mkdir(zd);
 
             if (_buf.comp("rm"))
                 _rm(zd, cout);

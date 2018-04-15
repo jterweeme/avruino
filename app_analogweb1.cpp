@@ -46,9 +46,19 @@ int main()
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
 
     uint32_t ip = eth.localIP();
+    uint32_t subnet = eth.subnetMask();
+    uint32_t gw = eth.gatewayIP();
+    uint32_t dns = eth.dnsServerIP();
     cout << "IP: ";
     hex32(ip, cout);
-    cout << "\r\n";
+    cout << "\r\nSubnet: ";
+    hex32(subnet, cout);
+    cout << "\r\nGateway: ";
+    hex32(gw, cout);
+    cout << "\r\nDNS: ";
+    hex32(dns, cout);
+    cout << "\r\n\r\n";
+
     server.begin();
     cout << "Server started\r\n";
 

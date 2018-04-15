@@ -206,7 +206,8 @@ IPAddrezz UIPUDP::remoteIP()
     return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
 }
 
-// uIP callback function
+#define uip_udp_send(len) uip_send((char *)uip_appdata, len)
+
 void uipudp_appcall()
 {
     if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
@@ -233,7 +234,6 @@ void uipudp_appcall()
 
         if (uip_poll() && data->send)
         {
-            //set uip_slen (uip private) by calling uip_udp_send
             UIPEthernetClass::instance->uip_packet = data->packet_out;
             UIPEthernetClass::uip_hdrlen = UIP_UDP_PHYH_LEN;
             uip_udp_send(data->out_pos - (UIP_UDP_PHYH_LEN));

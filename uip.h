@@ -154,7 +154,6 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 
 #define uip_udp_remove(conn) (conn)->lport = 0
 #define uip_udp_bind(conn, port) (conn)->lport = port
-#define uip_udp_send(len) uip_send((char *)uip_appdata, len)
 
 #define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
                      ((uint16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
@@ -239,71 +238,15 @@ extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 #endif
 
-
-struct uip_stats {
-  struct {
-    uip_stats_t drop;     /**< Number of dropped packets at the IP layer. */
-    uip_stats_t recv;     /**< Number of received packets at the IP layer. */
-    uip_stats_t sent;     /**< Number of sent packets at the IP layer. */
-    uip_stats_t vhlerr;   
-    uip_stats_t hblenerr; /**< Number of packets dropped due to wrong
-			     IP length, high byte. */
-    uip_stats_t lblenerr; /**< Number of packets dropped due to wrong
-			     IP length, low byte. */
-    uip_stats_t fragerr;  /**< Number of packets dropped since they
-			     were IP fragments. */
-    uip_stats_t chkerr;   /**< Number of packets dropped due to IP
-			     checksum errors. */
-    uip_stats_t protoerr; /**< Number of packets dropped since they
-			     were neither ICMP, UDP nor TCP. */
-  } ip;                   /**< IP statistics. */
-  struct {
-    uip_stats_t drop;     /**< Number of dropped ICMP packets. */
-    uip_stats_t recv;     /**< Number of received ICMP packets. */
-    uip_stats_t sent;     /**< Number of sent ICMP packets. */
-    uip_stats_t typeerr;  /**< Number of ICMP packets with a wrong
-			     type. */
-  } icmp;                 /**< ICMP statistics. */
-  struct {
-    uip_stats_t drop;     /**< Number of dropped TCP segments. */
-    uip_stats_t recv;     /**< Number of recived TCP segments. */
-    uip_stats_t sent;     /**< Number of sent TCP segments. */
-    uip_stats_t chkerr;   /**< Number of TCP segments with a bad
-			     checksum. */
-    uip_stats_t ackerr;   /**< Number of TCP segments with a bad ACK
-			     number. */
-    uip_stats_t rst;      /**< Number of recevied TCP RST (reset) segments. */
-    uip_stats_t rexmit;   /**< Number of retransmitted TCP segments. */
-    uip_stats_t syndrop;  /**< Number of dropped SYNs due to too few
-			     connections was avaliable. */
-    uip_stats_t synrst;   /**< Number of SYNs for closed ports,
-			     triggering a RST. */
-  } tcp;                  /**< TCP statistics. */
-#if UIP_UDP
-  struct {
-    uip_stats_t drop;     /**< Number of dropped UDP segments. */
-    uip_stats_t recv;     /**< Number of recived UDP segments. */
-    uip_stats_t sent;     /**< Number of sent UDP segments. */
-    uip_stats_t chkerr;   /**< Number of UDP segments with a bad
-			     checksum. */
-  } udp;                  /**< UDP statistics. */
-#endif /* UIP_UDP */
-};
-
-extern struct uip_stats uip_stat;
 extern uint8_t uip_flags;
 void uip_process(uint8_t flag);
 
-#define UIP_DATA          1
-#define UIP_TIMER         2
-#define UIP_POLL_REQUEST  3
-#define UIP_UDP_SEND_CONN 4
-
-#if UIP_UDP
-#define UIP_UDP_TIMER     5
-#endif
-
 static constexpr uint8_t
+    UIP_DATA = 1,
+    UIP_TIMER = 2,
+    UIP_POLL_REQUEST = 3,
+    UIP_UDP_SEND_CONN = 4,
+    UIP_UDP_TIMER = 5,
     UIP_CLOSED = 0,
     UIP_SYN_RCVD = 1,
     UIP_SYN_SENT = 2,

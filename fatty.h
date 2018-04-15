@@ -731,7 +731,6 @@ public:
     bool mkdir(char *filepath);
     bool remove(const char *filepath);
     bool rmdir(char *filepath);
-    //inline void tick() { }
 };
 
 class FyleIfstream : public ifstream
@@ -755,7 +754,6 @@ public:
     void close() { _fyle.close(); }
     void flush() { _fyle.flush(); }
 };
-
 #endif
 
 

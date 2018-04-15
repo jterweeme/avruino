@@ -26,33 +26,6 @@ void UIPEthernetClass::tick2()
     g_millis++;
 }
 
-void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip)
-{
-    IPAddrezz dns = IPAddrezz(ip);
-    dns[3] = 1;
-    begin(mac, ip, dns);
-}
-
-void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns)
-{
-    IPAddrezz gateway = IPAddrezz(ip);
-    gateway[3] = 1;
-    begin(mac, ip, dns, gateway);
-}
-
-void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw)
-{
-    begin(mac, ip, dns, gw, 0x00ffffff);
-}
-
-void
-UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns,
-    IPAddrezz gateway, IPAddrezz subnet)
-{
-    init(mac);
-    configure(ip, dns, gateway, subnet);
-}
-
 IPAddrezz UIPEthernetClass::localIP()
 {
     IPAddrezz ret;

@@ -1,5 +1,6 @@
 #include "uip_client.h"
 #include "stream.h"
+#include "dhcp.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -7,24 +8,46 @@
 
 static UIPEthernetClass eth;
 
+static void addresses(UIPEthernetClass &eth, ostream &os)
+{
+    uint32_t ip = eth.localIP();
+    uint32_t subnet = eth.subnetMask();
+    uint32_t gw = eth.gatewayIP();
+    uint32_t dns = eth.dnsServerIP();
+    os << "IP:      ";
+    hex32(ip, os);
+    os << "\r\nSubnet:  ";
+    hex32(subnet, os);
+    os << "\r\nGateway: ";
+    hex32(gw, os);
+    os << "\r\nDNS:     ";
+    hex32(dns, os);
+    os << "\r\n";
+}
+
 int main()
 {
     DefaultUart s;
-    *p_ucsr0a |= 1<<u2x0;
-    *p_ubrr0 = 16;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
     UartStream cout(&s);
-    cout << "Startup\r\n";
-    cout.flush();
     *p_tccr0b = cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
+
+    cout << "Initialize Ethernet\r\n";
+    cout.flush();
     uint8_t mac[6] = {0,1,2,3,4,5};
-    uint32_t myIP = (uint32_t)192 | (uint32_t)168<<8 | (uint32_t)200<<16 | (uint32_t)101<<24;
-    uint32_t dns = 0x08080808;
-    uint32_t subnet = 0x00ffffff;
-    uint32_t gw = (uint32_t)192 | (uint32_t)168<<8 | (uint32_t)200<<16 | (uint32_t)1<<24;
-    eth.begin(mac, myIP, dns, gw, subnet);  //, 0x20b2abc0, 0x08080808, 0x00ffffff);
-    cout << "eth begin\r\n";
+    eth.init(mac);
+
+    cout << "Starting DHCP\r\n";
+    cout.flush();
+    DhcpClass dhcp(&eth);
+    dhcp.beginWithDHCP(mac);
+    eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+    addresses(eth, cout);
+    cout << "\r\n";
+
     UIPClient client(&eth);
     
     if (client.connect("astron.nl", 80))

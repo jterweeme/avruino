@@ -90,7 +90,7 @@ TARGETS += app_sound1.elf app_analogweb1.elf app_analogweb2.elf app_nslookup1.el
 endif
 
 %.o: %.cpp
-	avr-g++ -O2 -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
+	avr-g++ -Os -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
 
 %.elf: %.o
 	avr-g++ -mmcu=$(MMCU) -o $@ $^
@@ -121,7 +121,7 @@ app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
-    misc.o
+    misc.o stream.o
 
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_ethernet.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
@@ -142,27 +142,27 @@ app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
 
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o pinport.o uart.o $(BSP)
 app_analog1.elf: app_analog1.o pinport.o uart.o $(BSP)
-app_dfkeyb1.elf: app_dfkeyb1.o pinport.o uart.o $(BSP)
+app_dfkeyb1.elf: app_dfkeyb1.o pinport.o uart.o stream.o misc.o
 app_blink1.elf: app_blink1.o
 app_blink3.elf: app_blink3.o pinport.o uart.o $(BSP)
 app_calc1.elf: app_calc1.o analog.o button.o tft.o calc.o pinport.o uart.o $(BSP)
 app_calc2.elf: app_calc2.o calc.o pinport.o uart.o $(BSP)
-app_capsense2.elf: app_capsense2.o capsense.o pinport.o uart.o $(USBOPT) $(BSP)
-app_ds1302test1.elf: app_ds1302test1.o pinport.o uart.o $(BSP)
+app_capsense2.elf: app_capsense2.o capsense.o pinport.o uart.o stream.o misc.o $(USBOPT)
+app_ds1302test1.elf: app_ds1302test1.o pinport.o uart.o stream.o misc.o
 app_fourinone.elf: app_fourinone.o analog.o
 app_groen1.elf: app_groen1.o
-app_i2cscan1.elf: app_i2cscan1.o i2c.o pinport.o uart.o $(USBOPT) $(BSP)
-app_infrared1.elf: app_infrared1.o infrared.o pinport.o uart.o stream.o $(BSP)
+app_i2cscan1.elf: app_i2cscan1.o i2c.o pinport.o uart.o misc.o stream.o $(USBOPT)
+app_infrared1.elf: app_infrared1.o infrared.o pinport.o uart.o stream.o misc.o
 app_lcdtest1.elf: app_lcdtest1.o pinport.o uart.o $(BSP)
 app_lcdtest2.elf: app_lcdtest2.o
 app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o pinport.o $(BSP)
-app_pcf8563test2.elf: app_pcf8563test2.o i2c.o pinport.o uart.o $(USBOPT) $(BSP)
-app_pi1.elf: app_pi1.o pinport.o uart.o $(USBOPT) $(BSP)
+app_pcf8563test2.elf: app_pcf8563test2.o i2c.o pinport.o uart.o misc.o stream.o $(USBOPT) $(BSP)
+app_pi1.elf: app_pi1.o pinport.o uart.o stream.o misc.o $(USBOPT)
 app_pirate1.elf: app_pirate1.o vgax.o
 app_pong1.elf: app_pong1.o
-app_ps2kb2.elf: app_ps2kb2.o keyboard.o pinport.o uart.o $(USBOPT) $(BSP)
+app_ps2kb2.elf: app_ps2kb2.o keyboard.o pinport.o uart.o stream.o misc.o $(USBOPT)
 app_ringtone1.elf: app_ringtone1.o pinport.o uart.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
