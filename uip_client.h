@@ -1,6 +1,7 @@
 #ifndef _UIPCLIENT_H_
 #define _UIPCLIENT_H_
-#include "uip_ethernet.h"
+#include "uip.h"
+#include "enc28j60.h"
 
 #define UIP_SOCKET_DATALEN UIP_TCP_MSS
 #ifndef UIP_SOCKET_NUMPACKETS

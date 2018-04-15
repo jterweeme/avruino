@@ -1,4 +1,3 @@
-#include "uip_ethernet.h"
 #include "uip_udp.h"
 #include "dns.h"
 #include "arp.h"

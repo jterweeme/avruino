@@ -50,6 +50,7 @@ static uint8_t i, c;
 static uint8_t arptime;
 static uint8_t tmpage;
 
+#undef BUF
 #define BUF   ((struct arp_hdr *)&uip_buf[0])
 #define IPBUF ((struct ethip_hdr *)&uip_buf[0])
 

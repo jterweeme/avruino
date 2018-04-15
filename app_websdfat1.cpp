@@ -59,8 +59,11 @@ static void printDirectory(Fyle dir, uint8_t numTabs, UIPClient &os)
 
         if (entry.isDirectory())
         {
+            os.write("<td>DIR</td>");
+#if 0
             os.write("/");
             printDirectory(entry, numTabs + 1, os);
+#endif
         }
         else
         {

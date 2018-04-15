@@ -1,7 +1,6 @@
 #ifndef _UIPUDP_H_
 #define _UIPUDP_H_
 
-//#include "uip_ethernet.h"
 #include "uip.h"
 #include "enc28j60.h"
 #include "ipaddrezz.h"

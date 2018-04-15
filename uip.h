@@ -9,6 +9,8 @@
 #endif
 
 #include "types.h"
+#include "ipaddrezz.h"
+//#include "enc28j60.h"
 
 #define UIP_SOCKET_NUMPACKETS    5
 #define UIP_CONF_MAX_CONNECTIONS 4
@@ -312,6 +314,29 @@ struct uip_eth_addr { uint8_t addr[6]; };
 uint16_t uip_ipchksum();
 uint16_t uip_tcpchksum();
 uint16_t uip_udpchksum();
+
+static constexpr uint8_t
+    UIPETHERNET_FREEPACKET = 1,
+    UIPETHERNET_SENDPACKET = 2,
+    UIPETHERNET_BUFFERREAD = 4;
+
+#define uip_ip_addr(addr, ip) do { \
+                     ((uint16_t *)(addr))[0] = HTONS(((ip[0]) << 8) | (ip[1])); \
+                     ((uint16_t *)(addr))[1] = HTONS(((ip[2]) << 8) | (ip[3])); \
+                  } while(0)
+
+#define ip_addr_uip(a) IPAddrezz(a[0] & 0xFF, a[0] >> 8 , a[1] & 0xFF, a[1] >> 8)
+
+#define uip_seteth_addr(eaddr) do {uip_ethaddr.addr[0] = eaddr[0]; \
+                              uip_ethaddr.addr[1] = eaddr[1];\
+                              uip_ethaddr.addr[2] = eaddr[2];\
+                              uip_ethaddr.addr[3] = eaddr[3];\
+                              uip_ethaddr.addr[4] = eaddr[4];\
+                              uip_ethaddr.addr[5] = eaddr[5];} while(0)
+
+#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+
 #endif
 
 

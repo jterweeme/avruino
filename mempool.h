@@ -49,7 +49,7 @@ public:
     static void resizeBlock(memhandle handle, memaddress position, memaddress size);
     static memaddress blockSize(memhandle);
 };
-
 #endif
+
 
 

@@ -1,6 +1,6 @@
 #include "mempool.h"
 
-#define NULL 0
+//#define NULL 0
 
 static const uint8_t POOLOFFSET = 1;
 
