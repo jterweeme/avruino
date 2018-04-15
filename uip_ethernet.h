@@ -1,7 +1,6 @@
 #ifndef _UIPETHERNET_H_
 #define _UIPETHERNET_H_
 #include "ipaddrezz.h"
-#include "dhcp.h"
 #include "enc28j60.h"
 
 static constexpr uint8_t
@@ -29,12 +28,11 @@ class UIPEthernetClass
 {
 private:
     Enc28J60Network _nw;
-    static DhcpClass *_dhcp;
     static unsigned long periodic_timer;
-    void init(const uint8_t* mac);
-    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
 public:
+    void init(const uint8_t* mac);
+    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
     uint16_t ipchksum();
     uint16_t upper_layer_chksum(uint8_t proto);
     static memhandle in_packet;
@@ -46,12 +44,10 @@ public:
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }
-    int begin(const uint8_t *mac, DhcpClass *dhcp);
     void begin(const uint8_t *mac, uint32_t ip);
     void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns);
     void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw);
     void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw, IPAddrezz subnet);
-    int maintain();
     IPAddrezz localIP();
     IPAddrezz subnetMask();
     IPAddrezz gatewayIP();

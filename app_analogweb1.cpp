@@ -9,6 +9,7 @@ werkt met mega
 #include "misc.h"
 #include "board.h"
 #include "stream.h"
+#include "dhcp.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -32,11 +33,18 @@ int main()
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
+
+    cout << "Initialize Ethernet\r\n";
+    cout.flush();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    cout << "Contacting DHCP\r\n";
-    //IPAddrezz myIP(192,168,178,32);
+    eth.init(mac);
+
+    cout << "Starting DHCP\r\n";
+    cout.flush();
     DhcpClass dhcp(&eth);
-    eth.begin(mac, &dhcp);
+    dhcp.beginWithDHCP(mac);
+    eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+
     uint32_t ip = eth.localIP();
     cout << "IP: ";
     hex32(ip, cout);

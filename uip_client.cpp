@@ -14,8 +14,6 @@ IPAddrezz::IPAddrezz(uint8_t oct1, uint8_t oct2, uint8_t third_octet, uint8_t fo
     _address.a8[3] = fourth_octet;
 }
 
-#define uip_close()         (uip_flags = UIP_CLOSE)
-#define uip_closed()    (uip_flags & UIP_CLOSE)
 
 #define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
                                    uip_conn->tcpstateflags &= ~UIP_STOPPED; \
@@ -86,7 +84,7 @@ int UIPClient::connect(IPAddrezz ip, uint16_t port)
 int UIPClient::connect(const char *host, uint16_t port)
 {
     int ret = 0;
-    DNSClient dns;
+    DNSClient dns(_eth);
     IPAddrezz remote_addr;
     dns.begin(UIPEthernetClass::_dnsServerAddress);
     ret = dns.getHostByName(host, remote_addr);
@@ -275,6 +273,7 @@ void UIPClient::flush()
         _flushBlocks(&data->packets_in[0]);
 }
 
+
 void uipclient_appcall(void)
 {
     uint16_t send_len = 0;
@@ -285,9 +284,7 @@ void uipclient_appcall(void)
         u = (uip_userdata_t*) UIPClient::_allocateData();
 
         if (u)
-        {
             uip_conn->appstate = u;
-        }
     }
 
     if (u)
@@ -325,8 +322,9 @@ finish_newdata:
           u->state &= ~UIP_CLIENT_RESTART;
           uip_restart();
         }
+
       // If the connection has been closed, save received but unread data.
-      if (uip_closed() || uip_timedout())
+      if ((uip_flags & UIP_CLOSE) || uip_timedout())
         {
           // drop outgoing packets not sent yet:
           UIPClient::_flushBlocks(&u->packets_out[0]);
@@ -379,9 +377,9 @@ finish_newdata:
         {
           if (u->packets_out[0] == NOBLOCK)
             {
-              u->state = 0;
-              uip_conn->appstate = NULL;
-              uip_close();
+                u->state = 0;
+                uip_conn->appstate = NULL;
+                uip_flags = UIP_CLOSE;
             }
           else
             {
@@ -389,9 +387,9 @@ finish_newdata:
             }
         }
     }
-  finish:
-  uip_send(uip_appdata,send_len);
-  uip_len = send_len;
+finish:
+    uip_send(uip_appdata,send_len);
+    uip_len = send_len;
 }
 
 uip_userdata_t *UIPClient::_allocateData()

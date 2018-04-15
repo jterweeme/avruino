@@ -154,11 +154,10 @@ private:
     uint32_t _toInt32(uint8_t *v)
     { return (uint32_t)v[0] | (uint32_t)v[1] << 8 | (uint32_t)v[2] << 16 | (uint32_t)v[3] << 24; }
 public:
-    //DhcpClass() { }
     DhcpClass(UIPEthernetClass *eth) : _dhcpUdpSocket(eth) { }
     uint32_t getLocalIp() { return _toInt32(_dhcpLocalIp); }
     uint32_t getSubnetMask() { return _toInt32(_dhcpSubnetMask); }
-    uint32_t getGatewayIp() { return _toInt32(_dhcpGatewayIp); }
+    uint32_t getGw() { return _toInt32(_dhcpGatewayIp); }
     uint32_t getDhcpServerIp() { return _toInt32(_dhcpDhcpServerIp); }
     uint32_t getDnsServerIp() { return _toInt32(_dhcpDnsServerIp); }
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, uint32_t responseTimeout = 4000);

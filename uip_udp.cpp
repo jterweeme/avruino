@@ -40,7 +40,7 @@ void UIPUDP::stop()
 
 int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
 {
-    UIPEthernetClass::instance->tick();
+    _eth->tick();
 
     if (ip && port)
     {
@@ -81,7 +81,7 @@ int UIPUDP::beginPacket(const char *host, uint16_t port)
 {
     // Look up the host first
     int ret = 0;
-    DNSClient dns;
+    DNSClient dns(_eth);
     IPAddrezz remote_addr;
     dns.begin(UIPEthernet.dnsServerIP());
     ret = dns.getHostByName(host, remote_addr);
@@ -247,17 +247,21 @@ void UIPUDP::_send(uip_udp_userdata_t *data)
 
     if (uip_len == UIP_ARPHDRSIZE)
     {
+        //_eth->uip_packet = NOBLOCK;
         UIPEthernetClass::instance->uip_packet = NOBLOCK;
         UIPEthernetClass::packetstate &= ~UIPETHERNET_SENDPACKET;
+        //_eth->packetstate &= ~UIPETHERNET_SENDPACKET;
     }
     else
     {
         data->send = false;
         data->packet_out = NOBLOCK;
         UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
+        //_eth->packetstate |= UIPETHERNET_SENDPACKET;
     }
 
     UIPEthernetClass::instance->network_send();
+    //_eth->network_send();
 }
 
 

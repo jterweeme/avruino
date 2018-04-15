@@ -2,10 +2,9 @@
 #include "uip.h"
 #include "arp.h"
 #include "uip_client.h"
+#include "uip_udp.h"
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
-
-
 
 static uint32_t g_millis = 0;
 
@@ -20,22 +19,7 @@ memhandle UIPEthernetClass::uip_packet(NOBLOCK);
 uint8_t UIPEthernetClass::uip_hdrlen(0);
 uint8_t UIPEthernetClass::packetstate(0);
 IPAddrezz UIPEthernetClass::_dnsServerAddress;
-DhcpClass* UIPEthernetClass::_dhcp(NULL);
 unsigned long UIPEthernetClass::periodic_timer;
-
-int UIPEthernetClass::begin(const uint8_t* mac, DhcpClass *dhcp)
-{
-    _dhcp = dhcp;
-    init(mac);
-    int ret = _dhcp->beginWithDHCP((uint8_t*)mac);
-
-    if(ret == 1)
-    {
-        configure(_dhcp->getLocalIp(),_dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),
-            _dhcp->getSubnetMask());
-    }
-    return ret;
-}
 
 void UIPEthernetClass::tick2()
 {
@@ -58,7 +42,6 @@ void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns)
 
 void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw)
 {
-    //IPAddrezz subnet(255, 255, 255, 0);
     begin(mac, ip, dns, gw, 0x00ffffff);
 }
 
@@ -68,31 +51,6 @@ UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns,
 {
     init(mac);
     configure(ip, dns, gateway, subnet);
-}
-
-int UIPEthernetClass::maintain()
-{
-    tick();
-    int rc = DHCP_CHECK_NONE;
-
-    if(_dhcp != NULL)
-    {
-        rc = _dhcp->checkLease();
-
-        switch ( rc )
-        {
-            case DHCP_CHECK_NONE:
-                break;
-            case DHCP_CHECK_RENEW_OK:
-            case DHCP_CHECK_REBIND_OK:
-                configure(_dhcp->getLocalIp(),
-                    _dhcp->getDnsServerIp(),_dhcp->getGatewayIp(),_dhcp->getSubnetMask());
-                break;
-            default:
-                break;
-        }
-    }
-    return rc;
 }
 
 IPAddrezz UIPEthernetClass::localIP()
@@ -268,8 +226,6 @@ void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
     _dnsServerAddress = dns;
 }
 
-UIPEthernetClass UIPEthernet;
-
 uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
     uint16_t t;
@@ -306,49 +262,34 @@ uint16_t UIPEthernetClass::ipchksum(void)
     return sum == 0 ? 0xffff : htons(sum);
 }
 
-uint16_t
-#if UIP_UDP
-UIPEthernetClass::upper_layer_chksum(uint8_t proto)
-#else
-uip_tcpchksum(void)
-#endif
+uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
 {
-    uint16_t upper_layer_len;
     uint16_t sum;
-
-#if UIP_CONF_IPV6
-    upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]);
-#else
-    upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]) - UIP_IPH_LEN;
-#endif
-
-#if UIP_UDP
+    uint16_t upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]) - UIP_IPH_LEN;
     sum = upper_layer_len + proto;
-#else
-    sum = upper_layer_len + UIP_PROTO_TCP;
-#endif
-    sum = UIPEthernetClass::chksum(sum, (uint8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
+    sum = chksum(sum, (uint8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
+    uint8_t upper_layer_memlen;
 
-  uint8_t upper_layer_memlen;
-  switch(proto)
-  {
-  case UIP_PROTO_UDP:
-    upper_layer_memlen = UIP_UDPH_LEN;
-    break;
-  default:
-    upper_layer_memlen = (BUF->tcpoffset >> 4) << 2;
-    break;
-  }
-  sum = UIPEthernetClass::chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN], upper_layer_memlen);
-
-  if (upper_layer_memlen < upper_layer_len)
+    switch(proto)
     {
-      sum = _nw.chksum(sum, uip_packet,
-            UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
+    case UIP_PROTO_UDP:
+        upper_layer_memlen = UIP_UDPH_LEN;
+        break;
+    default:
+        upper_layer_memlen = (BUF->tcpoffset >> 4) << 2;
+        break;
+    }
+    sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN], upper_layer_memlen);
+
+    if (upper_layer_memlen < upper_layer_len)
+    {
+        sum = _nw.chksum(sum, uip_packet, UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
             upper_layer_len - upper_layer_memlen);
     }
-  return (sum == 0) ? 0xffff : htons(sum);
+    return (sum == 0) ? 0xffff : htons(sum);
 }
+
+UIPEthernetClass UIPEthernet;
 
 uint16_t uip_ipchksum()
 {

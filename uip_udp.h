@@ -25,15 +25,11 @@ class UIPEthernetClass;
 class UIPUDP
 {
 private:
-    struct uip_udp_conn *_uip_udp_conn;
+    struct uip_udp_conn *_uip_udp_conn = NULL;
     uip_udp_userdata_t appdata;
-    UIPEthernetClass *_eth;
+    UIPEthernetClass * const _eth;
 public:
-    UIPUDP() : _uip_udp_conn(NULL) { memset(&appdata, 0, sizeof(appdata)); }
-
-    UIPUDP(UIPEthernetClass *eth) : _uip_udp_conn(NULL), _eth(eth)
-    { memset(&appdata, 0, sizeof(appdata)); }
-
+    UIPUDP(UIPEthernetClass *eth) : _eth(eth) { memset(&appdata, 0, sizeof(appdata)); }
     uint8_t begin(uint16_t);
     void stop();
     int beginPacket(uint32_t ip, uint16_t port);

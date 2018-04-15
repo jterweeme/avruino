@@ -6,6 +6,7 @@ Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
 #include "uip_server.h"
+#include "dhcp.h"
 #include "fatty.h"
 
 class Buffer
@@ -115,6 +116,8 @@ static void contentType(UIPClient &client, const char *ext)
         client.write("Content-Type: text/css\r\n");
     else if (my_strncasecmp(ext, "js", 2) == 0)
         client.write("Content-Type: text/js\r\n");
+    else if (my_strncasecmp(ext, "jpg", 3) == 0)
+        client.write("Content-Type: image/jpeg\r\n");
     else if (my_strncasecmp(ext, "zip", 3) == 0)
         client.write("Content-Type: application/zip\r\n");
     else if (my_strncasecmp(ext, "7z", 2) == 0)
@@ -166,16 +169,22 @@ int main()
     TCCR0B = CS02; // | CS00;
     TIMSK0 |= 1<<TOIE0;
     zei();
-    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    //uint32_t myIP = (uint32_t)192 | (uint32_t)168<<8 | (uint32_t)200<<16 | (uint32_t)101<<24;
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
-    cout << "Startup\r\n";
+
+    cout << "Initialize Ethernet\r\n";
+    cout.flush();
+    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
+    eth.init(mac);
+
+    cout << "Starting DHCP\r\n";
     cout.flush();
     DhcpClass dhcp(&eth);
-    eth.begin(mac, &dhcp);
+    dhcp.beginWithDHCP(mac);
+    eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+
     uint32_t ip = eth.localIP();
     hex32(ip, cout);
     cout << "\r\n";
