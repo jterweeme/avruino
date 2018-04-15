@@ -3,7 +3,8 @@
 #include "uart.h"
 #include "timer.h"
 
-Uart::Uart() : UartBase(p_ubrr0, p_udr0, p_ucsr0a, p_ucsr0b)
+#if 0
+Uart::Uart() : UartBase(p_ubrr9, p_udr9, p_ucsr9a, p_ucsr9b)
 {
     instance = this;
 }
@@ -13,6 +14,7 @@ DefaultUart::DefaultUart()
     *brr = 103;
     *ucsrb = (1<<MYTXEN0);
 }
+#endif
 
 Timer0::Timer0()
   :
@@ -38,7 +40,7 @@ Timer1::Timer1()
 
 Timer1 *Timer1::instance;
 Timer0 *Timer0::instance;
-Uart *Uart::instance;
+//Uart *Uart::instance;
 
 extern "C" void __vector_13() __attribute__ ((signal, used, externally_visible));
 extern "C" void __vector_18() __attribute__ ((signal, used, externally_visible));

@@ -1,16 +1,12 @@
 #include "uip_ethernet.h"
 #include "uip_udp.h"
 #include "dns.h"
-#include "uip.h"
 #include "arp.h"
 
 extern UIPEthernetClass UIPEthernet;    // !!!!!!!!!!!!!
 
 uint8_t UIP_ARPHDRSIZE = 42;
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
-#define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
-                                         uip_process(UIP_UDP_TIMER); } while (0)
 
 uint8_t UIPUDP::begin(uint16_t port)
 {
@@ -98,7 +94,8 @@ int UIPUDP::endPacket()
     {
         appdata.send = true;
         Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos);
-        uip_udp_periodic_conn(_uip_udp_conn);
+        uip_udp_conn = _uip_udp_conn;
+        uip_process(UIP_UDP_TIMER);
 
         if (uip_len > 0)
         {

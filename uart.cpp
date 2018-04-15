@@ -1,11 +1,11 @@
-#include "uart.h"
-#include <stdarg.h>
-
 #ifndef F_CPU
 #define F_CPU 16000000
 #endif
 
 #include <util/delay.h>
+#include "uart.h"
+#include <stdarg.h>
+#include "board.h"
 
 void Terminal::printf(const char *format, ...)
 {
@@ -62,6 +62,19 @@ UartBase::UartBase(volatile uint16_t *brr, volatile uint8_t *udr,
     ucsra(ucsra),
     ucsrb(ucsrb)
 {
+}
+
+Uart::Uart() : UartBase(p_ubrr9, p_udr9, p_ucsr9a, p_ucsr9b)
+{
+    instance = this;
+}
+
+Uart *Uart::instance;
+
+DefaultUart::DefaultUart()
+{
+    *brr = 103;
+    *ucsrb = (1<<MYTXEN1);
 }
 
 LCD::LCD(Pin *rs, Pin *e, Pin *d4, Pin *d5, Pin *d6, Pin *d7)

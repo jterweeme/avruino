@@ -34,8 +34,9 @@ int main()
     zei();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     cout << "Contacting DHCP\r\n";
-    IPAddrezz myIP(192,168,178,32);
-    eth.begin(mac); // init via DHCP
+    //IPAddrezz myIP(192,168,178,32);
+    DhcpClass dhcp(&eth);
+    eth.begin(mac, &dhcp);
     uint32_t ip = eth.localIP();
     cout << "IP: ";
     hex32(ip, cout);

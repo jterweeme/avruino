@@ -174,7 +174,8 @@ int main()
     UartStream cout(&s);
     cout << "Startup\r\n";
     cout.flush();
-    eth.begin(mac); // init via DHCP
+    DhcpClass dhcp(&eth);
+    eth.begin(mac, &dhcp);
     uint32_t ip = eth.localIP();
     hex32(ip, cout);
     cout << "\r\n";

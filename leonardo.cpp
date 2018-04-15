@@ -3,18 +3,6 @@
 #include <avr/io.h>
 #include "uart.h"
 
-Uart::Uart() : UartBase(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b)
-{
-    instance = this;
-}
-
-DefaultUart::DefaultUart()
-{
-    *brr = 51;
-    *ucsrb = (1<<MYTXEN1);
-}
-
-Uart *Uart::instance;
 Timer0 *Timer0::instance;
 Timer1 *Timer1::instance;
 

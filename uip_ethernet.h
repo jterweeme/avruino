@@ -46,11 +46,11 @@ public:
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }
-    int begin(const uint8_t *mac);
-    void begin(const uint8_t* mac, IPAddrezz ip);
-    void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns);
-    void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns, IPAddrezz gw);
-    void begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns, IPAddrezz gw, IPAddrezz subnet);
+    int begin(const uint8_t *mac, DhcpClass *dhcp);
+    void begin(const uint8_t *mac, uint32_t ip);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw, IPAddrezz subnet);
     int maintain();
     IPAddrezz localIP();
     IPAddrezz subnetMask();

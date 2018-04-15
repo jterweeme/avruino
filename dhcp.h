@@ -154,6 +154,8 @@ private:
     uint32_t _toInt32(uint8_t *v)
     { return (uint32_t)v[0] | (uint32_t)v[1] << 8 | (uint32_t)v[2] << 16 | (uint32_t)v[3] << 24; }
 public:
+    //DhcpClass() { }
+    DhcpClass(UIPEthernetClass *eth) : _dhcpUdpSocket(eth) { }
     uint32_t getLocalIp() { return _toInt32(_dhcpLocalIp); }
     uint32_t getSubnetMask() { return _toInt32(_dhcpSubnetMask); }
     uint32_t getGatewayIp() { return _toInt32(_dhcpGatewayIp); }

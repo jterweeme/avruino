@@ -23,11 +23,9 @@ IPAddrezz UIPEthernetClass::_dnsServerAddress;
 DhcpClass* UIPEthernetClass::_dhcp(NULL);
 unsigned long UIPEthernetClass::periodic_timer;
 
-static DhcpClass s_dhcp;
-
-int UIPEthernetClass::begin(const uint8_t* mac)
+int UIPEthernetClass::begin(const uint8_t* mac, DhcpClass *dhcp)
 {
-    _dhcp = &s_dhcp;
+    _dhcp = dhcp;
     init(mac);
     int ret = _dhcp->beginWithDHCP((uint8_t*)mac);
 
@@ -44,33 +42,32 @@ void UIPEthernetClass::tick2()
     g_millis++;
 }
 
-void UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip)
+void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip)
 {
-    IPAddrezz dns = ip;
+    IPAddrezz dns = IPAddrezz(ip);
     dns[3] = 1;
     begin(mac, ip, dns);
 }
 
-void UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns)
+void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns)
 {
-    IPAddrezz gateway = ip;
+    IPAddrezz gateway = IPAddrezz(ip);
     gateway[3] = 1;
     begin(mac, ip, dns, gateway);
 }
 
-void
-UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway)
+void UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw)
 {
-    IPAddrezz subnet(255, 255, 255, 0);
-    begin(mac, ip, dns, gateway, subnet);
+    //IPAddrezz subnet(255, 255, 255, 0);
+    begin(mac, ip, dns, gw, 0x00ffffff);
 }
 
 void
-UIPEthernetClass::begin(const uint8_t* mac, IPAddrezz ip, IPAddrezz dns,
+UIPEthernetClass::begin(const uint8_t* mac, uint32_t ip, IPAddrezz dns,
     IPAddrezz gateway, IPAddrezz subnet)
 {
-  init(mac);
-  configure(ip,dns,gateway,subnet);
+    init(mac);
+    configure(ip, dns, gateway, subnet);
 }
 
 int UIPEthernetClass::maintain()
@@ -316,21 +313,21 @@ UIPEthernetClass::upper_layer_chksum(uint8_t proto)
 uip_tcpchksum(void)
 #endif
 {
-  uint16_t upper_layer_len;
-  uint16_t sum;
+    uint16_t upper_layer_len;
+    uint16_t sum;
 
 #if UIP_CONF_IPV6
-  upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]);
-#else /* UIP_CONF_IPV6 */
-  upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]) - UIP_IPH_LEN;
-#endif /* UIP_CONF_IPV6 */
+    upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]);
+#else
+    upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]) - UIP_IPH_LEN;
+#endif
 
 #if UIP_UDP
-  sum = upper_layer_len + proto;
+    sum = upper_layer_len + proto;
 #else
-  sum = upper_layer_len + UIP_PROTO_TCP;
+    sum = upper_layer_len + UIP_PROTO_TCP;
 #endif
-  sum = UIPEthernetClass::chksum(sum, (uint8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
+    sum = UIPEthernetClass::chksum(sum, (uint8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
 
   uint8_t upper_layer_memlen;
   switch(proto)

@@ -25,7 +25,8 @@ int main()
     *p_timsk0 |= 1<<toie0;
     zei();
     uint8_t mac[6] = {0,1,2,3,4,5};
-    eth.begin(mac);
+    DhcpClass dhcp(&eth);
+    eth.begin(mac, &dhcp);
     server.begin();
 #if defined (__AVR_ATmega2560__)
     UartBase uart1(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b);
