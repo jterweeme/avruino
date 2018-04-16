@@ -398,14 +398,15 @@ void Enc28J60Network::writeRegPair(uint8_t address, uint16_t data)
 
 void Enc28J60Network::phyWrite(uint8_t address, uint16_t data)
 {
-  // set the PHY register address
-  writeReg(MIREGADR, address);
-  // write the PHY data
-  writeRegPair(MIWRL, data);
-  // wait until the PHY write completes
-  while(readReg(MISTAT) & MISTAT_BUSY){
-    _delay_us(15);
-  }
+    // set the PHY register address
+    writeReg(MIREGADR, address);
+    // write the PHY data
+    writeRegPair(MIWRL, data);
+    // wait until the PHY write completes
+    while(readReg(MISTAT) & MISTAT_BUSY)
+    {
+        _delay_us(15);
+    }
 }
 
 uint16_t Enc28J60Network::phyRead(uint8_t address)

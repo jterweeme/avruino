@@ -35,9 +35,7 @@ typedef struct
     memhandle packets_in[UIP_SOCKET_NUMPACKETS];
     memhandle packets_out[UIP_SOCKET_NUMPACKETS];
     memaddress out_pos;
-#if UIP_CLIENT_TIMER >= 0
     unsigned long timer;
-#endif
 } uip_userdata_t;
 
 class UIPClient
@@ -64,22 +62,18 @@ public:
     int read();
     int peek();
     void flush();
-private:
+    static uip_userdata_t all_data[UIP_CONNS];
     UIPClient(struct uip_conn *_conn);
     UIPClient(UIPEthernetClass * const eth, uip_userdata_t* conn_data);
-    uip_userdata_t *data;
-    static uip_userdata_t all_data[UIP_CONNS];
+    static size_t _write(uip_userdata_t *, const uint8_t *buf, size_t size);
     static uip_userdata_t* _allocateData();
-    static size_t _write(uip_userdata_t *,const uint8_t *buf, size_t size);
-    static int _available(uip_userdata_t *);
-    static uint8_t _currentBlock(memhandle* blocks);
     static void _eatBlock(memhandle* blocks);
     static void _flushBlocks(memhandle* blocks);
-    friend class UIPEthernetClass;
-    friend class UIPServer;
-    friend void uipclient_appcall(void);
+private:
+    uip_userdata_t *data;
+    int _available(uip_userdata_t *);
+    static uint8_t _currentBlock(memhandle* blocks);
 };
-
 #endif
 
 

@@ -193,7 +193,7 @@ int UIPClient::_available(uip_userdata_t *u)
     int len = 0;
 
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
-        len += Enc28J60Network::instance->blockSize(u->packets_in[i]);
+        len += _eth->nw()->blockSize(u->packets_in[i]);
     
     return len;
 }
@@ -211,15 +211,18 @@ int UIPClient::read(uint8_t *buf, size_t size)
 
         do
         {
-            read = Enc28J60Network::instance->readPacket(data->packets_in[0],
-                    0,buf+size-remain,remain);
+            read = _eth->nw()->readPacket(data->packets_in[0], 0,buf+size-remain,remain);
 
-            if (read == Enc28J60Network::instance->blockSize(data->packets_in[0]))
+            if (read == _eth->nw()->blockSize(data->packets_in[0]))
             {
               remain -= read;
               _eatBlock(&data->packets_in[0]);
-              if (uip_stopped(&uip_conns[data->state & UIP_CLIENT_SOCKETS]) && !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+              if (uip_stopped(&uip_conns[data->state & UIP_CLIENT_SOCKETS]) &&
+                    !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+              {
                 data->state |= UIP_CLIENT_RESTART;
+              }
+
               if (data->packets_in[0] == NOBLOCK)
                 {
                   if (data->state & UIP_CLIENT_REMOTECLOSED)
@@ -259,7 +262,7 @@ int UIPClient::peek()
         if (data->packets_in[0] != NOBLOCK)
         {
             uint8_t c;
-            Enc28J60Network::instance->readPacket(data->packets_in[0],0,&c,1);
+            _eth->nw()->readPacket(data->packets_in[0],0,&c,1);
             return c;
         }
     }

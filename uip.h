@@ -10,63 +10,12 @@
 
 #include "types.h"
 #include "ipaddrezz.h"
-//#include "enc28j60.h"
-
-#define UIP_SOCKET_NUMPACKETS    5
-#define UIP_CONF_MAX_CONNECTIONS 4
-#define UIP_CONF_UDP             1
-#define UIP_CONF_BROADCAST       1
-#define UIP_CONF_UDP_CONNS       4
-#define UIP_ATTEMPTS_ON_WRITE    -1
-#define UIP_CONNECT_TIMEOUT      -1
-#define UIP_PERIODIC_TIMER       250
-#define UIP_CLIENT_TIMER         10
-
-typedef unsigned short uip_stats_t;
-
-#define UIP_CONF_MAX_LISTENPORTS 4
-#define UIP_CONF_BUFFER_SIZE     98
-#define UIP_CONF_TCP_MSS 512
-#define UIP_CONF_RECEIVE_WINDOW 512
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
-#define UIP_CONF_LOGGING         0
-#define UIP_CONF_UDP_CHECKSUMS 1
+#include "enc28j60.h"
 
 typedef void* uip_tcp_appstate_t;
 void uipclient_appcall(void);
 typedef void* uip_udp_appstate_t;
 void uipudp_appcall(void);
-
-#define UIP_UDP_APPCALL uipudp_appcall
-#define UIP_ARCH_CHKSUM 1
-
-#ifdef UIP_CONF_PINGADDRCONF
-#define UIP_PINGADDRCONF UIP_CONF_PINGADDRCONF
-#else
-#define UIP_PINGADDRCONF 0
-#endif
-
-#define UIP_UDP UIP_CONF_UDP
-
-#ifdef UIP_CONF_UDP_CHECKSUMS
-#define UIP_UDP_CHECKSUMS UIP_CONF_UDP_CHECKSUMS
-#else
-#define UIP_UDP_CHECKSUMS 0
-#endif
-
-#ifdef UIP_CONF_UDP_CONNS
-#define UIP_UDP_CONNS UIP_CONF_UDP_CONNS
-#else
-#define UIP_UDP_CONNS    10
-#endif
-
-#define UIP_ACTIVE_OPEN 1
-
-#ifndef UIP_CONF_MAX_CONNECTIONS
-#define UIP_CONNS       10
-#else
-#define UIP_CONNS UIP_CONF_MAX_CONNECTIONS
-#endif
 
 #ifndef UIP_CONF_MAX_LISTENPORTS
 #define UIP_LISTENPORTS 20
@@ -241,7 +190,7 @@ extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 #endif
 
 extern uint8_t uip_flags;
-void uip_process(uint8_t flag);
+//void uip_process(uint8_t flag);
 
 static constexpr uint8_t
     UIP_DATA = 1,
@@ -336,7 +285,41 @@ static constexpr uint8_t
 
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-
+class UIPEthernetClass
+{
+private:
+    Enc28J60Network _nw;
+    static unsigned long periodic_timer;
+    uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
+public:
+    Enc28J60Network *nw() { return &_nw; }
+    void uip_process(uint8_t flag);
+    void process(uint8_t flags) { uip_process(flags); }
+    void init(const uint8_t* mac);
+    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
+    uint16_t ipchksum();
+    uint16_t upper_layer_chksum(uint8_t proto);
+    static memhandle in_packet;
+    static uint8_t uip_hdrlen;
+    bool network_send();
+    static memhandle uip_packet;
+    static uint8_t packetstate;
+    static IPAddrezz _dnsServerAddress;
+    void tick();
+    static UIPEthernetClass *instance;
+    UIPEthernetClass() { instance = this; }
+    void begin(const uint8_t *mac, uint32_t ip);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw);
+    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw, IPAddrezz subnet);
+    IPAddrezz localIP();
+    IPAddrezz subnetMask();
+    IPAddrezz gatewayIP();
+    IPAddrezz dnsServerIP();
+    void tick2();
+};
 #endif
+
+
 
 

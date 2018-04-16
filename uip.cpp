@@ -67,13 +67,13 @@ void UIPEthernetClass::tick()
 
         if (uip_len > 0)
         {
-            Enc28J60Network::instance->readPacket(in_packet,0,(uint8_t*)uip_buf,UIP_BUFSIZE);
+            _nw.readPacket(in_packet,0,(uint8_t*)uip_buf,UIP_BUFSIZE);
 
             if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_IP))
             {
                 uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
                 uip_arp_ipin();
-                uip_process(UIP_DATA);
+                process(UIP_DATA);
 
                 if (uip_len > 0)
                 {
@@ -99,50 +99,35 @@ void UIPEthernetClass::tick()
 
   unsigned long now = millis();
 
-#if UIP_CLIENT_TIMER >= 0
     bool periodic = (long)(now - periodic_timer) >= 0;
 
     for (int i = 0; i < UIP_CONNS; i++)
     {
-#else
-  if ((long)( now - periodic_timer ) >= 0)
-    {
-      periodic_timer = now + UIP_PERIODIC_TIMER;
-
-      for (int i = 0; i < UIP_CONNS; i++)
-        {
-#endif
       uip_conn = &uip_conns[i];
-#if UIP_CLIENT_TIMER >= 0
       if (periodic)
         {
-#endif
-          uip_process(UIP_TIMER);
-#if UIP_CLIENT_TIMER >= 0
+          process(UIP_TIMER);
         }
       else
         {
           if ((long)( now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
-            uip_process(UIP_POLL_REQUEST);
+            process(UIP_POLL_REQUEST);
           else
             continue;
         }
-#endif
       if (uip_len > 0)
         {
           uip_arp_out();
           network_send();
         }
     }
-#if UIP_CLIENT_TIMER >= 0
     if (periodic)
     {
         periodic_timer = now + UIP_PERIODIC_TIMER;
-#endif
         for (int i = 0; i < UIP_UDP_CONNS; i++)
         {
             uip_udp_conn = &uip_udp_conns[i];
-            uip_process(UIP_UDP_TIMER);
+            process(UIP_UDP_TIMER);
 
             if (uip_len > 0)
             {
@@ -295,8 +280,6 @@ void uip_add32(uint8_t *op32, uint16_t op16);
 uint16_t uip_tcpchksum(void);
 uint16_t uip_udpchksum(void);
 
-#define UIP_APPCALL uipclient_appcall
-
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 static const uip_ipaddr_t all_ones_addr = {0xffff,0xffff};
 static const uip_ipaddr_t all_zeroes_addr = {0x0000,0x0000};
@@ -324,11 +307,7 @@ struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 static uint16_t ipid;
 void uip_setipid(uint16_t id) { ipid = id; }
 static uint8_t iss[4];
-
-#if UIP_ACTIVE_OPEN
 static uint16_t lastport;  /* Keeps track of the last port used for a new connection. */
-#endif
-
 uint8_t uip_acc32[4];
 static uint8_t c, opt;
 static uint16_t tmp16;
@@ -361,7 +340,7 @@ void uip_log(char *msg);
 #define UIP_LOG(m) uip_log(m)
 #else
 #define UIP_LOG(m)
-#endif /* UIP_LOGGING == 1 */
+#endif
 
 void uip_add32(uint8_t *op32, uint16_t op16)
 {
@@ -399,19 +378,13 @@ void uip_init(void)
   
     for(c = 0; c < UIP_CONNS; ++c)
         uip_conns[c].tcpstateflags = UIP_CLOSED;
-#if UIP_ACTIVE_OPEN
-  lastport = 1024;
-#endif
 
-#if UIP_UDP
-  for(c = 0; c < UIP_UDP_CONNS; ++c) {
-    uip_udp_conns[c].lport = 0;
-  }
-#endif
+    lastport = 1024;
 
+    for(c = 0; c < UIP_UDP_CONNS; ++c)
+        uip_udp_conns[c].lport = 0;
 }
 
-#if UIP_ACTIVE_OPEN
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
@@ -470,7 +443,6 @@ struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
     uip_ipaddr_copy(&conn->ripaddr, ripaddr);
     return conn;
 }
-#endif /* UIP_ACTIVE_OPEN */
 
 struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
@@ -547,13 +519,13 @@ static void uip_add_rcv_nxt(uint16_t n)
 
 #define uip_outstanding(conn) ((conn)->len)
 
-void uip_process(uint8_t flag)
+void UIPEthernetClass::uip_process(uint8_t flag)
 {
     register struct uip_conn *uip_connr = uip_conn;
-#if UIP_UDP
+
     if (flag == UIP_UDP_SEND_CONN)
         goto udp_send;
-#endif
+
     uip_sappdata = uip_appdata = &uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN];
 
     /* Check if we were invoked because of a poll request for a
@@ -563,8 +535,8 @@ void uip_process(uint8_t flag)
         if ((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED &&
             !uip_outstanding(uip_connr))
         {
-	        uip_flags = UIP_POLL;
-	        UIP_APPCALL();
+            uip_flags = UIP_POLL;
+            uipclient_appcall();
 	        goto appsend;
         }
         goto drop;
@@ -613,7 +585,7 @@ void uip_process(uint8_t flag)
 	       UIP_TIMEDOUT to inform the application that the
 	       connection has timed out. */
 	    uip_flags = UIP_TIMEDOUT;
-	    UIP_APPCALL();
+        uipclient_appcall();
 
 	    /* We also send a reset packet to the remote host. */
 	    BUF->flags = TCP_RST | TCP_ACK;
@@ -638,12 +610,9 @@ void uip_process(uint8_t flag)
                SYNACK. */
 	    goto tcp_send_synack;
 	    
-#if UIP_ACTIVE_OPEN
 	  case UIP_SYN_SENT:
-	    /* In the SYN_SENT state, we retransmit out SYN. */
 	    BUF->flags = 0;
 	    goto tcp_send_syn;
-#endif /* UIP_ACTIVE_OPEN */
 	    
 	  case UIP_ESTABLISHED:
 	    /* In the ESTABLISHED state, we call upon the application
@@ -651,7 +620,7 @@ void uip_process(uint8_t flag)
                the code for sending out the packet (the apprexmit
                label). */
 	    uip_flags = UIP_REXMIT;
-	    UIP_APPCALL();
+        uipclient_appcall();
 	    goto apprexmit;
 	    
 	  case UIP_FIN_WAIT_1:
@@ -666,26 +635,25 @@ void uip_process(uint8_t flag)
 	/* If there was no need for a retransmission, we poll the
            application for new data. */
 	uip_flags = UIP_POLL;
-	UIP_APPCALL();
+    uipclient_appcall();
 	goto appsend;
       }
     }
     goto drop;
   }
-#if UIP_UDP
   if(flag == UIP_UDP_TIMER) {
     if(uip_udp_conn->lport != 0) {
       uip_conn = NULL;
       uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
       uip_len = uip_slen = 0;
       uip_flags = UIP_POLL;
-      UIP_UDP_APPCALL();
+        uipudp_appcall();
+      //UIP_UDP_APPCALL();
       goto udp_send;
     } else {
       goto drop;
     }
   }
-#endif
 
   /* This is where the input processing starts. */
 
@@ -764,9 +732,7 @@ void uip_process(uint8_t flag)
 #endif /* UIP_CONF_IPV6 */
   }
 
-  if(BUF->proto == UIP_PROTO_TCP) { /* Check for TCP packet. If so,
-				       proceed with TCP input
-				       processing. */
+  if(BUF->proto == UIP_PROTO_TCP) {
     goto tcp_input;
   }
 
@@ -848,18 +814,17 @@ void uip_process(uint8_t flag)
   UIP_LOG("udp: no matching connection found");
   goto drop;
   
- udp_found:
-  uip_conn = NULL;
-  uip_flags = UIP_NEWDATA;
-  uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
-  uip_slen = 0;
-  UIP_UDP_APPCALL();
- udp_send:
-  if(uip_slen == 0) {
-    goto drop;
-  }
-  uip_len = uip_slen + UIP_IPUDPH_LEN;
+udp_found:
+    uip_conn = NULL;
+    uip_flags = UIP_NEWDATA;
+    uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
+    uip_slen = 0;
+    uipudp_appcall();
+udp_send:
+    if(uip_slen == 0)
+        goto drop;
 
+    uip_len = uip_slen + UIP_IPUDPH_LEN;
     BUF->len[0] = (uip_len >> 8);
     BUF->len[1] = (uip_len & 0xff);
     BUF->ttl = uip_udp_conn->ttl;
@@ -1061,20 +1026,12 @@ tcp_input:
     }
   }
   
-  /* Our response will be a SYNACK. */
-#if UIP_ACTIVE_OPEN
- tcp_send_synack:
-  BUF->flags = TCP_ACK;
+tcp_send_synack:
+    BUF->flags = TCP_ACK;
+tcp_send_syn:
+    BUF->flags |= TCP_SYN;
   
- tcp_send_syn:
-  BUF->flags |= TCP_SYN;
-#else /* UIP_ACTIVE_OPEN */
- tcp_send_synack:
-  BUF->flags = TCP_SYN | TCP_ACK;
-#endif /* UIP_ACTIVE_OPEN */
-  
-  /* We send out the TCP Maximum Segment Size option with our
-     SYNACK. */
+  /* We send out the TCP Maximum Segment Size option with our SYNACK. */
   BUF->optdata[0] = TCP_OPT_MSS;
   BUF->optdata[1] = TCP_OPT_MSS_LEN;
   BUF->optdata[2] = (UIP_TCP_MSS) / 256;
@@ -1095,7 +1052,7 @@ tcp_input:
     uip_connr->tcpstateflags = UIP_CLOSED;
     UIP_LOG("tcp: got reset, aborting connection.");
     uip_flags = UIP_ABORT;
-    UIP_APPCALL();
+    uipclient_appcall();
     goto drop;
   }
   /* Calculated the length of the data, if the application has sent
@@ -1180,11 +1137,10 @@ tcp_input:
         uip_add_rcv_nxt(uip_len);
       }
       uip_slen = 0;
-      UIP_APPCALL();
+        uipclient_appcall();
       goto appsend;
     }
     goto drop;
-#if UIP_ACTIVE_OPEN
   case UIP_SYN_SENT:
     /* In SYN_SENT, we wait for a SYNACK that is sent in response to
        our SYN. The rcv_nxt is set to sequence number in the SYNACK
@@ -1235,16 +1191,15 @@ tcp_input:
       uip_connr->len = 0;
       uip_len = 0;
       uip_slen = 0;
-      UIP_APPCALL();
+      uipclient_appcall();
       goto appsend;
     }
     /* Inform the application that the connection failed */
     uip_flags = UIP_ABORT;
-    UIP_APPCALL();
+    uipclient_appcall();
     /* The connection is closed after we send the RST */
     uip_conn->tcpstateflags = UIP_CLOSED;
     goto reset;
-#endif /* UIP_ACTIVE_OPEN */
     
   case UIP_ESTABLISHED:
     /* In the ESTABLISHED state, we call upon the application to feed
@@ -1267,7 +1222,7 @@ tcp_input:
       if(uip_len > 0) {
 	uip_flags |= UIP_NEWDATA;
       }
-      UIP_APPCALL();
+        uipclient_appcall();
       uip_connr->len = 1;
       uip_connr->tcpstateflags = UIP_LAST_ACK;
       uip_connr->nrtx = 0;
@@ -1311,7 +1266,7 @@ tcp_input:
 
     if(uip_flags & (UIP_NEWDATA | UIP_ACKDATA)) {
       uip_slen = 0;
-      UIP_APPCALL();
+        uipclient_appcall();
 
     appsend:
       
@@ -1392,7 +1347,7 @@ tcp_input:
     if(uip_flags & UIP_ACKDATA) {
       uip_connr->tcpstateflags = UIP_CLOSED;
       uip_flags = UIP_CLOSE;
-      UIP_APPCALL();
+        uipclient_appcall();
     }
     break;
     
@@ -1413,7 +1368,7 @@ tcp_input:
       }
       uip_add_rcv_nxt(1);
       uip_flags = UIP_CLOSE;
-      UIP_APPCALL();
+        uipclient_appcall();
       goto tcp_send_ack;
     } else if(uip_flags & UIP_ACKDATA) {
       uip_connr->tcpstateflags = UIP_FIN_WAIT_2;
@@ -1434,7 +1389,7 @@ tcp_input:
       uip_connr->timer = 0;
       uip_add_rcv_nxt(1);
       uip_flags = UIP_CLOSE;
-      UIP_APPCALL();
+        uipclient_appcall();
       goto tcp_send_ack;
     }
     if(uip_len > 0) {

@@ -30,9 +30,9 @@ void UIPUDP::stop()
         uip_udp_remove(_uip_udp_conn);
         _uip_udp_conn->appstate = NULL;
         _uip_udp_conn=NULL;
-        Enc28J60Network::freeBlock(appdata.packet_in);
-        Enc28J60Network::freeBlock(appdata.packet_next);
-        Enc28J60Network::freeBlock(appdata.packet_out);
+        _eth->nw()->freeBlock(appdata.packet_in);
+        _eth->nw()->freeBlock(appdata.packet_next);
+        _eth->nw()->freeBlock(appdata.packet_out);
         memset(&appdata,0,sizeof(appdata));
     }
 }
@@ -92,9 +92,10 @@ int UIPUDP::endPacket()
     if (_uip_udp_conn && appdata.packet_out != NOBLOCK)
     {
         appdata.send = true;
-        Enc28J60Network::resizeBlock(appdata.packet_out,0,appdata.out_pos);
+        _eth->nw()->resizeBlock(appdata.packet_out,0,appdata.out_pos);
         uip_udp_conn = _uip_udp_conn;
-        uip_process(UIP_UDP_TIMER);
+        _eth->process(UIP_UDP_TIMER);
+        //uip_process(UIP_UDP_TIMER);
 
         if (uip_len > 0)
         {
@@ -123,19 +124,19 @@ size_t UIPUDP::write(const uint8_t *buffer, size_t size)
 // Returns the size of the packet in bytes, or 0 if no packets are available
 int UIPUDP::parsePacket()
 {
-    UIPEthernetClass::instance->tick();
-    Enc28J60Network::freeBlock(appdata.packet_in);
+    _eth->tick();
+    _eth->nw()->freeBlock(appdata.packet_in);
     appdata.packet_in = appdata.packet_next;
     appdata.packet_next = NOBLOCK;
-    int size = Enc28J60Network::instance->blockSize(appdata.packet_in);
+    int size = _eth->nw()->blockSize(appdata.packet_in);
     return size;
 }
 
 // Number of bytes remaining in the current packet
 int UIPUDP::available()
 {
-    UIPEthernetClass::instance->tick();
-    return Enc28J60Network::instance->blockSize(appdata.packet_in);
+    _eth->tick();
+    return _eth->nw()->blockSize(appdata.packet_in);
 }
 
 // Read a single byte from the current packet
@@ -153,7 +154,7 @@ int UIPUDP::read()
 // Returns the number of bytes read, or 0 if none are available
 int UIPUDP::read(unsigned char* buffer, size_t len)
 {
-    UIPEthernetClass::instance->tick();
+    _eth->tick();
 
     if (appdata.packet_in != NOBLOCK)
     {
@@ -161,12 +162,12 @@ int UIPUDP::read(unsigned char* buffer, size_t len)
 
         if (read == Enc28J60Network::instance->blockSize(appdata.packet_in))
         {
-            Enc28J60Network::instance->freeBlock(appdata.packet_in);
+            _eth->nw()->freeBlock(appdata.packet_in);
             appdata.packet_in = NOBLOCK;
         }
         else
         {
-            Enc28J60Network::instance->resizeBlock(appdata.packet_in,read);
+            _eth->nw()->resizeBlock(appdata.packet_in,read);
         }
 
         return read;
@@ -177,13 +178,13 @@ int UIPUDP::read(unsigned char* buffer, size_t len)
 // Return the next byte from the current packet without moving on to the next byte
 int UIPUDP::peek()
 {
-    UIPEthernetClass::instance->tick();
+    _eth->tick();
 
     if (appdata.packet_in != NOBLOCK)
     {
         uint8_t c;
 
-        if (Enc28J60Network::instance->readPacket(appdata.packet_in,0,&c,1) == 1)
+        if (_eth->nw()->readPacket(appdata.packet_in,0,&c,1) == 1)
             return c;
     }
 
@@ -193,15 +194,14 @@ int UIPUDP::peek()
 // Finish reading the current packet
 void UIPUDP::flush()
 {
-    UIPEthernetClass::instance->tick();
-    Enc28J60Network::freeBlock(appdata.packet_in);
+    _eth->tick();
+    _eth->nw()->freeBlock(appdata.packet_in);
     appdata.packet_in = NOBLOCK;
 }
 
 // Return the IP address of the host who sent the current incoming packet
 IPAddrezz UIPUDP::remoteIP()
 {
-    //return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
     return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
 }
 

@@ -67,7 +67,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf  \
     app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex \
-    app_websdfat1.elf app_websdfat2.elf \
+    app_websdfat1.elf app_websdfat2.elf app_bbs1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
 ifeq ($(POOL1), ja)
@@ -120,6 +120,10 @@ app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
     EthernetUdp.o IPAddress.o EthernetClient.o w5100.o misc.o
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
+    uip.o dhcp.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
+    misc.o stream.o
+
+app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
     misc.o stream.o
 
@@ -195,6 +199,7 @@ stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
+app_bbs1.o: app_bbs1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
 app_analogweb1.o: app_analogweb1.cpp
 app_analogweb2.o: app_analogweb2.cpp

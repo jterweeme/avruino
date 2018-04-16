@@ -26,7 +26,7 @@ void MemoryPool::init()
 
 memhandle MemoryPool::allocBlock(memaddress size)
 {
-    memblock* best = NULL;
+    memblock* best = 0;
     memhandle cur = POOLSTART;
     memblock* block = &blocks[POOLSTART];
     memaddress bestsize = MEMPOOL_SIZE + 1;
