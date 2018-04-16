@@ -2,9 +2,6 @@
 #include "dns.h"
 #include "arp.h"
 
-extern UIPEthernetClass UIPEthernet;    // !!!!!!!!!!!!!
-
-uint8_t UIP_ARPHDRSIZE = 42;
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 uint8_t UIPUDP::begin(uint16_t port)
@@ -82,7 +79,7 @@ int UIPUDP::beginPacket(const char *host, uint16_t port)
     int ret = 0;
     DNSClient dns(_eth);
     IPAddrezz remote_addr;
-    dns.begin(UIPEthernet.dnsServerIP());
+    dns.begin(_eth->dnsServerIP());
     ret = dns.getHostByName(host, remote_addr);
     return ret == 1 ? beginPacket(remote_addr, port) : ret;
 }
@@ -95,11 +92,10 @@ int UIPUDP::endPacket()
         _eth->nw()->resizeBlock(appdata.packet_out,0,appdata.out_pos);
         uip_udp_conn = _uip_udp_conn;
         _eth->process(UIP_UDP_TIMER);
-        //uip_process(UIP_UDP_TIMER);
 
         if (uip_len > 0)
         {
-            _send(&appdata);
+            _eth->_send(&appdata);
             return 1;
         }
     }
@@ -111,7 +107,7 @@ size_t UIPUDP::write(const uint8_t *buffer, size_t size)
 {
     if (appdata.packet_out != NOBLOCK)
     {
-        size_t ret = Enc28J60Network::instance->writePacket(appdata.packet_out,
+        size_t ret = _eth->nw()->writePacket(appdata.packet_out,
             appdata.out_pos,(uint8_t*)buffer,size);
 
         appdata.out_pos += ret;
@@ -158,9 +154,9 @@ int UIPUDP::read(unsigned char* buffer, size_t len)
 
     if (appdata.packet_in != NOBLOCK)
     {
-        memaddress read = Enc28J60Network::instance->readPacket(appdata.packet_in,0,buffer,len);
+        memaddress read = _eth->nw()->readPacket(appdata.packet_in,0,buffer,len);
 
-        if (read == Enc28J60Network::instance->blockSize(appdata.packet_in))
+        if (read == _eth->nw()->blockSize(appdata.packet_in))
         {
             _eth->nw()->freeBlock(appdata.packet_in);
             appdata.packet_in = NOBLOCK;
@@ -217,7 +213,9 @@ void uipudp_appcall()
             {
                 uip_udp_conn->rport = UDPBUF->srcport;
                 uip_ipaddr_copy(uip_udp_conn->ripaddr,UDPBUF->srcipaddr);
-                data->packet_next = Enc28J60Network::allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
+
+                data->packet_next =
+                    Enc28J60Network::allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
                   //if we are unable to allocate memory the packet is dropped.
                     // udp doesn't guarantee packet delivery
                 if (data->packet_next != NOBLOCK)
@@ -240,27 +238,5 @@ void uipudp_appcall()
     }
 }
 
-void UIPUDP::_send(uip_udp_userdata_t *data)
-{
-    uip_arp_out(); //add arp
-
-    if (uip_len == UIP_ARPHDRSIZE)
-    {
-        //_eth->uip_packet = NOBLOCK;
-        UIPEthernetClass::instance->uip_packet = NOBLOCK;
-        UIPEthernetClass::packetstate &= ~UIPETHERNET_SENDPACKET;
-        //_eth->packetstate &= ~UIPETHERNET_SENDPACKET;
-    }
-    else
-    {
-        data->send = false;
-        data->packet_out = NOBLOCK;
-        UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
-        //_eth->packetstate |= UIPETHERNET_SENDPACKET;
-    }
-
-    UIPEthernetClass::instance->network_send();
-    //_eth->network_send();
-}
 
 

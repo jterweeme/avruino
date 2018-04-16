@@ -14,16 +14,25 @@ uint32_t millis()
 }
 
 UIPEthernetClass *UIPEthernetClass::instance;
-memhandle UIPEthernetClass::in_packet(NOBLOCK);
+//memhandle UIPEthernetClass::in_packet(NOBLOCK);
 memhandle UIPEthernetClass::uip_packet(NOBLOCK);
 uint8_t UIPEthernetClass::uip_hdrlen(0);
 uint8_t UIPEthernetClass::packetstate(0);
-IPAddrezz UIPEthernetClass::_dnsServerAddress;
+//IPAddrezz UIPEthernetClass::_dnsServerAddress;
 unsigned long UIPEthernetClass::periodic_timer;
 
 void UIPEthernetClass::tick2()
 {
     g_millis++;
+}
+
+void UIPEthernetClass::_flushBlocks(memhandle* block)
+{
+    for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
+    {
+        Enc28J60Network::freeBlock(block[i]);
+        block[i] = NOBLOCK;
+    }
 }
 
 IPAddrezz UIPEthernetClass::localIP()
@@ -131,7 +140,7 @@ void UIPEthernetClass::tick()
 
             if (uip_len > 0)
             {
-                UIPUDP::_send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
+                _send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
             }
         }
     }
@@ -247,22 +256,20 @@ uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
     return (sum == 0) ? 0xffff : htons(sum);
 }
 
-UIPEthernetClass UIPEthernet;
-
 uint16_t uip_ipchksum()
 {
-    return UIPEthernet.ipchksum();
+    return UIPEthernetClass::instance->ipchksum();
 }
 
 uint16_t uip_tcpchksum()
 {
-    uint16_t sum = UIPEthernet.upper_layer_chksum(UIP_PROTO_TCP);
+    uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_TCP);
     return sum;
 }
 
 uint16_t uip_udpchksum()
 {
-    uint16_t sum = UIPEthernet.upper_layer_chksum(UIP_PROTO_UDP);
+    uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_UDP);
     return sum;
 }
 
@@ -1472,6 +1479,29 @@ void uip_send(const void *data, int len)
 
     if (len > 0 && data != uip_sappdata)
         memcpy(uip_sappdata, (data), uip_slen);
+}
+
+void UIPEthernetClass::_send(uip_udp_userdata_t *data)
+{
+    uip_arp_out(); //add arp
+
+    if (uip_len == UIP_ARPHDRSIZE)
+    {
+        //_eth->uip_packet = NOBLOCK;
+        UIPEthernetClass::instance->uip_packet = NOBLOCK;
+        UIPEthernetClass::packetstate &= ~UIPETHERNET_SENDPACKET;
+        //_eth->packetstate &= ~UIPETHERNET_SENDPACKET;
+    }
+    else
+    {
+        data->send = false;
+        data->packet_out = NOBLOCK;
+        UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
+        //_eth->packetstate |= UIPETHERNET_SENDPACKET;
+    }
+
+    UIPEthernetClass::instance->network_send();
+    //_eth->network_send();
 }
 
 

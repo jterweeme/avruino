@@ -6,18 +6,6 @@ static const uint16_t UIP_UDP_MAXDATALEN = 1500;
 #define UIP_UDP_PHYH_LEN UIP_LLH_LEN+UIP_IPUDPH_LEN
 #define UIP_UDP_MAXPACKETSIZE UIP_UDP_MAXDATALEN+UIP_UDP_PHYH_LEN
 
-typedef struct
-{
-    memaddress out_pos;
-    memhandle packet_next;
-    memhandle packet_in;
-    memhandle packet_out;
-    bool send;
-}
-uip_udp_userdata_t;
-
-class UIPEthernetClass;
-
 class UIPUDP
 {
 private:
@@ -42,10 +30,6 @@ public:
     void flush();	// Finish reading the current packet
     IPAddrezz remoteIP();
     uint16_t remotePort() { return _uip_udp_conn ? ntohs(_uip_udp_conn->rport) : 0; }
-private:
-    friend void uipudp_appcall(void);
-    friend class UIPEthernetClass;
-    static void _send(uip_udp_userdata_t *data);
 };
 #endif
 

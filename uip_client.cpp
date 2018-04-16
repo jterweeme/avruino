@@ -85,7 +85,7 @@ int UIPClient::connect(const char *host, uint16_t port)
     int ret = 0;
     DNSClient dns(_eth);
     IPAddrezz remote_addr;
-    dns.begin(UIPEthernetClass::_dnsServerAddress);
+    dns.begin(_eth->_dnsServerAddress);
     ret = dns.getHostByName(host, remote_addr);
 
     if (ret == 1)
@@ -98,7 +98,7 @@ void UIPClient::stop()
 {
     if (data && data->state)
     {
-        _flushBlocks(&data->packets_in[0]);
+        UIPEthernetClass::_flushBlocks(&data->packets_in[0]);
 
         if (data->state & UIP_CLIENT_REMOTECLOSED)
             data->state = 0;
@@ -215,28 +215,29 @@ int UIPClient::read(uint8_t *buf, size_t size)
 
             if (read == _eth->nw()->blockSize(data->packets_in[0]))
             {
-              remain -= read;
-              _eatBlock(&data->packets_in[0]);
-              if (uip_stopped(&uip_conns[data->state & UIP_CLIENT_SOCKETS]) &&
-                    !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
-              {
-                data->state |= UIP_CLIENT_RESTART;
-              }
+                remain -= read;
+                _eatBlock(&data->packets_in[0]);
 
-              if (data->packets_in[0] == NOBLOCK)
+                if (uip_stopped(&uip_conns[data->state & UIP_CLIENT_SOCKETS]) &&
+                    !(data->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
                 {
-                  if (data->state & UIP_CLIENT_REMOTECLOSED)
+                    data->state |= UIP_CLIENT_RESTART;
+                }
+
+                if (data->packets_in[0] == NOBLOCK)
+                {
+                    if (data->state & UIP_CLIENT_REMOTECLOSED)
                     {
-                      data->state = 0;
-                      data = NULL;
+                        data->state = 0;
+                        data = NULL;
                     }
-                  return size-remain;
+                    return size-remain;
                 }
             }
-          else
+            else
             {
-              Enc28J60Network::resizeBlock(data->packets_in[0],read);
-              break;
+                _eth->nw()->resizeBlock(data->packets_in[0],read);
+                break;
             }
         }
       while(remain > 0);
@@ -272,11 +273,11 @@ int UIPClient::peek()
 void UIPClient::flush()
 {
     if (*this)
-        _flushBlocks(&data->packets_in[0]);
+        UIPEthernetClass::_flushBlocks(&data->packets_in[0]);
 }
 
 
-void uipclient_appcall(void)
+static void uipclient_appcall2()
 {
     uint16_t send_len = 0;
     uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
@@ -329,7 +330,7 @@ finish_newdata:
       if ((uip_flags & UIP_CLOSE) || uip_timedout())
         {
           // drop outgoing packets not sent yet:
-          UIPClient::_flushBlocks(&u->packets_out[0]);
+          UIPEthernetClass::_flushBlocks(&u->packets_out[0]);
           if (u->packets_in[0] != NOBLOCK)
             {
               ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
@@ -394,6 +395,11 @@ finish:
     uip_len = send_len;
 }
 
+void uipclient_appcall()
+{
+    uipclient_appcall2();
+}
+
 uip_userdata_t *UIPClient::_allocateData()
 {
     for (uint8_t sock = 0; sock < UIP_CONNS; sock++)
@@ -429,14 +435,7 @@ void UIPClient::_eatBlock(memhandle* block)
     block[UIP_SOCKET_NUMPACKETS-1] = NOBLOCK;
 }
 
-void UIPClient::_flushBlocks(memhandle* block)
-{
-    for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
-    {
-        Enc28J60Network::freeBlock(block[i]);
-        block[i] = NOBLOCK;
-    }
-}
+
 
 
 

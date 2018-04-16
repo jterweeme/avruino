@@ -32,7 +32,6 @@ public:
     static size_t _write(uip_userdata_t *, const uint8_t *buf, size_t size);
     static uip_userdata_t* _allocateData();
     static void _eatBlock(memhandle* blocks);
-    static void _flushBlocks(memhandle* blocks);
 private:
     uip_userdata_t *data;
     int _available(uip_userdata_t *);

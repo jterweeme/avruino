@@ -17,6 +17,8 @@ void uipclient_appcall(void);
 typedef void* uip_udp_appstate_t;
 void uipudp_appcall(void);
 
+static constexpr uint8_t UIP_ARPHDRSIZE = 42;
+
 #ifndef UIP_CONF_MAX_LISTENPORTS
 #define UIP_LISTENPORTS 20
 #else /* UIP_CONF_MAX_LISTENPORTS */
@@ -285,6 +287,16 @@ static constexpr uint8_t
 
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
+typedef struct
+{
+    memaddress out_pos;
+    memhandle packet_next;
+    memhandle packet_in;
+    memhandle packet_out;
+    bool send;
+}
+uip_udp_userdata_t;
+
 class UIPEthernetClass
 {
 private:
@@ -292,6 +304,7 @@ private:
     static unsigned long periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
 public:
+    void _send(uip_udp_userdata_t *data);
     Enc28J60Network *nw() { return &_nw; }
     void uip_process(uint8_t flag);
     void process(uint8_t flags) { uip_process(flags); }
@@ -299,19 +312,16 @@ public:
     void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
     uint16_t ipchksum();
     uint16_t upper_layer_chksum(uint8_t proto);
-    static memhandle in_packet;
+    memhandle in_packet;
     static uint8_t uip_hdrlen;
     bool network_send();
     static memhandle uip_packet;
     static uint8_t packetstate;
-    static IPAddrezz _dnsServerAddress;
+    static void _flushBlocks(memhandle *blocks);
+    IPAddrezz _dnsServerAddress;
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }
-    void begin(const uint8_t *mac, uint32_t ip);
-    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns);
-    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw);
-    void begin(const uint8_t *mac, uint32_t ip, IPAddrezz dns, IPAddrezz gw, IPAddrezz subnet);
     IPAddrezz localIP();
     IPAddrezz subnetMask();
     IPAddrezz gatewayIP();
