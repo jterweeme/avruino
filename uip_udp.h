@@ -1,9 +1,6 @@
 #ifndef _UIPUDP_H_
 #define _UIPUDP_H_
-
 #include "uip.h"
-#include "enc28j60.h"
-#include "ipaddrezz.h"
 
 static const uint16_t UIP_UDP_MAXDATALEN = 1500;
 #define UIP_UDP_PHYH_LEN UIP_LLH_LEN+UIP_IPUDPH_LEN
@@ -50,5 +47,7 @@ private:
     friend class UIPEthernetClass;
     static void _send(uip_udp_userdata_t *data);
 };
-
 #endif
+
+
+

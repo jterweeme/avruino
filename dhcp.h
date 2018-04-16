@@ -3,7 +3,6 @@
 
 #ifndef _DHCP_H_
 #define _DHCP_H_
-
 #include "uip_udp.h"
 
 static constexpr uint8_t

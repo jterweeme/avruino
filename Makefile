@@ -195,13 +195,17 @@ app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 
 app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
-stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
+    stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
+
+app_bbs1.o: app_bbs1.cpp uip_server.h stream.h dhcp.h uip_udp.h uip.h \
+    enc28j60.h mempool.h misc.h ipaddrezz.h types.h
+
+app_analogweb1.o: app_analogweb1.cpp uip_server.h misc.h board.h stream.h dhcp.h \
+    uip.h uip_udp.h enc28j60.h mempool.h ipaddrezz.h types.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
-app_bbs1.o: app_bbs1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
-app_analogweb1.o: app_analogweb1.cpp
 app_analogweb2.o: app_analogweb2.cpp
 app_blink1.o: app_blink1.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h

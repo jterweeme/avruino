@@ -318,6 +318,41 @@ public:
     IPAddrezz dnsServerIP();
     void tick2();
 };
+
+#define UIP_SOCKET_DATALEN UIP_TCP_MSS
+#ifndef UIP_SOCKET_NUMPACKETS
+#define UIP_SOCKET_NUMPACKETS 5
+#endif
+
+static constexpr uint8_t
+    UIP_CLIENT_CONNECTED = 0x10,
+    UIP_CLIENT_CLOSE = 0x20,
+    UIP_CLIENT_REMOTECLOSED = 0x40,
+    UIP_CLIENT_RESTART = 0x80;
+
+static constexpr uint8_t
+    UIP_CLIENT_STATEFLAGS = UIP_CLIENT_CONNECTED | UIP_CLIENT_CLOSE |
+        UIP_CLIENT_REMOTECLOSED | UIP_CLIENT_RESTART;
+
+static const uint8_t UIP_CLIENT_SOCKETS = (uint8_t)(~UIP_CLIENT_STATEFLAGS);
+
+typedef uint8_t uip_socket_ptr;
+
+struct uip_userdata_closed_t
+{
+    uint8_t state;
+    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
+    uint16_t lport;        /**< The local TCP port, in network byte order. */
+};
+
+typedef struct
+{
+    uint8_t state;
+    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
+    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
+    memaddress out_pos;
+    unsigned long timer;
+} uip_userdata_t;
 #endif
 
 
