@@ -13,83 +13,10 @@ VSYNC: D9/OC1A/PB1
 #include <stdlib.h>
 #include "board.h"
 
-//typedef unsigned char byte;
-
 int32_t map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-
-#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
-
-#define VGAX_HEIGHT 60 //number of lines
-#define VGAX_BWIDTH 30 //number of bytes in a row
-#define VGAX_WIDTH (VGAX_BWIDTH*4) //number of pixels in a row
-#define VGAX_BSIZE (VGAX_BWIDTH*VGAX_HEIGHT) //size of framebuffer in bytes
-#define VGAX_SIZE (VGAX_WIDTH*VGAX_HEIGHT) //size of framebuffer in pixels
-
-//framebuffer. if you want you can write directly to this array. its safe
-extern uint8_t vgaxfb[VGAX_HEIGHT*VGAX_BWIDTH];
-
-//clock replacement. this is increment in the VSYNC interrupt, so run at 60Hz
-extern uint16_t vtimer;
-
-//VGAX class. This is a static class. Multiple instances will not work
-class VGAX
-{
-public:
-    static void begin(bool enableTone=true);
-    static void end();
-
-    static inline void putpixel(uint8_t x, uint8_t y, uint8_t color)
-    {
-        uint8_t *p=vgaxfb + y*VGAX_BWIDTH + (x>>2);
-        uint8_t bitpos = 6 - (x & 3) * 2;
-        *p = (*p & ~(3 <<bitpos)) | color <<bitpos;
-    }
-
-    static inline uint8_t getpixel(uint8_t x, uint8_t y) {
-        uint8_t p = vgaxfb[y*VGAX_BWIDTH + (x>>2)], bitpos=6-(x & 3)*2;
-        return (p >> bitpos) & 3;
-    }
-
-    static inline void putpixel4(uint8_t bx, uint8_t y, uint8_t fourpixels)
-    { vgaxfb[y*VGAX_BWIDTH + bx]=fourpixels; }
-
-    static inline uint8_t getpixel4(uint8_t bx, uint8_t y)
-    { return vgaxfb[y*VGAX_BWIDTH + bx]; }
-
-    static void clear(uint8_t color);
-    static void copy(uint8_t *src);
-    static void bitblit(uint8_t *src, uint8_t swidth, uint8_t sheight, char dx, char dy,
-                uint8_t color);
-
-    static void blit(uint8_t *src, uint8_t swidth, uint8_t sheight, char dx, char dy);
-    static void blit4(uint8_t *src, uint8_t sheight, char dx, char dy);
-    static void blit8(uint8_t *src, uint8_t sheight, char dx, char dy);
-
-    static void blitwmask(uint8_t *src, uint8_t *mask, uint8_t swidth, uint8_t sheight,
-                char dx, char dy);
-
-    static void blit8wmask(uint8_t *src, uint8_t *mask, uint8_t sheight, char dx, char dy);
-    static void blit4aligned(uint8_t *src, uint8_t sheight, uint8_t dbx, uint8_t dy);
-    static void blit8aligned(uint8_t *src, uint8_t sheight, uint8_t dbx, uint8_t dy);
-    static void fillrect(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t color);
-
-    static void printPROGMEM(uint8_t *fnt, uint8_t glyphscount, uint8_t fntheight, 
-                uint8_t hspace, uint8_t vspace, const char *str, char dx, char dy, 
-                uint8_t color);
-
-    static void printSRAM(uint8_t *fnt, uint8_t glyphscount, uint8_t fntheight, 
-                uint8_t hspace, uint8_t vspace, const char *str, char dx, char dy, 
-                uint8_t color);
-
-    static void delay(int msec);
-    static inline unsigned millis() { return vtimer*16; }
-    static inline unsigned long micros() { return vtimer*16000; }
-    static void tone(unsigned int frequency);
-    static void noTone();
-};
 
 #define PRINT_LOOP_CODE \
   if (c=='\n') { \
@@ -770,9 +697,6 @@ public:
 #define RIGHT_PADDLE_X (VGAX_WIDTH-4)
 #define LEFT_PADDLE_X 2
 #define MAX_Y_VELOCITY 0.1
-
-static VGAX vga;
-static VGAXUtils vgaU;
 
 //data size=570 bytes
 static const uint8_t

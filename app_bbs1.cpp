@@ -19,6 +19,23 @@ static inline char convertCase(char c)
     return c;
 }
 
+static void addresses(UIPEthernetClass &eth, ostream &os)
+{
+    uint32_t ip = eth.localIP();
+    uint32_t subnet = eth.subnetMask();
+    uint32_t gw = eth.gatewayIP();
+    uint32_t dns = eth.dnsServerIP();
+    os << "IP:      ";
+    hex32(ip, os);
+    os << "\r\nSubnet:  ";
+    hex32(subnet, os);
+    os << "\r\nGateway: ";
+    hex32(gw, os);
+    os << "\r\nDNS:     ";
+    hex32(dns, os);
+    os << "\r\n";
+}
+
 int main()
 {
     UIPServer server = UIPServer(&eth, 23);
@@ -40,6 +57,8 @@ int main()
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+    addresses(eth, cout);
+    cout << "\r\n";
 
     server.begin();
 

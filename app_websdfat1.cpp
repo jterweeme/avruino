@@ -204,9 +204,9 @@ int main()
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
-
     addresses(eth, cout);
     cout << "\r\n";
+
     server.begin();
     Buffer buffer;
     bool ret = zd.begin();
