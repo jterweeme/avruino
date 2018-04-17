@@ -9,24 +9,6 @@ static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,
     SYNC_TIMEOUT = 30, MAX_RETRY = 30;
 
-class CRC
-{
-private:
-    uint16_t _crc = 0;
-public:
-    void reset() { _crc = 0; }
-    uint16_t crc() const { return _crc; }
-    void update(uint8_t c);
-};
-
-void CRC::update(uint8_t c)
-{
-    _crc = _crc ^ (uint16_t)c << 8;
-
-    for (uint8_t i = 0; i < 8; i++) 
-        _crc = _crc & 0x8000 ? _crc << 1 ^ 0x1021 : _crc << 1;
-}
-
 #ifdef ENABLE_YSENDER
 size_t YSender::filbuf(istream &is)
 {
@@ -44,6 +26,14 @@ void YSender::_sync()
             break;
         }
     }
+}
+
+void YSender::calcCRC16(uint16_t &crc, uint8_t c) const
+{
+    crc = crc ^ (uint16_t)c << 8;
+
+    for (uint8_t i = 0; i < 8; i++)
+        crc = crc & 0x8000 ? crc << 1 ^ 0x1021 : crc << 1;
 }
 
 int YSender::wctx(istream &is)
@@ -78,7 +68,7 @@ int YSender::wctx(istream &is)
 
 int YSender::putsec(uint8_t sectnum, size_t cseclen)
 {
-    int checksum, wcj, firstch = 0;
+    int wcj, firstch = 0;
     char *cp;
 
     for (uint8_t attempts = 0; attempts <= MAX_RETRY; attempts++)
@@ -86,20 +76,18 @@ int YSender::putsec(uint8_t sectnum, size_t cseclen)
         _os->put(SOH);
         _os->put(sectnum);
         _os->put(-sectnum - 1);
-        checksum = 0;
-        CRC crc;
-        crc.reset();
+        int checksum = 0;
+        uint16_t crc16 = 0;
 
         for (wcj = cseclen, cp = _txbuf; --wcj >= 0;)
         {
             _os->put(*cp);
-            crc.update(*cp);
+            calcCRC16(crc16, *cp);
             checksum += *cp++;
         }
 
-        uint16_t oldcrc = crc.crc();
-        _os->put(oldcrc >> 8);
-        _os->put(oldcrc);
+        _os->put(crc16 >> 8 & 0xff);
+        _os->put(crc16 & 0xff);
         _os->flush();
         firstch = _is->get();
 gotnak:
@@ -217,12 +205,15 @@ void YReceiver::receive(Fatty &zd)
     FyleOfstream ofs;
     *_os << "waiting to receive.";
     _os->flush();
-    _wcrxpn();
-    _procheader();
-    ofs.open(_fn);
-    wcrx(ofs);
-    ofs.close();
-    _wcrxpn();
+    //_wcrxpn();
+
+    while (_wcrxpn() > 0)
+    {
+        _procheader();
+        ofs.open(_fn);
+        wcrx(ofs);
+        ofs.close();
+    }
 }
 
 int YReceiver::_wcrxpn()
@@ -246,7 +237,7 @@ et_tu:
     }
     _os->put(ACK);
     _os->flush();
-    return 0;
+    return _secbuf[0] ? 1 : 0;
 }
 
 int YReceiver::_getsec()

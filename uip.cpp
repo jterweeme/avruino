@@ -95,8 +95,8 @@ void UIPEthernetClass::tick()
 
         if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
         {
-          _nw.freePacket();
-          in_packet = NOBLOCK;
+            _nw.freePacket();
+            in_packet = NOBLOCK;
         }
     }
 
@@ -106,24 +106,26 @@ void UIPEthernetClass::tick()
 
     for (int i = 0; i < UIP_CONNS; i++)
     {
-      uip_conn = &uip_conns[i];
-      if (periodic)
+        uip_conn = &uip_conns[i];
+        if (periodic)
         {
           process(UIP_TIMER);
         }
-      else
+        else
         {
-          if ((long)( now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
-            process(UIP_POLL_REQUEST);
-          else
-            continue;
+            if ((long)( now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
+                process(UIP_POLL_REQUEST);
+            else
+                continue;
         }
-      if (uip_len > 0)
+
+        if (uip_len > 0)
         {
-          uip_arp_out();
-          network_send();
+            uip_arp_out();
+            network_send();
         }
     }
+
     if (periodic)
     {
         periodic_timer = now + UIP_PERIODIC_TIMER;
@@ -217,7 +219,7 @@ uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t le
   return sum;
 }
 
-uint16_t UIPEthernetClass::ipchksum(void)
+uint16_t UIPEthernetClass::ipchksum()
 {
     uint16_t sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
     return sum == 0 ? 0xffff : htons(sum);
@@ -249,24 +251,6 @@ uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
     }
     return (sum == 0) ? 0xffff : htons(sum);
 }
-
-static uint16_t uip_ipchksum()
-{
-    return UIPEthernetClass::instance->ipchksum();
-}
-
-static uint16_t uip_tcpchksum()
-{
-    uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_TCP);
-    return sum;
-}
-
-static uint16_t uip_udpchksum()
-{
-    uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_UDP);
-    return sum;
-}
-
 
 static constexpr uint8_t
     UIP_PROTO_ICMP = 1, ICMP_ECHO_REPLY = 0, ICMP_ECHO = 8,
@@ -692,20 +676,20 @@ void UIPEthernetClass::uip_process(uint8_t flag)
     /* If IP broadcast support is configured, we check for a broadcast
        UDP packet, which may be destined to us. */
 #if UIP_BROADCAST
-    if(BUF->proto == UIP_PROTO_UDP &&
-       uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr)
-       /*&&
-	 uip_ipchksum() == 0xffff*/) {
-      goto udp_input;
+    if (BUF->proto == UIP_PROTO_UDP &&
+       uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr))
+    {
+        goto udp_input;
     }
 #endif /* UIP_BROADCAST */
     
     /* Check if the packet is destined for our IP address. */
 #if !UIP_CONF_IPV6
-    if(!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr)) {
-      goto drop;
+    if (!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr))
+    {
+        goto drop;
     }
-#else /* UIP_CONF_IPV6 */
+#else
     /* For IPv6, packet reception is a little trickier as we need to
        make sure that we listen to certain multicast addresses (all
        hosts multicast address, and the solicited-node multicast
@@ -775,7 +759,7 @@ void UIPEthernetClass::uip_process(uint8_t flag)
     uip_len = uip_len - UIP_IPUDPH_LEN;
     uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
 
-    if(UDPBUF->udpchksum != 0 && uip_udpchksum() != 0xffff) {
+    if(UDPBUF->udpchksum != 0 && upper_layer_chksum(UIP_PROTO_UDP) != 0xffff) {
         goto drop;
     }
 #else
@@ -828,7 +812,7 @@ udp_send:
 
 #if UIP_UDP_CHECKSUMS
   /* Calculate UDP checksum. */
-  UDPBUF->udpchksum = ~(uip_udpchksum());
+  UDPBUF->udpchksum = ~(upper_layer_chksum(UIP_PROTO_UDP));
   if(UDPBUF->udpchksum == 0) {
     UDPBUF->udpchksum = 0xffff;
   }
@@ -840,10 +824,9 @@ udp_send:
 tcp_input:
   /* Start of TCP input header processing code. */
   
-  if(uip_tcpchksum() != 0xffff) { 
+  if (upper_layer_chksum(UIP_PROTO_TCP) != 0xffff) { 
     goto drop;
   }
-  
   
   /* Demultiplex this segment. */
   /* First check any active connections. */
@@ -1429,7 +1412,7 @@ tcp_send_noconn:
     BUF->len[1] = (uip_len & 0xff);
     BUF->urgp[0] = BUF->urgp[1] = 0;
     BUF->tcpchksum = 0;
-    BUF->tcpchksum = ~(uip_tcpchksum());
+    BUF->tcpchksum = ~(upper_layer_chksum(UIP_PROTO_TCP));
 ip_send_nolen:
     BUF->vhl = 0x45;
     BUF->tos = 0;
@@ -1438,7 +1421,7 @@ ip_send_nolen:
     BUF->ipid[0] = ipid >> 8;
     BUF->ipid[1] = ipid & 0xff;
     BUF->ipchksum = 0;
-    BUF->ipchksum = ~(uip_ipchksum());
+    BUF->ipchksum = ~(ipchksum());
 send:
     uip_flags = 0;
     return;

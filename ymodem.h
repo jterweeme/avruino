@@ -40,6 +40,7 @@ private:
     int putsec(uint8_t sectnum, size_t cseclen);
     int wctxpn(const char *fn, uint32_t filesize, uint16_t time, uint16_t mode);
     size_t filbuf(istream &is);
+    void calcCRC16(uint16_t &crc, uint8_t c) const;
 public:
     YSender(istream *is, ostream *os) : _is(is), _os(os) { }
     int send(istream &is, const char *fn, uint32_t filesize, uint16_t time, uint16_t mode);

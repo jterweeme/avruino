@@ -94,16 +94,27 @@ static void printDirectory(Fyle dir, int numTabs, ostream &os)
         for (uint8_t i = 0; i < numTabs; i++)
             os << "\t";
 
+        if (entry.isDirectory())
+            os.put('[');
+
         os << entry.name();
 
         if (entry.isDirectory())
+            os << "]\r\n";
+
+        if (entry.isDirectory())
         {
+#if 0
             os.put('/');
             printDirectory(entry, numTabs + 1, os);
+#endif
         }
         else
         {
-            os << "\t\t";
+            for (uint8_t i = my_strlen(entry.name()); i < 15; i++)
+                os.put(' ');
+
+            //os << "\t\t";
             uint32_t size = entry.size();
             hex32(size, os);
             os << "\r\n";
@@ -345,7 +356,7 @@ void App::_md5sum(Fatty &zd, ostream &os)
 int App::run()
 {
     Board b;
-    Sd2Card sd(&b.pin4);
+    Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
