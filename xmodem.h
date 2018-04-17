@@ -22,11 +22,13 @@ public:
 class XSender
 {
 private:
+    uint8_t _mode = 0;
     char _txbuf[128];
     istream * const _is;
     ostream * const _os;
     int putsec(int sectnum, size_t cseclen);
     size_t _filbuf(istream &is) { is.read(_txbuf, 128); return is.gcount(); }
+    void _calcCRC16(uint16_t &crc, uint8_t c) const;
 public:
     XSender(istream *is, ostream *os) : _is(is), _os(os) { }
     int send(istream &is);

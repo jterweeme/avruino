@@ -90,7 +90,7 @@ int XReceiver::_getsec()
 #ifdef ENABLE_XSENDER
 int XSender::putsec(int sectnum, size_t cseclen)
 {
-    int checksum, wcj, firstch = 0;
+    int wcj, firstch = 0;
     char *cp;
 
     for (uint8_t attempts = 0; attempts <= MAX_RETRY; attempts++)
@@ -98,22 +98,35 @@ int XSender::putsec(int sectnum, size_t cseclen)
         _os->put(SOH);
         _os->put(sectnum);
         _os->put(-sectnum - 1);
-        checksum = 0;
+        int checksum = 0;
+        uint16_t crc16 = 0;
 
         for (wcj = cseclen, cp = _txbuf; --wcj >= 0;)
         {
             _os->put(*cp);
+            _calcCRC16(crc16, *cp);
             checksum += *cp++;
         }
 
-        _os->put(checksum);
+        if (_mode == 0)
+        {
+            _os->put(checksum);
+        }
+        else
+        {
+            _os->put(crc16 >> 8 & 0xff);
+            _os->put(crc16 & 0xff);
+        }
         _os->flush();
         firstch = _is->get();
 gotnak:
         switch (firstch)
         {
         case 'C':
+            _mode = 1;
+            continue;
         case NAK:
+            _mode = 0;
             continue;
         case ACK:
             return 0;
@@ -130,6 +143,14 @@ gotnak:
         }
     }
     return -1;
+}
+
+void XSender::_calcCRC16(uint16_t &crc, uint8_t c) const
+{
+    crc = crc ^ (uint16_t)c << 8;
+
+    for (uint8_t i = 0; i < 8; i++)
+        crc = crc & 0x8000 ? crc << 1 ^ 0x1021 : crc << 1;
 }
 
 int XSender::send(istream &is)

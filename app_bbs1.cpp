@@ -9,43 +9,37 @@
 
 static UIPEthernetClass eth;
 
+static ostream *gout;
+
 static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,
     SYNC_TIMEOUT = 30, MAX_RETRY = 30;
 
-class CRC
-{
-private:
-    uint16_t _crc = 0;
-public:
-    void reset() { _crc = 0; }
-    uint16_t crc() const { return _crc; }
-    void update(uint8_t c);
-};
-
-void CRC::update(uint8_t c)
-{
-    _crc = _crc ^ (uint16_t)c << 8;
-
-    for (uint8_t i = 0; i < 8; i++)
-        _crc = _crc & 0x8000 ? _crc << 1 ^ 0x1021 : _crc << 1;
-}
-
 class XTSender
 {
 private:
+    uint8_t _mode = 0;
     UIPClient * const _client;
     char _txbuf[128];
     int putsec(int sectnum, size_t cseclen);
     size_t _filbuf(istream &is) { is.read(_txbuf, 128); return is.gcount(); }
+    void _calcCRC16(uint16_t &crc, uint8_t c) const;
 public:
     XTSender(UIPClient *client) : _client(client) { }
     int send(istream &is);
 };
 
+void XTSender::_calcCRC16(uint16_t &crc, uint8_t c) const
+{
+    crc = crc ^ (uint16_t)c << 8;
+
+    for (uint8_t i = 0; i < 8; i++)
+        crc = crc & 0x8000 ? crc << 1 ^ 0x1021 : crc << 1;
+}
+
 int XTSender::putsec(int sectnum, size_t cseclen)
 {
-    int checksum, wcj, firstch = 0;
+    int wcj, firstch = 0;
     char *cp;
 
     for (uint8_t attempts = 0; attempts <= MAX_RETRY; attempts++)
@@ -53,27 +47,35 @@ int XTSender::putsec(int sectnum, size_t cseclen)
         _client->write(SOH);
         _client->write(sectnum);
         _client->write(-sectnum - 1);
-        checksum = 0;
-        CRC crc;
-        crc.reset();
+        int checksum = 0;
+        uint16_t crc16 = 0;
 
         for (wcj = cseclen, cp = _txbuf; --wcj >= 0;)
         {
             _client->write(*cp);
-            crc.update(*cp);
+            _calcCRC16(crc16, *cp);
             checksum += *cp++;
         }
 
-        uint16_t crc16 = crc.crc();
-        _client->write(crc16 >> 8 & 0xff);
-        _client->write(crc16 & 0xff);
-        //_client->write(checksum);
+        if (_mode == 0)
+        {
+            _client->write(checksum & 0xff);
+        }
+        else
+        {
+            _client->write(crc16 >> 8 & 0xff);
+            _client->write(crc16 & 0xff);
+        }
+
         firstch = _client->read();
 gotnak:
         switch (firstch)
         {
         case 'C':
+            _mode = 1;
+            continue;
         case NAK:
+            _mode = 0;
             continue;
         case ACK:
             return 0;
@@ -94,16 +96,36 @@ gotnak:
 
 int XTSender::send(istream &is)
 {
+    *gout << "XTSender::send()\r\n";
+    gout->flush();
     int sectnum = 0, attempts = 0, firstch;
     
     do
     {
         firstch = _client->read();
+
+        if (firstch == 'C')
+        {
+            _mode = 1;
+            *gout << "Got C\r\n";
+            gout->flush();
+            break;
+        }
+
+        if (firstch == NAK)
+        {
+            _mode = 0;
+            *gout << "Got NAK, mode checksum\r\n";
+            gout->flush();
+            break;
+        }
+        //gout->put(firstch);
+        //*gout << "\r\n";
         
         if (firstch == 'X')
             return -1;
     }
-    while (firstch != NAK && firstch != 'C' && firstch != 'G');
+    while (firstch != 'G');
 
     while (_filbuf(is) > 0)
         if (putsec(++sectnum, 128) == -1)
@@ -159,7 +181,6 @@ static void cat(istream &is, UIPClient &os)
     }
 }
 
-
 int main()
 {
     UIPServer server = UIPServer(&eth, 23);
@@ -170,6 +191,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
 
     cout << "Initialize SD Card...\r\n";
     Board b;
