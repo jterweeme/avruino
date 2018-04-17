@@ -311,26 +311,26 @@ struct Board
         portD { p_portd_base };
 
     Pin
-        pin0 {portD, BIT0},
-        pin1 {portD, BIT1},
-        pin2 {portD, BIT2},
-        pin3 {portD, BIT3},
-        pin4 {portD, BIT4},
-        pin5 {portD, BIT5},
-        pin6 {portD, BIT6},
-        pin7 {portD, BIT7},
-        pin8 {portB, BIT0},
-        pin9 {portB, BIT1},
-        pin10 {portB, BIT2},
-        pin11 {portB, BIT3},
-        pin12 {portB, BIT4},
-        pin13 {portB, BIT5},
-        pinA0 {portC, BIT0},
-        pinA1 {portC, BIT1},
-        pinA2 {portC, BIT2},
-        pinA3 {portC, BIT3},
-        pinA4 {portC, BIT4},
-        pinA5 {portC, BIT5};
+        pin0 {portD, pd0},
+        pin1 {portD, pd1},
+        pin2 {portD, pd2},
+        pin3 {portD, pd3},
+        pin4 {portD, pd4},
+        pin5 {portD, pd5},
+        pin6 {portD, pd6},
+        pin7 {portD, pd7},
+        pin8 {portB, pb0},
+        pin9 {portB, pb1},
+        pin10 {portB, pb2},
+        pin11 {portB, pb3},
+        pin12 {portB, pb4},
+        pin13 {portB, pb5},
+        pinA0 {portC, pc0},
+        pinA1 {portC, pc1},
+        pinA2 {portC, pc2},
+        pinA3 {portC, pc3},
+        pinA4 {portC, pc4},
+        pinA5 {portC, pc5};
 };
 
 #define INTR0 __vector_1()

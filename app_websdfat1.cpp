@@ -194,12 +194,21 @@ int main()
     *p_ubrr9 = 16;
     UartStream cout(&s);
 
-    cout << "Initialize Ethernet\r\n";
+    cout << "Initialize SD Card...\r\n";
+    bool ret = zd.begin();
+
+    if (!ret)
+    {
+        cout << "init failed!\r\n";
+        return 0;
+    }
+
+    cout << "Initialize Ethernet...\r\n";
     cout.flush();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     eth.init(mac);
 
-    cout << "Starting DHCP\r\n";
+    cout << "Starting DHCP...\r\n";
     cout.flush();
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
@@ -209,13 +218,6 @@ int main()
 
     server.begin();
     Buffer buffer;
-    bool ret = zd.begin();
-
-    if (!ret)
-    {
-        cout << "init failed!\r\n";
-        return 0;
-    }
 
     while (true)
     {

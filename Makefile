@@ -125,7 +125,7 @@ app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinp
 
 app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o uip_timer.o mempool.o \
-    misc.o stream.o
+    misc.o stream.o fatty.o zd2card.o
 
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o uip_timer.o mempool.o \

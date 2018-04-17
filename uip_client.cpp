@@ -98,7 +98,7 @@ void UIPClient::stop()
 {
     if (data && data->state)
     {
-        UIPEthernetClass::_flushBlocks(&data->packets_in[0]);
+        UIPEthernetClass::instance->_flushBlocks(&data->packets_in[0]);
 
         if (data->state & UIP_CLIENT_REMOTECLOSED)
             data->state = 0;
@@ -273,7 +273,7 @@ int UIPClient::peek()
 void UIPClient::flush()
 {
     if (*this)
-        UIPEthernetClass::_flushBlocks(&data->packets_in[0]);
+        UIPEthernetClass::instance->_flushBlocks(&data->packets_in[0]);
 }
 
 
@@ -315,7 +315,7 @@ static void uipclient_appcall2()
                         }
                     }
                 }
-              UIPEthernetClass::packetstate &= ~UIPETHERNET_FREEPACKET;
+              UIPEthernetClass::instance->packetstate &= ~UIPETHERNET_FREEPACKET;
               uip_stop();
             }
         }
@@ -330,7 +330,7 @@ finish_newdata:
       if ((uip_flags & UIP_CLOSE) || uip_timedout())
         {
           // drop outgoing packets not sent yet:
-          UIPEthernetClass::_flushBlocks(&u->packets_out[0]);
+          UIPEthernetClass::instance->_flushBlocks(&u->packets_out[0]);
           if (u->packets_in[0] != NOBLOCK)
             {
               ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
@@ -363,13 +363,16 @@ finish_newdata:
             }
               if (send_len > 0)
                 {
-                  UIPEthernetClass::uip_hdrlen = ((uint8_t*)uip_appdata)-uip_buf;
-                  UIPEthernetClass::instance->uip_packet = Enc28J60Network::allocBlock(UIPEthernetClass::uip_hdrlen+send_len);
+                  UIPEthernetClass::instance->uip_hdrlen = ((uint8_t*)uip_appdata)-uip_buf;
+                  UIPEthernetClass::instance->uip_packet = Enc28J60Network::allocBlock(
+                    UIPEthernetClass::instance->uip_hdrlen+send_len);
                   if (UIPEthernetClass::instance->uip_packet != NOBLOCK)
                     {
-                      Enc28J60Network::instance->copyPacket(UIPEthernetClass::instance->uip_packet,
-        UIPEthernetClass::uip_hdrlen,u->packets_out[0],0,send_len);
-                      UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
+                      Enc28J60Network::instance->copyPacket(
+                            UIPEthernetClass::instance->uip_packet,
+                            UIPEthernetClass::instance->uip_hdrlen,u->packets_out[0],0,send_len);
+
+                      UIPEthernetClass::instance->packetstate |= UIPETHERNET_SENDPACKET;
                     }
                 }
               goto finish;

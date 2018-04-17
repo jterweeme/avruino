@@ -20,6 +20,23 @@ werkt met mega
 static UIPEthernetClass eth;
 static uint8_t g_count = 0;
 
+static void addresses(UIPEthernetClass &eth, ostream &os)
+{
+    uint32_t ip = eth.localIP();
+    uint32_t subnet = eth.subnetMask();
+    uint32_t gw = eth.gatewayIP();
+    uint32_t dns = eth.dnsServerIP();
+    os << "IP:      ";
+    hex32(ip, os);
+    os << "\r\nSubnet:  ";
+    hex32(subnet, os);
+    os << "\r\nGateway: ";
+    hex32(gw, os);
+    os << "\r\nDNS:     ";
+    hex32(dns, os);
+    os << "\r\n";
+}
+
 int main()
 {
     // 16,000,000/16,000 = 1000
@@ -34,30 +51,18 @@ int main()
     *p_timsk0 |= 1<<toie0;
     zei();
 
-    cout << "Initialize Ethernet\r\n";
+    cout << "Initialize Ethernet...\r\n";
     cout.flush();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     eth.init(mac);
 
-    cout << "Starting DHCP\r\n";
+    cout << "Starting DHCP...\r\n";
     cout.flush();
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
-
-    uint32_t ip = eth.localIP();
-    uint32_t subnet = eth.subnetMask();
-    uint32_t gw = eth.gatewayIP();
-    uint32_t dns = eth.dnsServerIP();
-    cout << "IP: ";
-    hex32(ip, cout);
-    cout << "\r\nSubnet: ";
-    hex32(subnet, cout);
-    cout << "\r\nGateway: ";
-    hex32(gw, cout);
-    cout << "\r\nDNS: ";
-    hex32(dns, cout);
-    cout << "\r\n\r\n";
+    addresses(eth, cout);
+    cout << "\r\n";
 
     server.begin();
     cout << "Server started\r\n";

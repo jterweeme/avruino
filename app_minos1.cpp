@@ -345,7 +345,7 @@ void App::_md5sum(Fatty &zd, ostream &os)
 int App::run()
 {
     Board b;
-    Sd2Card sd(&b.pin9);
+    Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;

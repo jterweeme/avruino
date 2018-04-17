@@ -176,7 +176,6 @@ extern struct uip_conn *uip_conn;
 extern struct uip_conn uip_conns[UIP_CONNS];
 extern uint8_t uip_acc32[4];
 
-#if UIP_UDP
 struct uip_udp_conn {
   uip_ipaddr_t ripaddr;   /**< The IP address of the remote peer. */
   uint16_t lport;        /**< The local port number in network byte order. */
@@ -189,10 +188,7 @@ struct uip_udp_conn {
 
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
-#endif
-
 extern uint8_t uip_flags;
-//void uip_process(uint8_t flag);
 
 static constexpr uint8_t
     UIP_DATA = 1,
@@ -222,22 +218,16 @@ static constexpr uint8_t
     UIP_CONNECTED = 64,
     UIP_TIMEDOUT = 128;
 
-struct uip_tcpip_hdr {
-
-  uint8_t vhl, tos,
-    len[2],
-    ipid[2],
-    ipoffset[2],
-    ttl,
-    proto;
-  uint16_t ipchksum;
-  uint16_t srcipaddr[2],
-    destipaddr[2];
-  uint16_t srcport, destport;
-  uint8_t seqno[4], ackno[4], tcpoffset, flags, wnd[2];
-  uint16_t tcpchksum;
-  uint8_t urgp[2];
-  uint8_t optdata[4];
+struct uip_tcpip_hdr
+{
+    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
+    uint16_t ipchksum;
+    uint16_t srcipaddr[2], destipaddr[2];
+    uint16_t srcport, destport;
+    uint8_t seqno[4], ackno[4], tcpoffset, flags, wnd[2];
+    uint16_t tcpchksum;
+    uint8_t urgp[2];
+    uint8_t optdata[4];
 };
 
 struct uip_udpip_hdr
@@ -262,9 +252,6 @@ extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #endif
 
 struct uip_eth_addr { uint8_t addr[6]; };
-uint16_t uip_ipchksum();
-uint16_t uip_tcpchksum();
-uint16_t uip_udpchksum();
 
 static constexpr uint8_t
     UIPETHERNET_FREEPACKET = 1,
@@ -301,7 +288,7 @@ class UIPEthernetClass
 {
 private:
     Enc28J60Network _nw;
-    static unsigned long periodic_timer;
+    unsigned long periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
 public:
     void _send(uip_udp_userdata_t *data);
@@ -313,11 +300,11 @@ public:
     uint16_t ipchksum();
     uint16_t upper_layer_chksum(uint8_t proto);
     memhandle in_packet;
-    static uint8_t uip_hdrlen;
+    uint8_t uip_hdrlen;
     bool network_send();
-    static memhandle uip_packet;
-    static uint8_t packetstate;
-    static void _flushBlocks(memhandle *blocks);
+    memhandle uip_packet;
+    uint8_t packetstate;
+    void _flushBlocks(memhandle *blocks);
     IPAddrezz _dnsServerAddress;
     void tick();
     static UIPEthernetClass *instance;

@@ -14,12 +14,6 @@ uint32_t millis()
 }
 
 UIPEthernetClass *UIPEthernetClass::instance;
-//memhandle UIPEthernetClass::in_packet(NOBLOCK);
-memhandle UIPEthernetClass::uip_packet(NOBLOCK);
-uint8_t UIPEthernetClass::uip_hdrlen(0);
-uint8_t UIPEthernetClass::packetstate(0);
-//IPAddrezz UIPEthernetClass::_dnsServerAddress;
-unsigned long UIPEthernetClass::periodic_timer;
 
 void UIPEthernetClass::tick2()
 {
@@ -256,18 +250,18 @@ uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
     return (sum == 0) ? 0xffff : htons(sum);
 }
 
-uint16_t uip_ipchksum()
+static uint16_t uip_ipchksum()
 {
     return UIPEthernetClass::instance->ipchksum();
 }
 
-uint16_t uip_tcpchksum()
+static uint16_t uip_tcpchksum()
 {
     uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_TCP);
     return sum;
 }
 
-uint16_t uip_udpchksum()
+static uint16_t uip_udpchksum()
 {
     uint16_t sum = UIPEthernetClass::instance->upper_layer_chksum(UIP_PROTO_UDP);
     return sum;
@@ -284,9 +278,6 @@ static constexpr uint8_t
     TCP_OPT_MSS_LEN = 4;
 
 void uip_add32(uint8_t *op32, uint16_t op16);
-uint16_t uip_tcpchksum(void);
-uint16_t uip_udpchksum(void);
-
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 static const uip_ipaddr_t all_ones_addr = {0xffff,0xffff};
 static const uip_ipaddr_t all_zeroes_addr = {0x0000,0x0000};
@@ -662,16 +653,13 @@ void UIPEthernetClass::uip_process(uint8_t flag)
     }
   }
 
-  /* This is where the input processing starts. */
-
-  /* Start of IP input header processing code. */
+    /* This is where the input processing starts.
+        Start of IP input header processing code. */
   
-    if(BUF->vhl != 0x45)
-    { /* IP version and header length. */
-        goto drop;
-    }
+    if (BUF->vhl != 0x45)
+        goto drop;  // IP version and header length
   
-    if((BUF->len[0] << 8) + BUF->len[1] <= uip_len)
+    if ((uint16_t)((BUF->len[0] << 8) + BUF->len[1]) <= uip_len)
     {
         uip_len = (BUF->len[0] << 8) + BUF->len[1];
     } else {
@@ -680,19 +668,11 @@ void UIPEthernetClass::uip_process(uint8_t flag)
     }
 
 #if !UIP_CONF_IPV6
-  /* Check the fragment flag. */
-  if((BUF->ipoffset[0] & 0x3f) != 0 ||
-     BUF->ipoffset[1] != 0) {
-#if UIP_REASSEMBLY
-    uip_len = uip_reass();
-    if(uip_len == 0) {
-      goto drop;
+    if((BUF->ipoffset[0] & 0x3f) != 0 || BUF->ipoffset[1] != 0)
+    {
+        goto drop;
     }
-#else
-    goto drop;
-#endif /* UIP_REASSEMBLY */
-  }
-#endif /* UIP_CONF_IPV6 */
+#endif
 
   if(uip_ipaddr_cmp(uip_hostaddr, all_zeroes_addr)) {
     /* If we are configured to use ping IP address configuration and
@@ -1483,25 +1463,21 @@ void uip_send(const void *data, int len)
 
 void UIPEthernetClass::_send(uip_udp_userdata_t *data)
 {
-    uip_arp_out(); //add arp
+    uip_arp_out();
 
     if (uip_len == UIP_ARPHDRSIZE)
     {
-        //_eth->uip_packet = NOBLOCK;
-        UIPEthernetClass::instance->uip_packet = NOBLOCK;
-        UIPEthernetClass::packetstate &= ~UIPETHERNET_SENDPACKET;
-        //_eth->packetstate &= ~UIPETHERNET_SENDPACKET;
+        uip_packet = NOBLOCK;
+        packetstate &= ~UIPETHERNET_SENDPACKET;
     }
     else
     {
         data->send = false;
         data->packet_out = NOBLOCK;
-        UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
-        //_eth->packetstate |= UIPETHERNET_SENDPACKET;
+        packetstate |= UIPETHERNET_SENDPACKET;
     }
 
-    UIPEthernetClass::instance->network_send();
-    //_eth->network_send();
+    network_send();
 }
 
 
