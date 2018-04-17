@@ -63,7 +63,7 @@ int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
     {
         if (appdata.packet_out == NOBLOCK)
         {
-            appdata.packet_out = Enc28J60Network::allocBlock(UIP_UDP_MAXPACKETSIZE);
+            appdata.packet_out = _eth->nw()->allocBlock(UIP_UDP_MAXPACKETSIZE);
             appdata.out_pos = UIP_UDP_PHYH_LEN;
 
             if (appdata.packet_out != NOBLOCK)
@@ -201,13 +201,11 @@ IPAddrezz UIPUDP::remoteIP()
     return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
 }
 
-#define uip_udp_send(len) uip_send((char *)uip_appdata, len)
-
 void uipudp_appcall()
 {
     if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
     {
-        if (uip_newdata())
+        if (uip_flags & UIP_NEWDATA)
         {
             if (data->packet_next == NOBLOCK)
             {
@@ -233,7 +231,7 @@ void uipudp_appcall()
         {
             UIPEthernetClass::instance->uip_packet = data->packet_out;
             UIPEthernetClass::instance->uip_hdrlen = UIP_UDP_PHYH_LEN;
-            uip_udp_send(data->out_pos - (UIP_UDP_PHYH_LEN));
+            uip_send((char *)uip_appdata, data->out_pos - (UIP_UDP_PHYH_LEN));
         }
     }
 }

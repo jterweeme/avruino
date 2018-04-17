@@ -21,9 +21,9 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
 #ifndef UIP_CONF_MAX_LISTENPORTS
 #define UIP_LISTENPORTS 20
-#else /* UIP_CONF_MAX_LISTENPORTS */
+#else
 #define UIP_LISTENPORTS UIP_CONF_MAX_LISTENPORTS
-#endif /* UIP_CONF_MAX_LISTENPORTS */
+#endif
 
 #ifndef UIP_CONF_TCP_MSS
 #define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
@@ -42,22 +42,22 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
 #ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_BUFSIZE     400
-#else /* UIP_CONF_BUFFER_SIZE */
+#else
 #define UIP_BUFSIZE UIP_CONF_BUFFER_SIZE
-#endif /* UIP_CONF_BUFFER_SIZE */
+#endif
 
 #define UIP_CONF_STATISTICS 0
 #ifndef UIP_CONF_STATISTICS
 #define UIP_STATISTICS  0
-#else /* UIP_CONF_STATISTICS */
+#else
 #define UIP_STATISTICS UIP_CONF_STATISTICS
-#endif /* UIP_CONF_STATISTICS */
+#endif
 
 #ifndef UIP_CONF_LOGGING
 #define UIP_LOGGING     0
-#else /* UIP_CONF_LOGGING */
+#else
 #define UIP_LOGGING     UIP_CONF_LOGGING
-#endif /* UIP_CONF_LOGGING */
+#endif
 
 #if UIP_UDP && UIP_CONF_BROADCAST
 #define UIP_BROADCAST UIP_CONF_BROADCAST
@@ -82,26 +82,18 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_FIXEDADDR    0
 
 typedef uint16_t uip_ip4addr_t[2];
-typedef uint16_t uip_ip6addr_t[8];
 typedef uip_ip4addr_t uip_ipaddr_t;
 void uip_init(void);
 void uip_setipid(uint16_t id);
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
 void uip_listen(uint16_t port);
-void uip_unlisten(uint16_t port);
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
 void uip_send(const void *data, int len);
 
-
-#define uip_udpconnection() (uip_conn == NULL)
-#define uip_newdata()   (uip_flags & UIP_NEWDATA)
-#define uip_acked()   (uip_flags & UIP_ACKDATA)
 #define uip_connected() (uip_flags & UIP_CONNECTED)
 #define uip_timedout()    (uip_flags & UIP_TIMEDOUT)
 #define uip_rexmit()     (uip_flags & UIP_REXMIT)
 #define uip_poll()       (uip_flags & UIP_POLL)
-#define uip_initialmss()             (uip_conn->initialmss)
-#define uip_mss()             (uip_conn->mss)
 
 struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 
@@ -174,7 +166,6 @@ struct uip_conn {
 
 extern struct uip_conn *uip_conn;
 extern struct uip_conn uip_conns[UIP_CONNS];
-extern uint8_t uip_acc32[4];
 
 struct uip_udp_conn {
   uip_ipaddr_t ripaddr;   /**< The IP address of the remote peer. */

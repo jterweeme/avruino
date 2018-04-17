@@ -234,7 +234,7 @@ static const uint8_t
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
 
-void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
+//void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
 
 static constexpr uint8_t
 #if defined (__AVR_ATmega32U4__)
@@ -252,27 +252,27 @@ static volatile uint8_t * const p_cs_port = (volatile uint8_t * const)cs_port;
 
 class Enc28J60Network : public MemoryPool
 {
-private:
-    static uint16_t nextPacketPtr;
-    static uint8_t bank;
-    static struct memblock receivePkt;
-    static uint8_t readOp(uint8_t op, uint8_t address);
-    static void writeOp(uint8_t op, uint8_t address, uint8_t data);
-    static uint16_t setReadPtr(memhandle handle, memaddress position, uint16_t len);
+public:
+    uint16_t nextPacketPtr;
+    uint8_t bank = 0xff;
+    struct memblock receivePkt;
+    uint8_t readOp(uint8_t op, uint8_t address);
+    void writeOp(uint8_t op, uint8_t address, uint8_t data);
+    uint16_t setReadPtr(memhandle handle, memaddress position, uint16_t len);
     void setERXRDPT();
     void readBuffer(uint16_t len, uint8_t* data);
-    static void writeBuffer(uint16_t len, uint8_t* data);
-    static uint8_t readByte(uint16_t addr);
-    static void writeByte(uint16_t addr, uint8_t data);
-    static void setBank(uint8_t address);
-    static uint8_t readReg(uint8_t address);
-    static void writeReg(uint8_t address, uint8_t data);
-    static void writeRegPair(uint8_t address, uint16_t data);
-    static void phyWrite(uint8_t address, uint16_t data);
-    static uint16_t phyRead(uint8_t address);
-    static void clkout(uint8_t clk) { writeReg(ECOCON, clk & 0x7); }
-    friend void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
+    void writeBuffer(uint16_t len, uint8_t* data);
+    uint8_t readByte(uint16_t addr);
+    void writeByte(uint16_t addr, uint8_t data);
+    void setBank(uint8_t address);
+    uint8_t readReg(uint8_t address);
+    void writeReg(uint8_t address, uint8_t data);
+    void writeRegPair(uint8_t address, uint16_t data);
+    void phyWrite(uint8_t address, uint16_t data);
+    uint16_t phyRead(uint8_t address);
+    void clkout(uint8_t clk) { writeReg(ECOCON, clk & 0x7); }
 public:
+    void move_cb(memaddress dest, memaddress src, memaddress len);
     static Enc28J60Network *instance;
     Enc28J60Network();
     uint8_t getrev() { return(readReg(EREVID)); }

@@ -466,6 +466,7 @@ again:
   return conn;
 }
 
+#if 0
 void uip_unlisten(uint16_t port)
 {
     for(c = 0; c < UIP_LISTENPORTS; ++c)
@@ -477,6 +478,7 @@ void uip_unlisten(uint16_t port)
         }
     }
 }
+#endif
 
 void uip_listen(uint16_t port)
 {

@@ -20,6 +20,7 @@ IPAddrezz::IPAddrezz(uint8_t oct1, uint8_t oct2, uint8_t third_octet, uint8_t fo
 
 #define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
 #define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
+#define uip_newdata()   (uip_flags & UIP_NEWDATA)
 
 IPAddrezz& IPAddrezz::operator=(const uint8_t *address)
 {
@@ -98,7 +99,7 @@ void UIPClient::stop()
 {
     if (data && data->state)
     {
-        UIPEthernetClass::instance->_flushBlocks(&data->packets_in[0]);
+        _eth->_flushBlocks(&data->packets_in[0]);
 
         if (data->state & UIP_CLIENT_REMOTECLOSED)
             data->state = 0;
@@ -273,7 +274,7 @@ int UIPClient::peek()
 void UIPClient::flush()
 {
     if (*this)
-        UIPEthernetClass::instance->_flushBlocks(&data->packets_in[0]);
+        _eth->_flushBlocks(&data->packets_in[0]);
 }
 
 
@@ -341,11 +342,11 @@ finish_newdata:
           uip_conn->appstate = NULL;
           goto finish;
         }
-      if (uip_acked())
+      if (uip_flags & UIP_ACKDATA)
         {
           UIPClient::_eatBlock(&u->packets_out[0]);
         }
-      if (uip_poll() || uip_rexmit())
+      if ((uip_flags & UIP_POLL) || uip_rexmit())
         {
           if (u->packets_out[0] != NOBLOCK)
             {

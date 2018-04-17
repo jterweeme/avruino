@@ -7,12 +7,7 @@
 
 #include <util/delay.h>
 
-uint16_t Enc28J60Network::nextPacketPtr;
-uint8_t Enc28J60Network::bank=0xff;
-
 Enc28J60Network *Enc28J60Network::instance;
-
-struct memblock Enc28J60Network::receivePkt;
 
 Enc28J60Network::Enc28J60Network()
 {
@@ -216,61 +211,68 @@ Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos,
   memblock *dest = &blocks[dest_pkt];
   memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
   memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
-  enc28J60_mempool_block_move_callback(dest->begin+dest_pos,start,len);
+
+  //enc28J60_mempool_block_move_callback(dest->begin+dest_pos,start,len);
+    move_cb(dest->begin + dest_pos, start, len);
   // Move the RX read pointer to the start of the next received packet
   // This frees the memory we just read out
   setERXRDPT();
 }
 
-void
-enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress len)
+#if 0
+void enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress len)
 {
-//void
-//Enc28J60Network::memblock_mv_cb(uint16_t dest, uint16_t src, uint16_t len)
-//{
-  //as ENC28J60 DMA is unable to copy single bytes:
-  if (len == 1)
+    Enc28J60Network::instance->move_cb(dest, src, len);
+}
+#endif
+
+void Enc28J60Network::move_cb(memaddress dest, memaddress src, memaddress len)
+{
+    //as ENC28J60 DMA is unable to copy single bytes:
+    if (len == 1)
     {
-      Enc28J60Network::writeByte(dest,Enc28J60Network::readByte(src));
+        writeByte(dest, readByte(src));
     }
-  else
+    else
     {
-      // calculate address of last byte
-      len += src - 1;
+        // calculate address of last byte
+        len += src - 1;
 
-      /*  1. Appropriately program the EDMAST, EDMAND
-       and EDMADST register pairs. The EDMAST
-       registers should point to the first byte to copy
-       from, the EDMAND registers should point to the
-       last byte to copy and the EDMADST registers
-       should point to the first byte in the destination
-       range. The destination range will always be
-       linear, never wrapping at any values except from
-       8191 to 0 (the 8-Kbyte memory boundary).
-       Extreme care should be taken when
-       programming the start and end pointers to
-       prevent a never ending DMA operation which
-       would overwrite the entire 8-Kbyte buffer.
-       */
-      Enc28J60Network::writeRegPair(EDMASTL, src);
-      Enc28J60Network::writeRegPair(EDMADSTL, dest);
+        /*  1. Appropriately program the EDMAST, EDMAND
+        and EDMADST register pairs. The EDMAST
+        registers should point to the first byte to copy
+        from, the EDMAND registers should point to the
+        last byte to copy and the EDMADST registers
+        should point to the first byte in the destination
+        range. The destination range will always be
+        linear, never wrapping at any values except from
+        8191 to 0 (the 8-Kbyte memory boundary).
+        Extreme care should be taken when
+        programming the start and end pointers to
+        prevent a never ending DMA operation which
+        would overwrite the entire 8-Kbyte buffer.
+        */
+        writeRegPair(EDMASTL, src);
+        writeRegPair(EDMADSTL, dest);
 
-      if ((src <= RXSTOP_INIT)&& (len > RXSTOP_INIT))len -= (RXSTOP_INIT-RXSTART_INIT);
-      Enc28J60Network::writeRegPair(EDMANDL, len);
+        if ((src <= RXSTOP_INIT)&& (len > RXSTOP_INIT))
+            len -= (RXSTOP_INIT-RXSTART_INIT);
 
-      /*
-       2. If an interrupt at the end of the copy process is
-       desired, set EIE.DMAIE and EIE.INTIE and
-       clear EIR.DMAIF.
+        writeRegPair(EDMANDL, len);
 
-       3. Verify that ECON1.CSUMEN is clear. */
-      Enc28J60Network::writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_CSUMEN);
+        /*
+        2. If an interrupt at the end of the copy process is
+        desired, set EIE.DMAIE and EIE.INTIE and
+        clear EIR.DMAIF.
 
-      /* 4. Start the DMA copy by setting ECON1.DMAST. */
-      Enc28J60Network::writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_DMAST);
+        3. Verify that ECON1.CSUMEN is clear. */
+        writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, ECON1_CSUMEN);
 
-      // wait until runnig DMA is completed
-      while (Enc28J60Network::readOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_DMAST);
+        /* 4. Start the DMA copy by setting ECON1.DMAST. */
+        writeOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_DMAST);
+
+        // wait until runnig DMA is completed
+        while (readOp(ENC28J60_READ_CTRL_REG, ECON1) & ECON1_DMAST);
     }
 }
 
