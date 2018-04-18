@@ -11,7 +11,6 @@
 #define	W5100_H_INCLUDED
 
 #include <avr/pgmspace.h>
-//#include "SPI.h"
 
 #define MAX_SOCK_NUM 4
 
@@ -224,7 +223,7 @@ private:
     uint16_t RBASE[SOCKETS]; // Rx buffer base address
 };
 
-extern W5100Class W5100;
+//extern W5100Class W5100;
 
 uint8_t W5100Class::readSn(SOCKET _s, uint16_t _addr) {
   return read(CH_BASE + _s * CH_SIZE + _addr);

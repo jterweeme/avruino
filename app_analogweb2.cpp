@@ -12,8 +12,10 @@
 #include <avr/interrupt.h>
 #include "util.h"
 
-static EthernetClass eth;
+static W5100Class w5100;
+static EthernetClass eth(&w5100);
 static uint8_t g_count = 0;
+W5100Class *g_w5100 = &w5100;
 
 int main()
 {
@@ -24,12 +26,13 @@ int main()
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
-    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddress myIP(192,168,178,32);
     DefaultUart s;
     UartStream cout(&s);
+
+    cout << "Initialize Ethernet...\r\n";
+    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     cout << "Begin ethernet\r\n";
-    eth.begin(mac, myIP);
+    eth.begin(mac);
     uint32_t ip = eth.localIP();
     hex32(ip, cout);
     cout << "\r\n";

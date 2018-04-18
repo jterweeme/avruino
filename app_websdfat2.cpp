@@ -36,8 +36,10 @@ void Buffer::reset()
         _buf[i] = 0;
 }
 
-static EthernetClass eth;
+static W5100Class w5100;
+static EthernetClass eth(&w5100);
 static Fatty *g_zd;
+W5100Class *g_w5100 = &w5100;
 
 static void printDirectory(Fyle dir, uint8_t numTabs, EthernetClient &os)
 {
@@ -160,6 +162,7 @@ int main()
 {
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
+
 
     EthernetServer server = EthernetServer(&eth, 80);
     Board b;

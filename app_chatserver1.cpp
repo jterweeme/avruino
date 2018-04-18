@@ -23,9 +23,13 @@
 #include <avr/interrupt.h>
 #include "util.h"
 
+W5100Class *g_w5100;
+
 int main()
 {
-    EthernetClass eth;
+    W5100Class w5100;
+    g_w5100 = &w5100;
+    EthernetClass eth(&w5100);
     uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
     IPAddress ip(192,168,200, 100);
     IPAddress gateway(192,168,1, 1);

@@ -30,21 +30,22 @@ void EthernetServer::accept()
 
     for (int sock = 0; sock < MAX_SOCK_NUM; sock++)
     {
-    EthernetClient client(_eth, sock);
+        EthernetClient client(_eth, sock);
 
-    if (EthernetClass::_server_port[sock] == _port) {
-      if (client.status() == SnSR::LISTEN) {
-        listening = 1;
-      } 
-      else if (client.status() == SnSR::CLOSE_WAIT && !client.available()) {
-        client.stop();
-      }
-    } 
-  }
+        if (EthernetClass::_server_port[sock] == _port)
+        {
+            if (client.status() == SnSR::LISTEN) {
+                listening = 1;
+            } 
+            else if (client.status() == SnSR::CLOSE_WAIT && !client.available())
+            {
+                client.stop();
+            }
+        }
+    }
 
-  if (!listening) {
-    begin();
-  }
+    if (!listening)
+        begin();
 }
 
 EthernetClient EthernetServer::available()

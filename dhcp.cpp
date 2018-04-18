@@ -1,5 +1,5 @@
 #include "dhcp.h"
-#include "uip_timer.h"
+//#include "uip_timer.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -8,6 +8,8 @@
 #endif
 
 #include <util/delay.h>
+
+extern uint32_t millis();
 
 int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTimeout)
 {

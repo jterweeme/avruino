@@ -7,9 +7,11 @@
 #endif
 
 #include <util/delay.h>
-#include "uip_timer.h"
+//#include "uip_timer.h"
 #include "dns.h"
 #include <string.h>
+
+extern uint32_t millis();
 
 static constexpr uint8_t
     SOCKET_NONE = 255,
