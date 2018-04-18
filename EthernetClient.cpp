@@ -12,7 +12,8 @@
 
 uint16_t EthernetClient::_srcport = 1024;
 
-int EthernetClient::connect(const char* host, uint16_t port) {
+int EthernetClient::connect(const char* host, uint16_t port)
+{
     // Look up the host first
     int ret = 0;
     DNSClient dns(_eth);
@@ -27,14 +28,16 @@ int EthernetClient::connect(const char* host, uint16_t port) {
     }
 }
 
-int EthernetClient::connect(IPAddress ip, uint16_t port)
+int EthernetClient::connect(uint32_t ip, uint16_t port)
 {
     if (_sock != MAX_SOCK_NUM)
         return 0;
 
-    for (int i = 0; i < MAX_SOCK_NUM; i++) {
+    for (int i = 0; i < MAX_SOCK_NUM; i++)
+    {
         uint8_t s = _eth->nw()->readSnSR(i);
-        if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT || s == SnSR::CLOSE_WAIT) {
+        if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT || s == SnSR::CLOSE_WAIT)
+        {
             _sock = i;
             break;
         }
@@ -43,14 +46,18 @@ int EthernetClient::connect(IPAddress ip, uint16_t port)
     if (_sock == MAX_SOCK_NUM)
         return 0;
 
-  _srcport++;
-  if (_srcport == 0) _srcport = 1024;
-  socket(_sock, SnMR::TCP, _srcport, 0);
+    _srcport++;
 
-  if (!::connect(_sock, rawIPAddress(ip), port)) {
-    _sock = MAX_SOCK_NUM;
-    return 0;
-  }
+    if (_srcport == 0)
+        _srcport = 1024;
+
+    socket(_sock, SnMR::TCP, _srcport, 0);
+
+    if (!::connect(_sock, (uint8_t *)&ip, port))
+    {
+        _sock = MAX_SOCK_NUM;
+        return 0;
+    }
 
   while (status() != SnSR::ESTABLISHED) {
     _delay_ms(1);
@@ -61,10 +68,6 @@ int EthernetClient::connect(IPAddress ip, uint16_t port)
   }
 
   return 1;
-}
-
-size_t EthernetClient::write(uint8_t b) {
-  return write(&b, 1);
 }
 
 size_t EthernetClient::write(const uint8_t *buf, size_t size) {
@@ -81,9 +84,7 @@ size_t EthernetClient::write(const uint8_t *buf, size_t size) {
 
 int EthernetClient::available()
 {
-    if (_sock != MAX_SOCK_NUM)
-        return _eth->nw()->getRXReceivedSize(_sock);
-    return 0;
+    return _sock != MAX_SOCK_NUM ? _eth->nw()->getRXReceivedSize(_sock) : 0;
 }
 
 int EthernetClient::read() {

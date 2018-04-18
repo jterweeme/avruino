@@ -267,31 +267,31 @@ uint16_t recvfrom(SOCKET s, uint8_t *buf, uint16_t len, uint8_t *addr, uint16_t 
 
 uint16_t igmpsend(SOCKET s, const uint8_t * buf, uint16_t len)
 {
-  uint8_t status=0;
-  uint16_t ret=0;
+    uint16_t ret=0;
 
-  if (len > g_w5100->SSIZE) 
-    ret = g_w5100->SSIZE; // check size not to exceed MAX size.
-  else 
-    ret = len;
+    if (len > g_w5100->SSIZE) 
+        ret = g_w5100->SSIZE; // check size not to exceed MAX size.
+    else 
+        ret = len;
 
-  if (ret == 0)
-    return 0;
+    if (ret == 0)
+        return 0;
 
-  g_w5100->send_data_processing(s, (uint8_t *)buf, ret);
-  g_w5100->execCmdSn(s, Sock_SEND);
+    g_w5100->send_data_processing(s, (uint8_t *)buf, ret);
+    g_w5100->execCmdSn(s, Sock_SEND);
 
-  while ((g_w5100->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK ) 
-  {
-    status = g_w5100->readSnSR(s);
-    if (g_w5100->readSnIR(s) & SnIR::TIMEOUT)
+    while ((g_w5100->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK ) 
     {
-      /* in case of igmp, if send fails, then socket closed */
-      /* if you want change, remove this code. */
-      close(s);
-      return 0;
+        //status = g_w5100->readSnSR(s);
+
+        if (g_w5100->readSnIR(s) & SnIR::TIMEOUT)
+        {
+            /* in case of igmp, if send fails, then socket closed */
+            /* if you want change, remove this code. */
+            close(s);
+            return 0;
+        }
     }
-  }
 
     g_w5100->writeSnIR(s, SnIR::SEND_OK);
     return ret;

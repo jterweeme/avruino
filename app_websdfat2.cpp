@@ -163,8 +163,6 @@ int main()
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
 
-
-    EthernetServer server = EthernetServer(&eth, 80);
     Board b;
     Sd2Card sd(&b.pin9);
     Fatty zd(&sd);
@@ -173,6 +171,8 @@ int main()
     TIMSK0 |= 1<<TOIE0;
     zei();
     DefaultUart s;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
     UartStream cout(&s);
 
     cout << "Initialize Ethernet...\r\n";
@@ -188,10 +188,10 @@ int main()
     w5100.setIPAddress(dhcp.localIp());
     w5100.setGatewayIp(dhcp.gateway());
     w5100.setSubnetMask(dhcp.subnetMask2());
-
-    uint32_t ip = eth.localIP();
-    hex32(ip, cout);
+    eth.addresses(cout);
     cout << "\r\n";
+
+    EthernetServer server = EthernetServer(&eth, 80);
     server.begin();
     Buffer buffer;
     bool ret = zd.begin();
@@ -201,6 +201,8 @@ int main()
         cout << "init failed!\r\n";
         return 0;
     }
+
+    cout << "SD Card initialized successful\r\n";
 
     while (true)
     {

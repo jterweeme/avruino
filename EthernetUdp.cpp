@@ -79,10 +79,10 @@ int EthernetUDP::beginPacket(const char *host, uint16_t port)
     return ret;
 }
 
-int EthernetUDP::beginPacket(IPAddress ip, uint16_t port)
+int EthernetUDP::beginPacket(uint32_t ip, uint16_t port)
 {
     _offset = 0;
-    return startUDP(_sock, rawIPAddress(ip), port);
+    return startUDP(_sock, (uint8_t *)&ip, port);
 }
 
 size_t EthernetUDP::write(const uint8_t *buffer, size_t size)

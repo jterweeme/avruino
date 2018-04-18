@@ -43,11 +43,11 @@ class UDP : public Stream
 public:
     virtual uint8_t begin(uint16_t) =0;
     virtual void stop() =0;  // Finish with the UDP socket
-    virtual int beginPacket(IPAddress ip, uint16_t port) =0;
+    virtual int beginPacket(uint32_t ip, uint16_t port) { return 0; }
     virtual int beginPacket(const char *host, uint16_t port) =0;
-    virtual int endPacket() =0;
-    virtual size_t write(uint8_t) =0;
-    virtual size_t write(const uint8_t *buffer, size_t size) =0;
+    virtual int endPacket() { return 0; }
+    virtual size_t write(uint8_t) { return 0; }
+    virtual size_t write(const uint8_t *buffer, size_t size) { return 0; }
     virtual int parsePacket() =0;
     virtual int available() =0;
     virtual int read() =0;
@@ -57,8 +57,6 @@ public:
     virtual void flush() =0;	// Finish reading the current packet
     virtual IPAddress remoteIP() =0;
     virtual uint16_t remotePort() =0;
-protected:
-    uint8_t* rawIPAddress(IPAddress& addr) { return addr.raw_address(); };
 };
 
 #endif

@@ -58,7 +58,7 @@ public:
     EthernetUDP(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM) { }
     virtual uint8_t begin(uint16_t);	// initializeo sockets available to use
     virtual void stop();  // Finish with the UDP socket
-    virtual int beginPacket(IPAddress ip, uint16_t port);
+    virtual int beginPacket(uint32_t ip, uint16_t port);
     virtual int beginPacket(const char *host, uint16_t port);
     virtual int endPacket() { return sendUDP(_sock); }
     virtual size_t write(const uint8_t *buffer, size_t size);
