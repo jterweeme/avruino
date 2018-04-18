@@ -156,24 +156,28 @@ private:
   unsigned long _secTimeout;
   uint8_t _dhcp_state;
   EthernetUDP _dhcpUdpSocket;
-  
   int request_DHCP_lease();
   void reset_DHCP_lease();
   void presend_DHCP();
   void send_DHCP_MESSAGE(uint8_t, uint16_t);
   void printByte(char *, uint8_t);
-  
   uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
 public:
     DhcpClass(EthernetClass *eth) : _dhcpUdpSocket(eth) { }
-  IPAddress getLocalIp();
-  IPAddress getSubnetMask();
-  IPAddress getGatewayIp();
-  IPAddress getDhcpServerIp();
-  IPAddress getDnsServerIp();
-  
-  int beginWithDHCP(uint8_t *, unsigned long timeout = 60000, unsigned long responseTimeout = 4000);
-  int checkLease();
+    uint32_t localIp();
+    uint32_t subnetMask2();
+    uint32_t gateway();
+    uint32_t dhcpServerIp();
+    uint32_t dnsServer();
+#if 0
+    IPAddress getLocalIp();
+    IPAddress getSubnetMask();
+    IPAddress getGatewayIp();
+    IPAddress getDhcpServerIp();
+    IPAddress getDnsServerIp();
+#endif
+    int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, unsigned long responseTimeout = 4000);
+    int checkLease();
 };
 
 #endif

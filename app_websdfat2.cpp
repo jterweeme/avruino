@@ -185,9 +185,9 @@ int main()
     cout << "Starting DHCP...\r\n";
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
-    w5100.setIPAddress(dhcp.getLocalIp().raw_address());
-    w5100.setGatewayIp(dhcp.getGatewayIp().raw_address());
-    w5100.setSubnetMask(dhcp.getSubnetMask().raw_address());
+    w5100.setIPAddress(dhcp.localIp());
+    w5100.setGatewayIp(dhcp.gateway());
+    w5100.setSubnetMask(dhcp.subnetMask2());
 
     uint32_t ip = eth.localIP();
     hex32(ip, cout);

@@ -471,9 +471,43 @@ int DhcpClass::checkLease(){
     return rc;
 }
 
+uint32_t DhcpClass::localIp()
+{
+    return (uint32_t)_dhcpLocalIp[0] | (uint32_t)_dhcpLocalIp[1] << 8 |
+        (uint32_t)_dhcpLocalIp[2] << 16 | (uint32_t)_dhcpLocalIp[3] << 24;
+}
+
+uint32_t DhcpClass::subnetMask2()
+{
+    return (uint32_t)_dhcpSubnetMask[0] | (uint32_t)_dhcpSubnetMask[1] << 8 |
+        (uint32_t)_dhcpSubnetMask[2] << 16 | (uint32_t)_dhcpSubnetMask[3] << 24;
+}
+
+uint32_t DhcpClass::gateway()
+{
+    return (uint32_t)_dhcpGatewayIp[0] | (uint32_t)_dhcpGatewayIp[1] << 8 |
+        (uint32_t)_dhcpGatewayIp[2] << 16 | (uint32_t)_dhcpGatewayIp[2] << 24;
+}
+
+uint32_t DhcpClass::dnsServer()
+{
+    return (uint32_t)_dhcpDnsServerIp[0] | (uint32_t)_dhcpDnsServerIp[1] << 8 |
+        (uint32_t)_dhcpDnsServerIp[2] << 16 | (uint32_t)_dhcpDnsServerIp[3] << 24;
+}
+
+uint32_t DhcpClass::dhcpServerIp()
+{
+    return (uint32_t)_dhcpDhcpServerIp[0] | (uint32_t)_dhcpDhcpServerIp[1] << 8 |
+        (uint32_t)_dhcpDhcpServerIp[2] << 16 | (uint32_t)_dhcpDhcpServerIp[3] << 24;
+}
+
+#if 0
 IPAddress DhcpClass::getLocalIp()
 {
-    return IPAddress(_dhcpLocalIp);
+    uint32_t ip = (uint32_t)_dhcpLocalIp[0] | (uint32_t)_dhcpLocalIp[1] << 8 |
+        (uint32_t)_dhcpLocalIp[2] << 16 | (uint32_t)_dhcpLocalIp[3] << 24;
+    
+    return IPAddress(ip);
 }
 
 IPAddress DhcpClass::getSubnetMask()
@@ -495,6 +529,7 @@ IPAddress DhcpClass::getDnsServerIp()
 {
     return IPAddress(_dhcpDnsServerIp);
 }
+#endif
 
 void DhcpClass::printByte(char * buf, uint8_t n ) {
   char *str = &buf[1];

@@ -136,7 +136,8 @@ app_websdfat2.elf: app_websdfat2.o dns2.o ethernet.o uart.o pinport.o stream.o \
     zd2card.o fatty.o misc.o eth.o
 
 app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
-    IPAddress.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o eth.o
+    IPAddress.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o eth.o \
+    stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o

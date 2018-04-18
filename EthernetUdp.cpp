@@ -26,99 +26,79 @@
  * bjoern@cs.stanford.edu 12/30/2008
  */
 
-#include "w5100.h"
-#include "socket.h"
 #include "ethernet.h"
-#include "udp2.h"
+#include "EthernetUdp.h"
 #include "dns2.h"
 
-/* Start EthernetUDP socket, listening at local port PORT */
-uint8_t EthernetUDP::begin(uint16_t port) {
-  if (_sock != MAX_SOCK_NUM)
-    return 0;
+uint8_t EthernetUDP::begin(uint16_t port)
+{
+    if (_sock != MAX_SOCK_NUM)
+        return 0;
 
-  for (int i = 0; i < MAX_SOCK_NUM; i++) {
-    uint8_t s = _eth->nw()->readSnSR(i);
-    if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT) {
-      _sock = i;
-      break;
+    for (int i = 0; i < MAX_SOCK_NUM; i++)
+    {
+        uint8_t s = _eth->nw()->readSnSR(i);
+
+        if (s == SnSR::CLOSED || s == SnSR::FIN_WAIT)
+        {
+            _sock = i;
+            break;
+        }
     }
-  }
 
-  if (_sock == MAX_SOCK_NUM)
-    return 0;
+    if (_sock == MAX_SOCK_NUM)
+        return 0;
 
-  _port = port;
-  _remaining = 0;
-  socket(_sock, SnMR::UDP, _port, 0);
-
-  return 1;
+    _port = port;
+    _remaining = 0;
+    socket(_sock, SnMR::UDP, _port, 0);
+    return 1;
 }
 
-/* return number of bytes available in the current packet,
-   will return zero if parsePacket hasn't been called yet */
-int EthernetUDP::available() {
-  return _remaining;
-}
-
-/* Release any resources being used by this EthernetUDP instance */
 void EthernetUDP::stop()
 {
-  if (_sock == MAX_SOCK_NUM)
-    return;
+    if (_sock == MAX_SOCK_NUM)
+        return;
 
-  close(_sock);
-
-  EthernetClass::_server_port[_sock] = 0;
-  _sock = MAX_SOCK_NUM;
+    close(_sock);
+    EthernetClass::_server_port[_sock] = 0;
+    _sock = MAX_SOCK_NUM;
 }
 
 int EthernetUDP::beginPacket(const char *host, uint16_t port)
 {
-  // Look up the host first
-  int ret = 0;
-  DNSClient dns(_eth);
-  IPAddress remote_addr;
+    int ret = 0;
+    DNSClient dns(_eth);
+    IPAddress remote_addr;
+    dns.begin(_eth->dnsServerIP());
+    ret = dns.getHostByName(host, remote_addr);
 
-  dns.begin(_eth->dnsServerIP());
-  ret = dns.getHostByName(host, remote_addr);
-  if (ret == 1) {
-    return beginPacket(remote_addr, port);
-  } else {
+    if (ret == 1)
+        return beginPacket(remote_addr, port);
+
     return ret;
-  }
 }
 
 int EthernetUDP::beginPacket(IPAddress ip, uint16_t port)
 {
-  _offset = 0;
-  return startUDP(_sock, rawIPAddress(ip), port);
-}
-
-int EthernetUDP::endPacket()
-{
-  return sendUDP(_sock);
-}
-
-size_t EthernetUDP::write(uint8_t byte)
-{
-  return write(&byte, 1);
+    _offset = 0;
+    return startUDP(_sock, rawIPAddress(ip), port);
 }
 
 size_t EthernetUDP::write(const uint8_t *buffer, size_t size)
 {
-  uint16_t bytes_written = bufferData(_sock, _offset, buffer, size);
-  _offset += bytes_written;
-  return bytes_written;
+    uint16_t bytes_written = bufferData(_sock, _offset, buffer, size);
+    _offset += bytes_written;
+    return bytes_written;
 }
 
 int EthernetUDP::parsePacket()
 {
-  // discard any remaining bytes in the last packet
-  flush();
+    // discard any remaining bytes in the last packet
+    flush();
 
-  if (_eth->nw()->getRXReceivedSize(_sock) > 0)
-  {
+    if (_eth->nw()->getRXReceivedSize(_sock) > 0)
+    {
     //HACK - hand-parse the UDP packet using TCP recv method
     uint8_t tmpBuf[8];
     int ret =0; 
@@ -136,9 +116,9 @@ int EthernetUDP::parsePacket()
       ret = _remaining;
     }
     return ret;
-  }
-  // There aren't any packets available
-  return 0;
+    }
+    // There aren't any packets available
+    return 0;
 }
 
 int EthernetUDP::read()
@@ -201,15 +181,4 @@ int EthernetUDP::peek()
   return b;
 }
 
-void EthernetUDP::flush()
-{
-  // could this fail (loop endlessly) if _remaining > 0 and recv in read fails?
-  // should only occur if recv fails after telling us the data is there, lets
-  // hope the w5100 always behaves :)
-
-  while (_remaining)
-  {
-    read();
-  }
-}
 

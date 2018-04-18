@@ -22,27 +22,47 @@
 #include "EthernetServer.h"
 #include <avr/interrupt.h>
 #include "util.h"
+#include "dhcp2.h"
+#include "board.h"
 
 W5100Class *g_w5100;
 
 int main()
 {
-    W5100Class w5100;
-    g_w5100 = &w5100;
-    EthernetClass eth(&w5100);
-    uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
-    IPAddress ip(192,168,200, 100);
-    IPAddress gateway(192,168,1, 1);
-    IPAddress subnet(255, 255, 0, 0);
-    EthernetServer server(&eth, 23);
-    bool gotAMessage = false; // whether or not you got a message from the client yet
-    sei();
     TCCR0A |= 1<<WGM01 | 1<<WGM00;
     TCCR0B |= 1<<CS01 | 1<<CS00;
     TIMSK0 |= 1<<TOIE0;
-    eth.begin(mac, ip);
-    //ip = Ethernet.localIP();
+    sei();
+    DefaultUart s;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
+    UartStream cout(&s);
+
+    W5100Class w5100;
+    g_w5100 = &w5100;
+    EthernetClass eth(&w5100);
+
+    cout << "Initialize Ethernet...\r\n";
+    cout.flush();
+    w5100.init();
+    uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
+    w5100.setMACAddress(mac);
+    w5100.setIPAddress(IPAddress(0,0,0,0).raw_address());
+
+    cout << "Starting DHCP...\r\n";
+    DhcpClass dhcp(&eth);
+    dhcp.beginWithDHCP(mac);
+    w5100.setIPAddress(dhcp.localIp());
+    w5100.setGatewayIp(dhcp.gateway());
+    w5100.setSubnetMask(dhcp.subnetMask2());
+    eth.addresses(cout);
+    cout << "\r\n";
+
+    EthernetServer server(&eth, 23);
     server.begin();
+    cout << "Server started\r\n";
+
+    bool gotAMessage = false; // whether or not you got a message from the client yet
 
     while (true)
     {
