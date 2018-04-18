@@ -69,7 +69,7 @@ int EthernetUDP::beginPacket(const char *host, uint16_t port)
 {
     int ret = 0;
     DNSClient dns(_eth);
-    IPAddress remote_addr;
+    uint32_t remote_addr;
     dns.begin(_eth->dnsServerIP());
     ret = dns.getHostByName(host, remote_addr);
 

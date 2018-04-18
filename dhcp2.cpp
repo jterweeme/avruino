@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include "dhcp2.h"
 #include "util.h"
-#include "IPAddress.h"
 #include "stream.h"
 
 extern ostream *gout;
@@ -170,9 +169,8 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
     *gout << "Send DHCP Message...\r\n";
     uint8_t buffer[32];
     memset(buffer, 0, 32);
-    IPAddress dest_addr( 255, 255, 255, 255 ); // Broadcast address
 
-    if (-1 == _dhcpUdpSocket.beginPacket(dest_addr, DHCP_SERVER_PORT))
+    if (_dhcpUdpSocket.beginPacket(0xffffffff, DHCP_SERVER_PORT) == -1)
     {
         *gout << "DHCP UDP Socket begin packet ERROR!\r\n";
         // FIXME Need to return errors
@@ -368,8 +366,9 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case dhcpServerIdentifier :
                     opt_len = _dhcpUdpSocket.read();
-                    if( *((uint32_t*)_dhcpDhcpServerIp) == 0 || 
-                        IPAddress(_dhcpDhcpServerIp) == IPAddress(_dhcpUdpSocket.remoteIP()))
+                    if( *((uint32_t*)_dhcpDhcpServerIp) == 0 ||
+                        *((uint32_t *)_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP())
+                        //IPAddress(_dhcpDhcpServerIp) == IPAddress(_dhcpUdpSocket.remoteIP()))
                     {
                         _dhcpUdpSocket.read(_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
                     }
@@ -484,32 +483,27 @@ int DhcpClass::checkLease(){
 
 uint32_t DhcpClass::localIp()
 {
-    return (uint32_t)_dhcpLocalIp[0] | (uint32_t)_dhcpLocalIp[1] << 8 |
-        (uint32_t)_dhcpLocalIp[2] << 16 | (uint32_t)_dhcpLocalIp[3] << 24;
+    return *((uint32_t *)&_dhcpLocalIp);
 }
 
 uint32_t DhcpClass::subnetMask2()
 {
-    return (uint32_t)_dhcpSubnetMask[0] | (uint32_t)_dhcpSubnetMask[1] << 8 |
-        (uint32_t)_dhcpSubnetMask[2] << 16 | (uint32_t)_dhcpSubnetMask[3] << 24;
+    return *((uint32_t *)&_dhcpSubnetMask);
 }
 
 uint32_t DhcpClass::gateway()
 {
-    return (uint32_t)_dhcpGatewayIp[0] | (uint32_t)_dhcpGatewayIp[1] << 8 |
-        (uint32_t)_dhcpGatewayIp[2] << 16 | (uint32_t)_dhcpGatewayIp[2] << 24;
+    return *((uint32_t *)&_dhcpGatewayIp);
 }
 
 uint32_t DhcpClass::dnsServer()
 {
-    return (uint32_t)_dhcpDnsServerIp[0] | (uint32_t)_dhcpDnsServerIp[1] << 8 |
-        (uint32_t)_dhcpDnsServerIp[2] << 16 | (uint32_t)_dhcpDnsServerIp[3] << 24;
+    return *((uint32_t *)&_dhcpDnsServerIp);
 }
 
 uint32_t DhcpClass::dhcpServerIp()
 {
-    return (uint32_t)_dhcpDhcpServerIp[0] | (uint32_t)_dhcpDhcpServerIp[1] << 8 |
-        (uint32_t)_dhcpDhcpServerIp[2] << 16 | (uint32_t)_dhcpDhcpServerIp[3] << 24;
+    return *((uint32_t *)&_dhcpDhcpServerIp);
 }
 
 void DhcpClass::printByte(char * buf, uint8_t n)

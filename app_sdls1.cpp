@@ -50,7 +50,7 @@ static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
 int main()
 {
     Board b;
-    Sd2Card sd(&b.pin9);
+    Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
     zei();
 #if defined (__AVR_ATmega32U4__)

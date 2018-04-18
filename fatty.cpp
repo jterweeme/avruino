@@ -1297,20 +1297,22 @@ uint8_t SdVolume::cacheRawBlock(uint32_t blockNumber, uint8_t action) {
   cacheDirty_ |= action;
   return true;
 }
-//------------------------------------------------------------------------------
-// cache a zero block for blockNumber
-uint8_t SdVolume::cacheZeroBlock(uint32_t blockNumber) {
-  if (!cacheFlush()) return false;
 
-  // loop take less flash than memset(cacheBuffer_.data, 0, 512);
-  for (uint16_t i = 0; i < 512; i++) {
-    cacheBuffer_.data[i] = 0;
-  }
-  cacheBlockNumber_ = blockNumber;
-  cacheSetDirty();
-  return true;
+// cache a zero block for blockNumber
+uint8_t SdVolume::cacheZeroBlock(uint32_t blockNumber)
+{
+    if (!cacheFlush())
+        return false;
+
+    // loop take less flash than memset(cacheBuffer_.data, 0, 512);
+    for (uint16_t i = 0; i < 512; i++)
+        cacheBuffer_.data[i] = 0;
+    
+    cacheBlockNumber_ = blockNumber;
+    cacheSetDirty();
+    return true;
 }
-//------------------------------------------------------------------------------
+
 // return the size in bytes of a cluster chain
 uint8_t SdVolume::chainSize(uint32_t cluster, uint32_t* size) const {
   uint32_t s = 0;

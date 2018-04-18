@@ -2,23 +2,21 @@
 // (c) Copyright 2009-2010 MCQN Ltd.
 // Released under Apache License, version 2.0
 
-#ifndef DNSClient_h
-#define DNSClient_h
-
+#ifndef _DNS2_h_
+#define _DNS2_h_
 #include "EthernetUdp.h"
-#include "IPAddress.h"
 
 class DNSClient
 {
 protected:
     uint16_t BuildRequest(const char* aName);
-    uint16_t ProcessResponse(uint16_t aTimeout, IPAddress& aAddress);
-    IPAddress iDNSServer;
+    uint16_t ProcessResponse(uint16_t aTimeout, uint32_t &aAddress);
+    uint32_t iDNSServer;
     uint16_t iRequestId;
     EthernetUDP iUdp;
 public:
     DNSClient(EthernetClass *eth) : iUdp(eth) { }
-    void begin(const IPAddress& aDNSServer);
+    void begin(const uint32_t &aDNSServer);
 
     /** Convert a numeric IP address string into a four-byte IP address.
         @param aIPAddrString IP address to convert
@@ -26,7 +24,7 @@ public:
         @result 1 if aIPAddrString was successfully converted to an IP address,
                 else error code
     */
-    int inet_aton(const char *aIPAddrString, IPAddress& aResult);
+    int inet_aton(const char *aIPAddrString, uint32_t &aResult);
 
     /** Resolve the given hostname to an IP address.
         @param aHostname Name to be resolved
@@ -34,7 +32,7 @@ public:
         @result 1 if aIPAddrString was successfully converted to an IP address,
                 else error code
     */
-    int getHostByName(const char* aHostname, IPAddress& aResult);
+    int getHostByName(const char* aHostname, uint32_t &aResult);
 
 
 };

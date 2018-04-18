@@ -49,16 +49,16 @@
 #define TRUNCATED        -3
 #define INVALID_RESPONSE -4
 
-void DNSClient::begin(const IPAddress& aDNSServer)
+void DNSClient::begin(const uint32_t &aDNSServer)
 {
     iDNSServer = aDNSServer;
     iRequestId = 0;
 }
 
-int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
+int DNSClient::inet_aton(const char* aIPAddrString, uint32_t &aResult)
 {
     // See if we've been given a valid IP address
-    const char* p =aIPAddrString;
+    const char* p = aIPAddrString;
 
     while (*p && ( (*p == '.') || (*p >= '0') || (*p <= '9') ))
         p++;
@@ -81,7 +81,8 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
                 }
                 else
                 {
-                    aResult[segment] = (uint8_t)segmentValue;
+                    uint8_t *ptrResult = (uint8_t *)&aResult;
+                    ptrResult[segment] = (uint8_t)segmentValue;
                     segment++;
                     segmentValue = 0;
                 }
@@ -103,7 +104,8 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
         }
         else
         {
-            aResult[segment] = (uint8_t)segmentValue;
+            uint8_t *ptrResult = (uint8_t *)&aResult;
+            ptrResult[segment] = (uint8_t)segmentValue;
             return 1;
         }
     }
@@ -113,16 +115,14 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
     }
 }
 
-static const IPAddress INADDR_NONE(0,0,0,0);
-
-int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
+int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
 {
     int ret =0;
 
     if (inet_aton(aHostname, aResult))
         return 1;
 
-    if (iDNSServer == INADDR_NONE)
+    if (iDNSServer == 0)
         return INVALID_SERVER;
 	
     // Find a socket to use
@@ -217,7 +217,7 @@ uint16_t DNSClient::BuildRequest(const char* aName)
 }
 
 
-uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
+uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
 {
     uint32_t startTime = millis();
 
@@ -361,7 +361,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddress& aAddress)
                 iUdp.flush();
                 return -9;//INVALID_RESPONSE;
             }
-            iUdp.read(aAddress.raw_address(), 4);
+            iUdp.read((uint8_t *)&aAddress, 4);
             return SUCCESS;
         }
         else
