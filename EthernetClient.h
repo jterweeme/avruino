@@ -2,7 +2,6 @@
 #define _ETHERNETCLIENT_H_
 #include "client.h"
 #include "ethernet.h"
-#include "IPAddress.h"
 
 class EthernetClient : public Client
 {

@@ -91,7 +91,7 @@ public:
     inline void getSubnetMask(uint8_t *addr) { readSUBR(addr); }
     inline void setMACAddress(uint8_t *addr) { writeSHAR(addr); }
     inline void getMACAddress(uint8_t *addr) { readSHAR(addr); }
-    inline void setIPAddress(uint8_t *addr) { writeSIPR(addr); }
+    //inline void setIPAddress(uint8_t *addr) { writeSIPR(addr); }
     inline void setIPAddress(uint32_t addr) { writeSIPR((uint8_t *)&addr); }
     inline void getIPAddress(uint8_t *addr) { readSIPR(addr); }
     inline void setRetransmissionTime(uint16_t timeout) { writeRTR(timeout); }

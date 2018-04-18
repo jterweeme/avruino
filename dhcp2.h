@@ -169,13 +169,6 @@ public:
     uint32_t gateway();
     uint32_t dhcpServerIp();
     uint32_t dnsServer();
-#if 0
-    IPAddress getLocalIp();
-    IPAddress getSubnetMask();
-    IPAddress getGatewayIp();
-    IPAddress getDhcpServerIp();
-    IPAddress getDnsServerIp();
-#endif
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, unsigned long responseTimeout = 4000);
     int checkLease();
 };

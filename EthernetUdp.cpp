@@ -99,23 +99,23 @@ int EthernetUDP::parsePacket()
 
     if (_eth->nw()->getRXReceivedSize(_sock) > 0)
     {
-    //HACK - hand-parse the UDP packet using TCP recv method
-    uint8_t tmpBuf[8];
-    int ret =0; 
-    //read 8 header bytes and get IP and port from it
-    ret = recv(_sock,tmpBuf,8);
-    if (ret > 0)
-    {
-      _remoteIP = tmpBuf;
-      _remotePort = tmpBuf[4];
-      _remotePort = (_remotePort << 8) + tmpBuf[5];
-      _remaining = tmpBuf[6];
-      _remaining = (_remaining << 8) + tmpBuf[7];
+        //HACK - hand-parse the UDP packet using TCP recv method
+        uint8_t tmpBuf[8];
+        int ret =0; 
+        //read 8 header bytes and get IP and port from it
+        ret = recv(_sock,tmpBuf,8);
 
-      // When we get here, any remaining bytes are the data
-      ret = _remaining;
-    }
-    return ret;
+        if (ret > 0)
+        {
+            //_remoteIP = tmpBuf;
+            memcpy(&_remoteIP, tmpBuf, 4);
+            _remotePort = tmpBuf[4];
+            _remotePort = (_remotePort << 8) + tmpBuf[5];
+            _remaining = tmpBuf[6];
+            _remaining = (_remaining << 8) + tmpBuf[7];
+            ret = _remaining;  // When we get here, any remaining bytes are the data
+        }
+        return ret;
     }
     // There aren't any packets available
     return 0;

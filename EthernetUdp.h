@@ -50,7 +50,8 @@ private:
     EthernetClass * const _eth;
     uint8_t _sock;  // socket ID for Wiz5100
     uint16_t _port; // local port to listen on
-    IPAddress _remoteIP; // remote IP address for the incoming packet whilst it's being processed
+    //IPAddress _remoteIP;
+    uint32_t _remoteIP;
     uint16_t _remotePort; // remote port for the incoming packet whilst it's being processed
     uint16_t _offset; // offset into the packet being sent
     uint16_t _remaining; // remaining bytes of incoming packet yet to be processed
@@ -71,8 +72,10 @@ public:
     virtual int read(char* buffer, size_t len) { return read((unsigned char*)buffer, len); };
     virtual int peek();
     virtual void flush() { while (_remaining) { read(); } }
-    virtual IPAddress remoteIP() { return _remoteIP; };
+    virtual uint32_t remoteIP() { return _remoteIP; };
     virtual uint16_t remotePort() { return _remotePort; };
 };
-
 #endif
+
+
+

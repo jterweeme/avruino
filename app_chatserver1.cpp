@@ -24,8 +24,10 @@
 #include "util.h"
 #include "dhcp2.h"
 #include "board.h"
+#include "IPAddress.h"
 
 W5100Class *g_w5100;
+ostream *gout;
 
 int main()
 {
@@ -37,6 +39,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
 
     W5100Class w5100;
     g_w5100 = &w5100;
@@ -47,7 +50,7 @@ int main()
     w5100.init();
     uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
     w5100.setMACAddress(mac);
-    w5100.setIPAddress(IPAddress(0,0,0,0).raw_address());
+    w5100.setIPAddress(0);
 
     cout << "Starting DHCP...\r\n";
     DhcpClass dhcp(&eth);

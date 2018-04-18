@@ -1,7 +1,6 @@
-#ifndef client_h
-#define client_h
+#ifndef _CLIENT_H_
+#define _CLIENT_H_
 #include "stream2.h"
-#include "IPAddress.h"
 
 class Client : public Stream
 {
