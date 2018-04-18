@@ -8,14 +8,13 @@
 #define UIP_BIG_ENDIAN     1234
 #endif
 
-#include "types.h"
 #include "ipaddrezz.h"
 #include "enc28j60.h"
+#include "eth.h"
 
 typedef void* uip_tcp_appstate_t;
-void uipclient_appcall(void);
 typedef void* uip_udp_appstate_t;
-void uipudp_appcall(void);
+//void uipudp_appcall(void);
 
 static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
@@ -275,13 +274,18 @@ typedef struct
 }
 uip_udp_userdata_t;
 
-class UIPEthernetClass
+class UIPEthernetClass : public Ethernet
 {
 private:
     Enc28J60Network _nw;
     unsigned long periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
+    void uipclient_appcall();
+    void uipudp_appcall();
 public:
+    static uip_userdata_t all_data[UIP_CONNS];
+    uip_userdata_t *_allocateData();
+    size_t _write(uip_userdata_t *u, const uint8_t *buf, size_t size);
     void _send(uip_udp_userdata_t *data);
     Enc28J60Network *nw() { return &_nw; }
     void uip_process(uint8_t flag);
@@ -305,6 +309,8 @@ public:
     IPAddrezz gatewayIP();
     IPAddrezz dnsServerIP();
     void tick2();
+    uint8_t _currentBlock(memhandle *block);
+    void _eatBlock(memhandle *blocks);
 };
 
 #define UIP_SOCKET_DATALEN UIP_TCP_MSS
@@ -332,15 +338,6 @@ struct uip_userdata_closed_t
     memhandle packets_in[UIP_SOCKET_NUMPACKETS];
     uint16_t lport;        /**< The local TCP port, in network byte order. */
 };
-
-typedef struct
-{
-    uint8_t state;
-    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
-    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
-    memaddress out_pos;
-    unsigned long timer;
-} uip_userdata_t;
 #endif
 
 

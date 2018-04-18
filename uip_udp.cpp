@@ -1,6 +1,4 @@
 #include "uip_udp.h"
-#include "dns.h"
-#include "arp.h"
 
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -73,6 +71,7 @@ int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
     return 0;
 }
 
+#if 0
 int UIPUDP::beginPacket(const char *host, uint16_t port)
 {
     // Look up the host first
@@ -83,6 +82,7 @@ int UIPUDP::beginPacket(const char *host, uint16_t port)
     ret = dns.getHostByName(host, remote_addr);
     return ret == 1 ? beginPacket(remote_addr, port) : ret;
 }
+#endif
 
 int UIPUDP::endPacket()
 {
@@ -201,7 +201,7 @@ IPAddrezz UIPUDP::remoteIP()
     return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
 }
 
-void uipudp_appcall()
+void UIPEthernetClass::uipudp_appcall()
 {
     if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
     {
@@ -211,26 +211,22 @@ void uipudp_appcall()
             {
                 uip_udp_conn->rport = UDPBUF->srcport;
                 uip_ipaddr_copy(uip_udp_conn->ripaddr,UDPBUF->srcipaddr);
-
-                data->packet_next =
-                    Enc28J60Network::allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
+                data->packet_next = _nw.allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
                   //if we are unable to allocate memory the packet is dropped.
                     // udp doesn't guarantee packet delivery
                 if (data->packet_next != NOBLOCK)
                 {
                     //discard Linklevel and IP and udp-header and any trailing bytes:
-                    Enc28J60Network::instance->copyPacket(
-                        data->packet_next,0,UIPEthernetClass::instance->in_packet,
-                        UIP_UDP_PHYH_LEN,
-                        Enc28J60Network::instance->blockSize(data->packet_next));
+                    _nw.copyPacket(data->packet_next, 0, in_packet, UIP_UDP_PHYH_LEN,
+                        _nw.blockSize(data->packet_next));
                 }
             }
         }
 
         if (uip_poll() && data->send)
         {
-            UIPEthernetClass::instance->uip_packet = data->packet_out;
-            UIPEthernetClass::instance->uip_hdrlen = UIP_UDP_PHYH_LEN;
+            uip_packet = data->packet_out;
+            uip_hdrlen = UIP_UDP_PHYH_LEN;
             uip_send((char *)uip_appdata, data->out_pos - (UIP_UDP_PHYH_LEN));
         }
     }

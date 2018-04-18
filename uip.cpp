@@ -1,8 +1,6 @@
 #include "uip.h"
 #include <string.h>
 #include "arp.h"
-#include "uip_client.h"
-#include "uip_udp.h"
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
@@ -24,7 +22,7 @@ void UIPEthernetClass::_flushBlocks(memhandle* block)
 {
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-        Enc28J60Network::freeBlock(block[i]);
+        _nw.freeBlock(block[i]);
         block[i] = NOBLOCK;
     }
 }
@@ -56,6 +54,135 @@ IPAddrezz UIPEthernetClass::gatewayIP()
 IPAddrezz UIPEthernetClass::dnsServerIP()
 {
     return _dnsServerAddress;
+}
+
+#define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
+                                   uip_conn->tcpstateflags &= ~UIP_STOPPED; \
+                              } while(0)
+
+#define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
+#define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
+#define uip_newdata()   (uip_flags & UIP_NEWDATA)
+
+void UIPEthernetClass::uipclient_appcall()
+{
+    uint16_t send_len = 0;
+    uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
+
+    if (!u && uip_connected())
+    {
+        u = (uip_userdata_t*)_allocateData();
+
+        if (u)
+            uip_conn->appstate = u;
+    }
+
+    if (u)
+    {
+        if (uip_newdata())
+        {
+            if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+            {
+                for (uint8_t i=0; i < UIP_SOCKET_NUMPACKETS; i++)
+                {
+                    if (u->packets_in[i] == NOBLOCK)
+                    {
+                        u->packets_in[i] = _nw.allocBlock(uip_len);
+
+                        if (u->packets_in[i] != NOBLOCK)
+                        {
+                          Enc28J60Network::instance->copyPacket(u->packets_in[i],
+                            0, UIPEthernetClass::instance->in_packet,
+                            ((uint8_t*)uip_appdata)-uip_buf,uip_len);
+
+                          if (i == UIP_SOCKET_NUMPACKETS-1)
+                                uip_stop();
+
+                          goto finish_newdata;
+                        }
+                    }
+                }
+              UIPEthernetClass::instance->packetstate &= ~UIPETHERNET_FREEPACKET;
+              uip_stop();
+            }
+        }
+finish_newdata:
+      if (u->state & UIP_CLIENT_RESTART)
+        {
+          u->state &= ~UIP_CLIENT_RESTART;
+          uip_restart();
+        }
+
+      // If the connection has been closed, save received but unread data.
+      if ((uip_flags & UIP_CLOSE) || uip_timedout())
+        {
+          // drop outgoing packets not sent yet:
+          UIPEthernetClass::instance->_flushBlocks(&u->packets_out[0]);
+          if (u->packets_in[0] != NOBLOCK)
+            {
+              ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
+              u->state |= UIP_CLIENT_REMOTECLOSED;
+            }
+          else
+            u->state = 0;
+          uip_conn->appstate = NULL;
+          goto finish;
+        }
+        if (uip_flags & UIP_ACKDATA)
+        {
+            UIPEthernetClass::instance->_eatBlock(&u->packets_out[0]);
+        }
+        if ((uip_flags & UIP_POLL) || uip_rexmit())
+        {
+          if (u->packets_out[0] != NOBLOCK)
+            {
+              if (u->packets_out[1] == NOBLOCK)
+                {
+                  send_len = u->out_pos;
+                  if (send_len > 0)
+                    {
+                      _nw.resizeBlock(u->packets_out[0],0,send_len);
+                    }
+                }
+              else
+            {
+                send_len = _nw.blockSize(u->packets_out[0]);
+            }
+              if (send_len > 0)
+                {
+                  UIPEthernetClass::instance->uip_hdrlen = ((uint8_t*)uip_appdata)-uip_buf;
+                  UIPEthernetClass::instance->uip_packet = _nw.allocBlock(uip_hdrlen+send_len);
+
+                  if (UIPEthernetClass::instance->uip_packet != NOBLOCK)
+                    {
+                      Enc28J60Network::instance->copyPacket(
+                            UIPEthernetClass::instance->uip_packet,
+                            UIPEthernetClass::instance->uip_hdrlen,u->packets_out[0],0,send_len);
+
+                      UIPEthernetClass::instance->packetstate |= UIPETHERNET_SENDPACKET;
+                    }
+                }
+              goto finish;
+            }
+        }
+      // don't close connection unless all outgoing packets are sent
+      if (u->state & UIP_CLIENT_CLOSE)
+        {
+          if (u->packets_out[0] == NOBLOCK)
+            {
+                u->state = 0;
+                uip_conn->appstate = NULL;
+                uip_flags = UIP_CLOSE;
+            }
+          else
+            {
+              uip_stop();
+            }
+        }
+    }
+finish:
+    uip_send(uip_appdata,send_len);
+    uip_len = send_len;
 }
 
 void UIPEthernetClass::tick()
@@ -1464,6 +1591,101 @@ void UIPEthernetClass::_send(uip_udp_userdata_t *data)
 
     network_send();
 }
+
+uint8_t UIPEthernetClass::_currentBlock(memhandle* block)
+{
+    for (uint8_t i = 1; i < UIP_SOCKET_NUMPACKETS; i++)
+        if (block[i] == NOBLOCK)
+            return i - 1;
+
+    return UIP_SOCKET_NUMPACKETS-1;
+}
+
+void UIPEthernetClass::_eatBlock(memhandle* block)
+{
+    _nw.freeBlock(block[0]);
+
+    for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
+        block[i] = block[i+1];
+
+    block[UIP_SOCKET_NUMPACKETS-1] = NOBLOCK;
+}
+
+uip_userdata_t *UIPEthernetClass::_allocateData()
+{
+    for (uint8_t sock = 0; sock < UIP_CONNS; sock++)
+    {
+        uip_userdata_t* data = &UIPEthernetClass::all_data[sock];
+
+        if (!data->state)
+        {
+            data->state = sock | UIP_CLIENT_CONNECTED;
+            memset(&data->packets_in[0], 0, sizeof(uip_userdata_t) - sizeof(data->state));
+            return data;
+        }
+    }
+    return NULL;
+}
+
+size_t UIPEthernetClass::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
+{
+    int remain = size;
+    uint16_t written;
+#if UIP_ATTEMPTS_ON_WRITE > 0
+    uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
+#endif
+repeat:
+    UIPEthernetClass::instance->tick();
+
+    if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
+    {
+        uint8_t p = _currentBlock(&u->packets_out[0]);
+
+        if (u->packets_out[p] == NOBLOCK)
+        {
+newpacket:
+            u->packets_out[p] = _nw.allocBlock(UIP_SOCKET_DATALEN);
+            if (u->packets_out[p] == NOBLOCK)
+            {
+#if UIP_ATTEMPTS_ON_WRITE > 0
+                if ((--attempts)>0)
+#endif
+#if UIP_ATTEMPTS_ON_WRITE != 0
+                    goto repeat;
+#endif
+                goto ready;
+            }
+            u->out_pos = 0;
+        }
+        written = Enc28J60Network::instance->writePacket(u->packets_out[p],
+            u->out_pos,(uint8_t*)buf+size-remain,remain);
+
+      remain -= written;
+      u->out_pos+=written;
+      if (remain > 0)
+        {
+          if (p == UIP_SOCKET_NUMPACKETS-1)
+            {
+#if UIP_ATTEMPTS_ON_WRITE > 0
+              if ((--attempts)>0)
+#endif
+#if UIP_ATTEMPTS_ON_WRITE != 0
+                goto repeat;
+#endif
+              goto ready;
+            }
+          p++;
+          goto newpacket;
+        }
+ready:
+#if  1
+      u->timer = millis()+UIP_CLIENT_TIMER;
+#endif
+      return size-remain;
+    }
+  return -1;
+}
+
 
 
 

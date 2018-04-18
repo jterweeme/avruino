@@ -93,12 +93,12 @@ class MemoryPool
 protected:
     static struct memblock blocks[MEMPOOL_NUM_MEMBLOCKS+1];
 public:
-    static void init();
-    static memhandle allocBlock(memaddress);
-    static void freeBlock(memhandle);
-    static void resizeBlock(memhandle handle, memaddress position);
-    static void resizeBlock(memhandle handle, memaddress position, memaddress size);
-    static memaddress blockSize(memhandle);
+    void init();
+    memhandle allocBlock(memaddress);
+    void freeBlock(memhandle);
+    void resizeBlock(memhandle handle, memaddress position);
+    void resizeBlock(memhandle handle, memaddress position, memaddress size);
+    memaddress blockSize(memhandle);
 };
 #endif
 
