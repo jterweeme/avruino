@@ -11,6 +11,7 @@
 #include "stream.h"
 #include <avr/interrupt.h>
 #include "util.h"
+#include "dhcp2.h"
 
 static W5100Class w5100;
 static EthernetClass eth(&w5100);
@@ -27,17 +28,29 @@ int main()
     *p_timsk0 |= 1<<toie0;
     zei();
     DefaultUart s;
+    *p_ucsr9a |= 1<<u2x9;
+    *p_ubrr9 = 16;
     UartStream cout(&s);
 
     cout << "Initialize Ethernet...\r\n";
+    cout.flush();
+#if 1
+    w5100.init();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    cout << "Begin ethernet\r\n";
-    eth.begin(mac);
-    uint32_t ip = eth.localIP();
-    hex32(ip, cout);
+    w5100.setMACAddress(mac);
+    w5100.setIPAddress(IPAddress(0,0,0,0).raw_address());
+    
+    cout << "Starting DHCP...\r\n";
+    DhcpClass dhcp(&eth);
+    dhcp.beginWithDHCP(mac);
+    w5100.setIPAddress(dhcp.getLocalIp().raw_address());
+    w5100.setGatewayIp(dhcp.getGatewayIp().raw_address());
+    w5100.setSubnetMask(dhcp.getSubnetMask().raw_address());
+    eth.addresses(cout);
     cout << "\r\n";
+
     server.begin();
-    cout << "Server begin\r\n";
+    cout << "Server started\r\n";
 
     while (true)
     {
@@ -88,7 +101,7 @@ int main()
             client.stop();
         }
     }
-
+#endif
     return 0;
 }
 

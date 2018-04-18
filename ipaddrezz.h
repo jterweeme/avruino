@@ -23,6 +23,7 @@ public:
     IPAddrezz(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet);
     IPAddrezz(uint32_t address) { _address.a32 = address; }
     IPAddrezz(const uint8_t *address) { memcpy(_address.a8, address, sizeof(_address)); }
+    uint32_t get32() const { return _address.a32; }
     operator uint32_t() { return _address.a32; }
     bool operator==(const IPAddrezz& addr) { return _address.a32 == addr._address.a32; };
     bool operator==(const uint8_t* addr);

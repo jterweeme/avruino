@@ -159,23 +159,6 @@ static void httpGet(UIPClient &client, Fatty &zd, Buffer &buffer)
         serveFile(client, fn);
 }
 
-static void addresses(UIPEthernetClass &eth, ostream &os)
-{
-    uint32_t ip = eth.localIP();
-    uint32_t subnet = eth.subnetMask();
-    uint32_t gw = eth.gatewayIP();
-    uint32_t dns = eth.dnsServerIP();
-    os << "IP:      ";
-    hex32(ip, os);
-    os << "\r\nSubnet:  ";
-    hex32(subnet, os);
-    os << "\r\nGateway: ";
-    hex32(gw, os);
-    os << "\r\nDNS:     ";
-    hex32(dns, os);
-    os << "\r\n";
-}
-
 int main()
 {
     // 16,000,000/16,000 = 1000
@@ -213,7 +196,7 @@ int main()
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
-    addresses(eth, cout);
+    eth.addresses(cout);
     cout << "\r\n";
 
     server.begin();

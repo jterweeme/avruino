@@ -87,30 +87,26 @@ int EthernetClass::maintain()
     return rc;
 }
 
-IPAddress EthernetClass::localIP()
+uint32_t EthernetClass::localIP()
 {
     IPAddress ret;
     _nw->getIPAddress(ret.raw_address());
-    return ret;
+    return ret.get32();
 }
 
-IPAddress EthernetClass::subnetMask()
+uint32_t EthernetClass::subnetMask()
 {
     IPAddress ret;
     _nw->getSubnetMask(ret.raw_address());
-    return ret;
+    return ret.get32();
 }
 
-IPAddress EthernetClass::gatewayIP()
+uint32_t EthernetClass::gatewayIP()
 {
     IPAddress ret;
     _nw->getGatewayIp(ret.raw_address());
-    return ret;
+    return ret.get32();
 }
 
-IPAddress EthernetClass::dnsServerIP()
-{
-    return _dnsServerAddress;
-}
 
 

@@ -15,6 +15,7 @@ public:
     IPAddress(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet);
     IPAddress(uint32_t address);
     IPAddress(const uint8_t *address);
+    uint32_t get32() const { return _address.a32; }
     operator uint32_t() { return _address.a32; }
     bool operator==(const IPAddress& addr) { return _address.a32 == addr._address.a32; };
     bool operator==(const uint8_t* addr);

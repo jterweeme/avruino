@@ -27,33 +27,30 @@ void UIPEthernetClass::_flushBlocks(memhandle* block)
     }
 }
 
-IPAddrezz UIPEthernetClass::localIP()
+uint32_t UIPEthernetClass::localIP()
 {
-    IPAddrezz ret;
     uip_ipaddr_t a;
     uip_ipaddr_copy(a, uip_hostaddr);
-    return ip_addr_uip(a);
+    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
 }
 
-IPAddrezz UIPEthernetClass::subnetMask()
+uint32_t UIPEthernetClass::subnetMask()
 {
-    IPAddrezz ret;
     uip_ipaddr_t a;
     uip_ipaddr_copy(a, uip_netmask);
-    return ip_addr_uip(a);
+    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
 }
 
-IPAddrezz UIPEthernetClass::gatewayIP()
+uint32_t UIPEthernetClass::gatewayIP()
 {
-    IPAddrezz ret;
     uip_ipaddr_t a;
     uip_ipaddr_copy(a, uip_draddr);
-    return ip_addr_uip(a);
+    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
 }
 
-IPAddrezz UIPEthernetClass::dnsServerIP()
+uint32_t UIPEthernetClass::dnsServerIP()
 {
-    return _dnsServerAddress;
+    return _dnsServerAddress.get32();
 }
 
 #define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
@@ -63,6 +60,9 @@ IPAddrezz UIPEthernetClass::dnsServerIP()
 #define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
 #define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
 #define uip_newdata()   (uip_flags & UIP_NEWDATA)
+#define uip_connected() (uip_flags & UIP_CONNECTED)
+#define uip_timedout()    (uip_flags & UIP_TIMEDOUT)
+#define uip_rexmit()     (uip_flags & UIP_REXMIT)
 
 void UIPEthernetClass::uipclient_appcall()
 {
@@ -102,7 +102,7 @@ void UIPEthernetClass::uipclient_appcall()
                         }
                     }
                 }
-              UIPEthernetClass::instance->packetstate &= ~UIPETHERNET_FREEPACKET;
+              packetstate &= ~UIPETHERNET_FREEPACKET;
               uip_stop();
             }
         }

@@ -172,13 +172,23 @@ int main()
     TCCR0B = CS02; // | CS00;
     TIMSK0 |= 1<<TOIE0;
     zei();
-    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-    IPAddress myIP(192,168,200,101);
     DefaultUart s;
     UartStream cout(&s);
-    cout << "Startup\r\n";
+
+    cout << "Initialize Ethernet...\r\n";
     cout.flush();
-    eth.begin(mac, myIP);
+    w5100.init();
+    uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
+    w5100.setMACAddress(mac);
+    w5100.setIPAddress(IPAddress(0,0,0,0).raw_address());
+
+    cout << "Starting DHCP...\r\n";
+    DhcpClass dhcp(&eth);
+    dhcp.beginWithDHCP(mac);
+    w5100.setIPAddress(dhcp.getLocalIp().raw_address());
+    w5100.setGatewayIp(dhcp.getGatewayIp().raw_address());
+    w5100.setSubnetMask(dhcp.getSubnetMask().raw_address());
+
     uint32_t ip = eth.localIP();
     hex32(ip, cout);
     cout << "\r\n";

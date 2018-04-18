@@ -1,14 +1,14 @@
 #ifndef ethernet_h
 #define ethernet_h
 
-#include "types.h"
 #include "IPAddress.h"
 #include "dhcp2.h"
 #include "w5100.h"
+#include "eth.h"
 
 #define MAX_SOCK_NUM 4
 
-class EthernetClass
+class EthernetClass : public Ethernet
 {
 private:
     W5100Class * const _nw;
@@ -26,10 +26,10 @@ public:
     void begin(uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway);
     void begin(uint8_t *mac_address, IPAddress local_ip, IPAddress dns_server, IPAddress gateway, IPAddress subnet);
     int maintain();
-    IPAddress localIP();
-    IPAddress subnetMask();
-    IPAddress gatewayIP();
-    IPAddress dnsServerIP();
+    uint32_t localIP();
+    uint32_t subnetMask();
+    uint32_t gatewayIP();
+    uint32_t dnsServerIP() { return _dnsServerAddress.get32(); }
     friend class EthernetClient;
     friend class EthernetServer;
 };

@@ -1,6 +1,8 @@
 #include "uip_udp.h"
 
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define uip_poll()       (uip_flags & UIP_POLL)
+#define ip_addr_uip(a) IPAddrezz(a[0] & 0xFF, a[0] >> 8 , a[1] & 0xFF, a[1] >> 8)
 
 uint8_t UIPUDP::begin(uint16_t port)
 {

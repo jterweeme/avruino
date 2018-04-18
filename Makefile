@@ -113,33 +113,33 @@ app_usbsound2.hex: app_usbsound2.asm
 
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o \
-    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o
+    uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
 app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
     uart.o pinport.o stream.o EthernetServer.o socket.o dhcp2.o \
-    EthernetUdp.o IPAddress.o EthernetClient.o w5100.o misc.o
+    EthernetUdp.o IPAddress.o EthernetClient.o w5100.o misc.o eth.o
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
-    misc.o stream.o
+    misc.o stream.o eth.o
 
 app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
-    misc.o stream.o fatty.o zd2card.o
+    misc.o stream.o fatty.o zd2card.o eth.o
 
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
-    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
+    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o
 
 app_websdfat2.elf: app_websdfat2.o dns2.o ethernet.o uart.o pinport.o stream.o \
     EthernetServer.o socket.o dhcp2.o EthernetUdp.o IPAddress.o EthernetClient.o w5100.o  \
-    zd2card.o fatty.o misc.o
+    zd2card.o fatty.o misc.o eth.o
 
 app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
-    IPAddress.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o
+    IPAddress.o w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o eth.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
-    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o
+    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o
 
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
     stream.o md5sum.o uart.o misc.o
@@ -257,6 +257,7 @@ busby.o: busby.cpp
 button.o: button.cpp button.h analog.h tft.h
 calc.o: calc.cpp calc.h types.h
 capsense.o: capsense.cpp capsense.h
+eth.o: eth.cpp eth.h misc.h types.h
 fatty.o: fatty.cpp fatty.h
 helios.o: helios.cpp helios.h misc.h
 i2c.o: i2c.cpp misc.h

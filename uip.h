@@ -14,8 +14,6 @@
 
 typedef void* uip_tcp_appstate_t;
 typedef void* uip_udp_appstate_t;
-//void uipudp_appcall(void);
-
 static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
 #ifndef UIP_CONF_MAX_LISTENPORTS
@@ -88,12 +86,6 @@ extern uint8_t uip_buf[UIP_BUFSIZE+2];
 void uip_listen(uint16_t port);
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
 void uip_send(const void *data, int len);
-
-#define uip_connected() (uip_flags & UIP_CONNECTED)
-#define uip_timedout()    (uip_flags & UIP_TIMEDOUT)
-#define uip_rexmit()     (uip_flags & UIP_REXMIT)
-#define uip_poll()       (uip_flags & UIP_POLL)
-
 struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 
 #define uip_udp_remove(conn) (conn)->lport = 0
@@ -103,7 +95,6 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
                      ((uint16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
                      ((uint16_t *)(addr))[1] = HTONS(((addr2) << 8) | (addr3)); \
                   } while(0)
-
 
 #define uip_ipaddr_copy(dest, src) do { \
                      ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
@@ -135,9 +126,7 @@ extern void *uip_appdata;
 
 #if UIP_URGDATA > 0
 extern void *uip_urgdata;
-#endif /* UIP_URGDATA > 0 */
-
-
+#endif
 
 extern uint16_t uip_len;
 
@@ -253,8 +242,6 @@ static constexpr uint8_t
                      ((uint16_t *)(addr))[1] = HTONS(((ip[2]) << 8) | (ip[3])); \
                   } while(0)
 
-#define ip_addr_uip(a) IPAddrezz(a[0] & 0xFF, a[0] >> 8 , a[1] & 0xFF, a[1] >> 8)
-
 #define uip_seteth_addr(eaddr) do {uip_ethaddr.addr[0] = eaddr[0]; \
                               uip_ethaddr.addr[1] = eaddr[1];\
                               uip_ethaddr.addr[2] = eaddr[2];\
@@ -304,10 +291,10 @@ public:
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }
-    IPAddrezz localIP();
-    IPAddrezz subnetMask();
-    IPAddrezz gatewayIP();
-    IPAddrezz dnsServerIP();
+    uint32_t localIP();
+    uint32_t subnetMask();
+    uint32_t gatewayIP();
+    uint32_t dnsServerIP();
     void tick2();
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);
