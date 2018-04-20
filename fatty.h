@@ -737,7 +737,10 @@ class FyleIfstream : public ifstream
 {
 private:
     Fyle _fyle;
+    Fatty *_fatty;
 public:
+    FyleIfstream() { }
+    FyleIfstream(Fatty *fatty) : _fatty(fatty) { }
     int peek() { return _fyle.peek(); }
     void open(const char *fn) { _fyle = Fatty::instance->open(fn); }
     void close() { _fyle.close(); }
@@ -748,12 +751,16 @@ class FyleOfstream : public ofstream
 {
 private:
     Fyle _fyle;
+    Fatty *_fatty;
 public:
+    FyleOfstream() { }
+    FyleOfstream(Fatty *fatty) : _fatty(fatty) { }
     void put(char c) { _fyle.write((uint8_t)c); }
     void open(const char *fn) { _fyle = Fatty::instance->open(fn, FILE_WRITE); }
     void close() { _fyle.close(); }
     void flush() { _fyle.flush(); }
 };
 #endif
+
 
 

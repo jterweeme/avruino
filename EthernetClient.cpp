@@ -3,12 +3,9 @@
 #endif
 
 #include <util/delay.h>
-#include "w5100.h"
 #include "socket.h"
-#include "EthernetClient.h"
 #include "EthernetServer.h"
 #include "dns2.h"
-#include "util.h"
 
 uint16_t EthernetClient::_srcport = 1024;
 
@@ -126,10 +123,12 @@ void EthernetClient::stop()
 
     // attempt to close the connection gracefully (send a FIN to other side)
     disconnect(_sock);
-    unsigned long start = millis();
+    //unsigned long start = millis();
+    
 
     // wait a second for the connection to close
-    while (status() != SnSR::CLOSED && millis() - start < 1000)
+    //while (status() != SnSR::CLOSED && millis() - start < 1000)
+    for (uint16_t ms = 0; status() != SnSR::CLOSED && ms < 1000; ms++)
         _delay_ms(1);
 
     // if it hasn't closed, close it forcefully

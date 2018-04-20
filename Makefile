@@ -133,7 +133,7 @@ app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
 
 app_websdfat2.elf: app_websdfat2.o dns2.o ethernet.o uart.o pinport.o stream.o \
     EthernetServer.o socket.o dhcp2.o EthernetUdp.o EthernetClient.o w5100.o  \
-    zd2card.o fatty.o misc.o eth.o
+    zd2card.o fatty.o misc.o eth.o webserver.o
 
 app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
     w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o eth.o \
@@ -279,6 +279,7 @@ usbsd.o: usbsd.cpp usbsd.h busby.h
 vga.o: vga.cpp vga.h
 vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
+webserver.o: webserver.cpp webserver.h
 xmodem.o: xmodem.cpp xmodem.h stream.h types.h
 ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
