@@ -50,7 +50,6 @@ private:
     EthernetClass * const _eth;
     uint8_t _sock;  // socket ID for Wiz5100
     uint16_t _port; // local port to listen on
-    //IPAddress _remoteIP;
     uint32_t _remoteIP;
     uint16_t _remotePort; // remote port for the incoming packet whilst it's being processed
     uint16_t _offset; // offset into the packet being sent

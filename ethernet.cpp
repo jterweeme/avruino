@@ -1,6 +1,5 @@
 #include "w5100.h"
 #include "ethernet.h"
-#include "dhcp2.h"
 
 // XXX: don't make assumptions about the value of MAX_SOCK_NUM.
 uint8_t EthernetClass::_state[MAX_SOCK_NUM] = { 0, 0, 0, 0 };

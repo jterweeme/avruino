@@ -1,7 +1,5 @@
-#ifndef ethernet_h
-#define ethernet_h
-
-#include "dhcp2.h"
+#ifndef _ETHERNET_H_
+#define _ETHERNET_H_
 #include "w5100.h"
 #include "eth.h"
 
@@ -19,8 +17,6 @@ public:
     uint32_t localIP();
     uint32_t subnetMask();
     uint32_t gatewayIP();
-    friend class EthernetClient;
-    friend class EthernetServer;
 };
 #endif
 

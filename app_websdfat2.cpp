@@ -10,6 +10,7 @@ Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 #include "fatty.h"
 #include <avr/interrupt.h>
 #include "util.h"
+#include "dhcp2.h"
 
 class Buffer
 {
@@ -165,7 +166,7 @@ int main()
     // 16,000 / 256 = 62
 
     Board b;
-    Sd2Card sd(&b.pin9);
+    Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
     g_zd = &zd;
     TCCR0B = CS02; // | CS00;

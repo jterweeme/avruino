@@ -1,11 +1,7 @@
-#include "w5100.h"
+//#include "w5100.h"
 #include "socket.h"
-extern "C" {
-#include "string.h"
-}
-
-#include "ethernet.h"
-#include "EthernetClient.h"
+//#include "ethernet.h"
+//#include "EthernetClient.h"
 #include "EthernetServer.h"
 
 void EthernetServer::begin()

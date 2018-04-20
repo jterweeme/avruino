@@ -47,7 +47,7 @@ public:
     static void setClockDivider(uint8_t);
 };
 
-extern SPIClass SPI;
+//extern SPIClass SPI;
 
 uint8_t SPIClass::transfer(uint8_t _data)
 {
@@ -56,10 +56,21 @@ uint8_t SPIClass::transfer(uint8_t _data)
     return *p_spdr;
 }
 
+static constexpr uint8_t
+    cs_port_base = pin10_base,
+    cs_bit = pin10_bit,
+    cs_ddr = cs_port_base + 1,
+    cs_port = cs_port_base + 2;
+
+static volatile uint8_t * const p_cs_ddr = (volatile uint8_t * const)cs_ddr;
+static volatile uint8_t * const p_cs_port = (volatile uint8_t * const)cs_port;
+
 SPIClass SPI;
 
 void SPIClass::begin()
 {   
+    *p_cs_port |= 1<<cs_bit;
+    *p_cs_ddr |= 1<<cs_bit;
     *p_ss_port |= 1<<ss_bit;
     *p_ss_ddr |= 1<<ss_bit;
     *p_spcr |= 1<<mstr | 1<<spe;
@@ -86,9 +97,6 @@ void SPIClass::setClockDivider(uint8_t rate)
     *p_spsr = (SPSR & ~SPI_2XCLOCK_MASK) | ((rate >> 2) & SPI_2XCLOCK_MASK);
 }
 
-
-//W5100Class W5100;
-
 #define TX_RX_MAX_BUF_SIZE 2048
 #define TX_BUF 0x1100
 #define RX_BUF (TX_BUF + TX_RX_MAX_BUF_SIZE)
@@ -100,6 +108,7 @@ void W5100Class::init(void)
 {
     _delay_ms(300);
     SPI.begin();
+    *p_cs_ddr |= 1<<cs_bit;
     *p_ss_ddr |= 1<<ss_bit;
     writeMR(1<<RST);
     writeTMSR(0x55);
@@ -138,11 +147,12 @@ uint16_t W5100Class::getRXReceivedSize(SOCKET s)
 
 void W5100Class::send_data_processing(SOCKET s, const uint8_t *data, uint16_t len)
 {
-  // This is same as having no offset in a call to send_data_processing_offset
-  send_data_processing_offset(s, 0, data, len);
+    // This is same as having no offset in a call to send_data_processing_offset
+    send_data_processing_offset(s, 0, data, len);
 }
 
-void W5100Class::send_data_processing_offset(SOCKET s, uint16_t data_offset, const uint8_t *data, uint16_t len)
+void W5100Class::send_data_processing_offset(SOCKET s, uint16_t data_offset,
+    const uint8_t *data, uint16_t len)
 {
   uint16_t ptr = readSnTX_WR(s);
   ptr += data_offset;
@@ -199,11 +209,13 @@ void W5100Class::read_data(SOCKET s, volatile uint8_t *src, volatile uint8_t *ds
 
 uint8_t W5100Class::write(uint16_t _addr, uint8_t _data)
 {
+    *p_cs_port &= ~(1<<cs_bit);
     *p_ss_port &= ~(1<<ss_bit);
     SPI.transfer(0xF0);
     SPI.transfer(_addr >> 8);
     SPI.transfer(_addr & 0xFF);
     SPI.transfer(_data);
+    *p_cs_port |= 1<<cs_bit;
     *p_ss_port |= 1<<ss_bit;
     return 1;
 }
@@ -212,12 +224,14 @@ uint16_t W5100Class::write(uint16_t _addr, const uint8_t *_buf, uint16_t _len)
 {
     for (uint16_t i=0; i<_len; i++)
     {
+        *p_cs_port &= ~(1<<cs_bit);
         *p_ss_port &= ~(1<<ss_bit);
         SPI.transfer(0xF0);
         SPI.transfer(_addr >> 8);
         SPI.transfer(_addr & 0xFF);
         _addr++;
         SPI.transfer(_buf[i]);
+        *p_cs_port |= 1<<cs_bit;
         *p_ss_port |= 1<<ss_bit;
     }
     return _len;
@@ -225,34 +239,39 @@ uint16_t W5100Class::write(uint16_t _addr, const uint8_t *_buf, uint16_t _len)
 
 uint8_t W5100Class::read(uint16_t _addr)
 {
+    *p_cs_port &= ~(1<<cs_bit);
     *p_ss_port &= ~(1<<ss_bit);
     SPI.transfer(0x0F);
     SPI.transfer(_addr >> 8);
     SPI.transfer(_addr & 0xFF);
     uint8_t _data = SPI.transfer(0);
+    *p_cs_port |= 1<<cs_bit;
     *p_ss_port |= 1<<ss_bit;
     return _data;
 }
 
 uint16_t W5100Class::read(uint16_t _addr, uint8_t *_buf, uint16_t _len)
 {
-  for (uint16_t i=0; i<_len; i++)
-  {
-    *p_ss_port &= ~(1<<ss_bit);
-    SPI.transfer(0x0F);
-    SPI.transfer(_addr >> 8);
-    SPI.transfer(_addr & 0xFF);
-    _addr++;
-    _buf[i] = SPI.transfer(0);
-    *p_ss_port |= 1<<ss_bit;
-  }
-  return _len;
+    for (uint16_t i = 0; i < _len; i++)
+    {
+        *p_cs_port &= ~(1<<cs_bit);
+        *p_ss_port &= ~(1<<ss_bit);
+        SPI.transfer(0x0F);
+        SPI.transfer(_addr >> 8);
+        SPI.transfer(_addr & 0xFF);
+        _addr++;
+        _buf[i] = SPI.transfer(0);
+        *p_cs_port |= 1<<cs_bit;
+        *p_ss_port |= 1<<ss_bit;
+    }
+    return _len;
 }
 
-void W5100Class::execCmdSn(SOCKET s, SockCMD _cmd) {
-  // Send command to socket
-  writeSnCR(s, _cmd);
-  // Wait for command to complete
-  while (readSnCR(s))
-    ;
+void W5100Class::execCmdSn(SOCKET s, SockCMD _cmd)
+{
+    writeSnCR(s, _cmd);     // Send command to socket
+    while (readSnCR(s));    // Wait for command to complete
 }
+
+
+

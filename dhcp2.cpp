@@ -6,7 +6,6 @@
 #endif
 
 #include <util/delay.h>
-#include "w5100.h"
 #include <string.h>
 #include <stdlib.h>
 #include "dhcp2.h"

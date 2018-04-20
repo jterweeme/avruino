@@ -134,11 +134,14 @@ public:
   }
 
 public:
-  //__GP_REGISTER8 (MR,     0x0000);    // Mode
-  __GP_REGISTER_N(GAR,    0x0001, 4); // Gateway IP address
-  __GP_REGISTER_N(SUBR,   0x0005, 4); // Subnet mask address
-  __GP_REGISTER_N(SHAR,   0x0009, 6); // Source MAC address
-  __GP_REGISTER_N(SIPR,   0x000F, 4); // Source IP address
+    static inline uint16_t writeGAR(uint8_t *buf) { return write(0x0001, buf, 4); }
+    static inline uint16_t readGAR(uint8_t *buf) { return read(0x0001, buf, 4); }
+    static inline uint16_t writeSUBR(uint8_t *buf) { return write(0x0005, buf, 4); }
+    static inline uint16_t readSUBR(uint8_t *buf) { return read(0x0005, buf, 4); }
+    static inline uint16_t writeSHAR(uint8_t *buf) { return write(0x0009, buf, 6); }
+    static inline uint16_t readSHAR(uint8_t *buf) { return read(0x0009, buf, 6); }
+    static inline uint16_t writeSIPR(uint8_t *buf) { return write(0x000f, buf, 4); }
+    static inline uint16_t readSIPR(uint8_t *buf) { return read(0x000f, buf, 4); }
   __GP_REGISTER8 (IR,     0x0015);    // Interrupt
   __GP_REGISTER8 (IMR,    0x0016);    // Interrupt Mask
   __GP_REGISTER16(RTR,    0x0017);    // Timeout address

@@ -564,7 +564,7 @@ void USBSD::configure()
 }
 
 USBSD::USBSD() :
-    _sd(&_board.pin9),
+    _sd(&_board.pin4),
     _inpoint(MASS_STORAGE_IN_EPADDR, MASS_STORAGE_IO_EPSIZE, EP_TYPE_BULK, 1),
     _outpoint(MASS_STORAGE_OUT_EPADDR, MASS_STORAGE_IO_EPSIZE, EP_TYPE_BULK, 1)
 {

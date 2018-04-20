@@ -209,6 +209,7 @@ static constexpr uint8_t
     pin7_bit = ph4,
     pin8_bit = ph5,
     pin9_bit = ph6,
+    pin10_base = portb_base,
     pin10_bit = pb4,
     pin11_bit = pb5,
     pin12_bit = pb6,
