@@ -8,8 +8,8 @@ werkt met mega
 #include "uip_server.h"
 #include "misc.h"
 #include "board.h"
-#include "stream.h"
 #include "dhcp.h"
+#include "webtest1.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -49,11 +49,13 @@ int main()
 
     server.begin();
     cout << "Server started\r\n";
+    WebTest1 webtest1(&cout);
 
     while (true)
     {
         UIPClient client = server.available();
-
+        webtest1.dispatch(client);
+#if 0
         if (client)
         {
             cout << "Client\r\n";
@@ -99,6 +101,7 @@ int main()
             _delay_ms(1);
             client.stop();
         }
+#endif
     }
 
     return 0;

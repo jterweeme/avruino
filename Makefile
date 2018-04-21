@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -112,7 +112,7 @@ app_optiboot1.hex: app_optiboot1.asm
 app_usbsound2.hex: app_usbsound2.asm
 
 app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
-    uart.o uip_client.o pinport.o stream.o misc.o \
+    uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
 app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
@@ -280,12 +280,13 @@ vga.o: vga.cpp vga.h
 vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
 webserver.o: webserver.cpp webserver.h
+webtest1.o: webtest1.cpp webtest1.h
 xmodem.o: xmodem.cpp xmodem.h stream.h types.h
 ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

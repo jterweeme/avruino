@@ -1,8 +1,9 @@
 #ifndef _UIPCLIENT_H_
 #define _UIPCLIENT_H_
+#include "client.h"
 #include "uip.h"
 
-class UIPClient
+class UIPClient : public Client
 {
 private:
     UIPEthernetClass * const _eth;

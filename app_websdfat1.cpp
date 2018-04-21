@@ -8,7 +8,9 @@ Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 #include "uip_server.h"
 #include "dhcp.h"
 #include "fatty.h"
+#include "webserver.h"
 
+#if 1
 class Buffer
 {
     char _buf[512] = {0};
@@ -33,10 +35,12 @@ void Buffer::reset()
     for (uint16_t i = 0; i < 512; i++)
         _buf[i] = 0;
 }
+#endif
 
 static UIPEthernetClass eth;
 static Fatty *g_zd;
 
+#if 1
 static void printDirectory(Fyle dir, uint8_t numTabs, UIPClient &os)
 {
     os.write("<table>\r\n");
@@ -158,6 +162,7 @@ static void httpGet(UIPClient &client, Fatty &zd, Buffer &buffer)
     else
         serveFile(client, fn);
 }
+#endif
 
 int main()
 {
@@ -203,11 +208,13 @@ int main()
 
     server.begin();
     Buffer buffer;
+    //Webserver web(&zd, &cout);
 
     while (true)
     {
         UIPClient client = server.available();
-
+        //web.dispatch(client);
+#if 1
         if (client)
         {
             while (client.connected())
@@ -261,6 +268,7 @@ int main()
             for (volatile uint16_t i = 0; i < 0x4fff; i++); // delay
             client.stop();
         }
+#endif
     }
 
     return 0;
