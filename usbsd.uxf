@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.baselet.element.old.element.Class</type>
+    <coordinates>
+      <x>740</x>
+      <y>150</y>
+      <w>260</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>*USB*
+--
+# _ctrlReq: USBRequest
+# _state: uint8_t
+# _control: Endpoint
+--
+# _waitUntilReady(): uint8_t
+- getEndpointDirection(): uint8_t
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>380</x>
+      <y>60</y>
+      <w>160</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>*Endpoint*
+--
++ addr: uint8_t
++ size: uint16_t
++ type: uint8_t
++ banks: uint8_t
+--
++ select(): void
++ reset(): void
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>120</y>
+      <w>230</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>210.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>670</x>
+      <y>480</y>
+      <w>370</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>*USBSD*
+--
+- _sd: Sd2Card
+- _inpoint: Endpoint
+- _outpoint: Endpoint
+--
++ USBSD(): USBSD
++ returnCommandStatus(): void
++ decodeSCSICmd(): bool
++ procCtrlReq(): void
++ msTask(): void
+bg=blue</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>840</x>
+      <y>290</y>
+      <w>30</w>
+      <h>210</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>100</x>
+      <y>100</y>
+      <w>200</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>*DescEndpoint*
+--
++ size: uint8_t
++ type: uint8_t
+--
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>190</x>
+      <y>440</y>
+      <w>210</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>*DescIface*
+--
++ size: uint8_t
++ type: uint8_t
+--
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>230</y>
+      <w>210</w>
+      <h>270</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>190.0;250.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>200</x>
+      <y>690</y>
+      <w>380</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>*Sd2Card*
+--
+- _cs: Pin
+--
++ readBlock(b: uint32_t, dst: uint8_t *): uint8_t
+bg=pink</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>610</y>
+      <w>160</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;</panel_attributes>
+    <additional_attributes>140.0;10.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>290</x>
+      <y>290</y>
+      <w>400</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;380.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>390</x>
+      <y>510</y>
+      <w>300</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;280.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1120</x>
+      <y>310</y>
+      <w>200</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>*DescDev*
+--
++ size: uint8_t
++ type: uint8_t
++ spec: uint16_t
+--
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>440</y>
+      <w>190</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>170.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1060</x>
+      <y>50</y>
+      <w>290</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>*DescConf*
+--
+--
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

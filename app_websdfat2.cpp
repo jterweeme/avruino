@@ -63,7 +63,13 @@ int main()
 
     cout << "SD Card initialized successful\r\n";
     Webserver web(&server, &zd, &cout);
-    web.run();
+
+    while (true)
+    {
+        EthernetClient client = web.available();
+        web.dispatch(client);
+    }
+
     return 0;
 }
 

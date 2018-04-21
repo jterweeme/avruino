@@ -1,5 +1,5 @@
-#ifndef ethernetserver_h
-#define ethernetserver_h
+#ifndef _ETHERNETSERVER_H_
+#define _ETHERNETSERVER_H_
 #include "EthernetClient.h"
 
 class EthernetServer

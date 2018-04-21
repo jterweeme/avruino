@@ -11,18 +11,19 @@ private:
     EthernetServer * const _svr;
     Fatty * const _fs;
     ostream * const _serial;
-    void httpGet(EthernetClient &client, Buffer &buffer);
-    void contentType(EthernetClient &client, const char *ext);
+    void httpGet(Client &client, Buffer &buffer);
+    void contentType(Client &client, const char *ext);
     void httpDelete(Buffer &buffer);
-    void serveFile(EthernetClient &client, const char *fn);
-    void listing(EthernetClient &client) const;
-    void printDirectory(Fyle dir, uint8_t numTabs, EthernetClient &os) const;
+    void serveFile(Client &client, const char *fn);
+    void listing(Client &client) const;
+    void printDirectory(Fyle dir, uint8_t numTabs, Client &os) const;
 public:
     Webserver(EthernetServer *svr, Fatty *fs, ostream *serial)
         : _svr(svr), _fs(fs), _serial(serial) { }
     void run();
+    EthernetClient available() { return _svr->available(); }
+    void dispatch(Client &client);
 };
-
 #endif
 
 

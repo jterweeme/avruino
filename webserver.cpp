@@ -11,9 +11,9 @@ public:
     bool end() const;
 };
 
-void Webserver::printDirectory(Fyle dir, uint8_t numTabs, EthernetClient &os) const
+void Webserver::printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
 {
-    os.write("<table>\r\n");
+    os << "<table>\r\n";
 
     while (true)
     {
@@ -23,52 +23,52 @@ void Webserver::printDirectory(Fyle dir, uint8_t numTabs, EthernetClient &os) co
             break;
 
         for (uint8_t i = 0; i < numTabs; i++)
-            os.write("\t");
+            os << "\t";
 
-        os.write("<tr><td><a href=\"");
-        os.write(entry.name());
-        os.write("\">");
-        os.write(entry.name());
-        os.write("</a></td>");
+        os << "<tr><td><a href=\"";
+        os << entry.name();
+        os << "\">";
+        os << entry.name();
+        os << "</a></td>";
 
         if (entry.isDirectory())
         {
-            os.write("/");
+            os.put('/');
             printDirectory(entry, numTabs + 1, os);
         }
         else
         {
-            os.write("<td>");
+            os << "<td>";
             uint32_t size = entry.size();
-            os.write(nibble(size >> 28 & 0xf));
-            os.write(nibble(size >> 24 & 0xf));
-            os.write(nibble(size >> 20 & 0xf));
-            os.write(nibble(size >> 16 & 0xf));
-            os.write(nibble(size >> 12 & 0xf));
-            os.write(nibble(size >> 8 & 0xf));
-            os.write(nibble(size >> 4 & 0xf));
-            os.write(nibble(size & 0xf));
-            os.write("</td>");
+            os.put(nibble(size >> 28 & 0xf));
+            os.put(nibble(size >> 24 & 0xf));
+            os.put(nibble(size >> 20 & 0xf));
+            os.put(nibble(size >> 16 & 0xf));
+            os.put(nibble(size >> 12 & 0xf));
+            os.put(nibble(size >> 8 & 0xf));
+            os.put(nibble(size >> 4 & 0xf));
+            os.put(nibble(size & 0xf));
+            os << "</td>";
         }
         entry.close();
-        os.write("<td>D</td>\r\n</tr>\r\n");
+        os << "<td>D</td>\r\n</tr>\r\n";
     }
 
-    os.write("</table>\r\n");
+    os << "</table>\r\n";
 }
 
-void Webserver::listing(EthernetClient &client) const
+void Webserver::listing(Client &client) const
 {
-    client.write("<!DOCTYPE html>\r\n");
-    client.write("<html>\r\n<head>\r\n<title>Listing</title>\r\n");
-    client.write("</head>\r\n<body>\r\n<h1>Listing</h1>\r\n");
+    client << "<!DOCTYPE html>\r\n";
+    client << "<html>\r\n<head>\r\n<title>Listing</title>\r\n";
+    client << "</head>\r\n<body>\r\n<h1>Listing</h1>\r\n";
     Fyle root = _fs->open("/");
     printDirectory(root, 0, client);
     root.close();
-    client.write("</body>\r\n</html>\r\n");
+    client << "</body>\r\n</html>\r\n";
 }
 
-void Webserver::serveFile(EthernetClient &client, const char *fn)
+void Webserver::serveFile(Client &client, const char *fn)
 {
     FyleIfstream ifs(_fs);
     ifs.open(fn);
@@ -79,27 +79,27 @@ void Webserver::serveFile(EthernetClient &client, const char *fn)
     ifs.close();
 }
 
-void Webserver::contentType(EthernetClient &client, const char *ext)
+void Webserver::contentType(Client &client, const char *ext)
 {
     if (my_strncasecmp(ext, "htm", 3) == 0)
-        client.write("Content-Type: text/html\r\n");
+        client << "Content-Type: text/html\r\n";
     else if (my_strncasecmp(ext, "svg", 3) == 0)
-        client.write("Content-Type: image/svg+xml\r\n");
+        client << "Content-Type: image/svg+xml\r\n";
     else if (my_strncasecmp(ext, "css", 3) == 0)
-        client.write("Content-Type: text/css\r\n");
+        client << "Content-Type: text/css\r\n";
     else if (my_strncasecmp(ext, "js", 2) == 0)
-        client.write("Content-Type: text/js\r\n");
+        client << "Content-Type: text/js\r\n";
     else if (my_strncasecmp(ext, "zip", 3) == 0)
-        client.write("Content-Type: application/zip\r\n");
+        client << "Content-Type: application/zip\r\n";
     else if (my_strncasecmp(ext, "7z", 2) == 0)
-        client.write("Content-Type: application/x-7z-compressed\r\n");
+        client << "Content-Type: application/x-7z-compressed\r\n";
     else if (my_strncasecmp(ext, "cpp", 3) == 0)
-        client.write("Content-Type: text/plain\r\n");
+        client << "Content-Type: text/plain\r\n";
     else
-        client.write("Content-Type: text/html\r\n");
+        client << "Content-Type: text/html\r\n";
 }
 
-void Webserver::httpGet(EthernetClient &client, Buffer &buffer)
+void Webserver::httpGet(Client &client, Buffer &buffer)
 {
     char fn[100] = {0};
     char ext[10] = {0};
@@ -117,9 +117,9 @@ void Webserver::httpGet(EthernetClient &client, Buffer &buffer)
 
     char *dot = my_strchr(fn, '.');
     my_strncpy(ext, dot + 1, 3);
-    client.write("HTTP/1.1 200 OK\r\n");
+    client << "HTTP/1.1 200 OK\r\n";
     contentType(client, ext);
-    client.write("Connection: close\r\n\r\n");  // let op de dubbel nl
+    client << "Connection: close\r\n\r\n";  // let op de dubbel nl
 
     if (strncmp(fn, "listing", 7) == 0)
         listing(client);
@@ -145,47 +145,51 @@ void Webserver::httpDelete(Buffer &buffer)
     _serial->flush();
 }
 
-void Webserver::run()
+void Webserver::dispatch(Client &client)
 {
     Buffer buffer;
 
+    if (client)
+    {
+        while (client.connected())
+        {
+            if (client.available())
+            {
+                char c = client.read();
+                buffer.push(c);
+
+                if (buffer.end())
+                {
+                    *_serial << buffer.get();
+                    *_serial << "\r\n";
+                    _serial->flush();
+
+                    if (strncmp("GET ", buffer.get(), 4) == 0)
+                        httpGet(client, buffer);
+                    else if (strncmp("PUT ", buffer.get(), 4) == 0)
+                        client << "HTTP/1.1 200 OK\r\n\r\n";
+                    else if (strncmp("DELETE ", buffer.get(), 7) == 0)
+                        httpDelete(buffer);
+                    else if (strncmp("POST ", buffer.get(), 5) == 0)
+                        *_serial << "POST\r\n";
+
+                    buffer.reset();
+                    break;
+                }
+            }
+        }
+
+        for (volatile uint16_t i = 0; i < 0x4fff; i++); // delay
+        client.stop();
+    }   
+}
+
+void Webserver::run()
+{
     while (true)
     {
         EthernetClient client = _svr->available();
-
-        if (client)
-        {
-            while (client.connected())
-            {
-                if (client.available())
-                {
-                    char c = client.read();
-                    buffer.push(c);
-
-                    if (buffer.end())
-                    {
-                        *_serial << buffer.get();
-                        *_serial << "\r\n";
-                        _serial->flush();
-
-                        if (strncmp("GET ", buffer.get(), 4) == 0)
-                            httpGet(client, buffer);
-                        else if (strncmp("PUT ", buffer.get(), 4) == 0)
-                            client.write("HTTP/1.1 200 OK\r\n\r\n");
-                        else if (strncmp("DELETE ", buffer.get(), 7) == 0)
-                            httpDelete(buffer);
-                        else if (strncmp("POST ", buffer.get(), 5) == 0)
-                            *_serial << "POST\r\n";
-
-                        buffer.reset();
-                        break;
-                    }
-                }
-            }
-
-            for (volatile uint16_t i = 0; i < 0x4fff; i++); // delay
-            client.stop();
-        }
+        dispatch(client);
     }
 }
 
