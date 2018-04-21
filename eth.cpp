@@ -1,5 +1,5 @@
 #include "eth.h"
-#include "misc.h"
+#include "stream.h"
 
 void Ethernet::addresses(ostream &os)
 {

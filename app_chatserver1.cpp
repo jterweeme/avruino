@@ -24,6 +24,7 @@
 #include "util.h"
 #include "dhcp2.h"
 #include "board.h"
+#include "stream.h"
 
 W5100Class *g_w5100;
 ostream *gout;

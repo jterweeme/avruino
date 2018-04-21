@@ -12,6 +12,7 @@ Uno eth CS: D10/SS
 #include "board.h"
 #include "dhcp.h"
 #include "webtest1.h"
+#include "stream.h"
 
 static UIPEthernetClass eth;
 

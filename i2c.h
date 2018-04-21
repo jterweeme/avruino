@@ -1,6 +1,5 @@
 #ifndef _I2C_H_
 #define _I2C_H_
-#include "misc.h"
 #include "stream.h"
 
 class I2CBus

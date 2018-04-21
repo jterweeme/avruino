@@ -1,14 +1,16 @@
 #ifndef _WEBSERVER_H_
 #define _WEBSERVER_H_
-#include "fatty.h"
-#include "client.h"
+#include "types.h"
 
 class Buffer;
+class Client;
+class ostream;
+class Fatty;
+class Fyle;
 
 class Webserver
 {
 private:
-    //EthernetServer * const _svr;
     Fatty * const _fs;
     ostream * const _serial;
     void httpGet(Client &client, Buffer &buffer);
@@ -18,12 +20,7 @@ private:
     void listing(Client &client) const;
     void printDirectory(Fyle dir, uint8_t numTabs, Client &os) const;
 public:
-    Webserver(Fatty *fs, ostream *serial) : _fs(fs), _serial(serial) { }
-#if 0
-    Webserver(EthernetServer *svr, Fatty *fs, ostream *serial)
-        : _svr(svr), _fs(fs), _serial(serial) { }
-#endif
-    void run();
+    Webserver(Fatty *fs, ostream *serial);
     void dispatch(Client &client);
 };
 #endif

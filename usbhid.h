@@ -1,5 +1,6 @@
 #ifndef _USBHID_H_
 #define _USBHID_H_
+#include "types.h"
 
 static const uint8_t
     HID_DTYPE_HID = 0x21,
@@ -39,7 +40,6 @@ struct HIDDesc
     uint16_t HIDReportLength; /**< report descriptor, in bytes. */
 }
 __attribute__ ((packed));
-
 #endif
 
 

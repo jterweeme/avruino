@@ -1,7 +1,5 @@
 #ifndef _UART_H_
 #define _UART_H_
-
-#include "types.h"
 #include "misc.h"
 
 class Terminal

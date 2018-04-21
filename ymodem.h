@@ -1,4 +1,3 @@
-#include "stream.h"
 #include "fatty.h"
 
 #define ENABLE_YRECEIVER

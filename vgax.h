@@ -72,8 +72,6 @@ public:
     static void tone(unsigned int frequency);
     static void noTone();
 };
-
-
 #endif
 
 

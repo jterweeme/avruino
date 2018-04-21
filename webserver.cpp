@@ -1,4 +1,6 @@
 #include "webserver.h"
+#include "client.h"
+#include "fatty.h"
 
 class Buffer
 {
@@ -10,6 +12,10 @@ public:
     void reset();
     bool end() const;
 };
+
+Webserver::Webserver(Fatty *fs, ostream *serial) : _fs(fs), _serial(serial)
+{
+}
 
 void Webserver::printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
 {
@@ -183,17 +189,6 @@ void Webserver::dispatch(Client &client)
         client.stop();
     }   
 }
-
-#if 0
-void Webserver::run()
-{
-    while (true)
-    {
-        EthernetClient client = _svr->available();
-        dispatch(client);
-    }
-}
-#endif
 
 bool Buffer::end() const
 {

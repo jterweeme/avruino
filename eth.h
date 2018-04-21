@@ -1,8 +1,6 @@
 #ifndef _ETH_H_
 #define _ETH_H_
 #include "mempool.h"
-#include "types.h"
-#include "stream.h"
 
 struct uip_userdata_t
 {
@@ -12,6 +10,8 @@ struct uip_userdata_t
     memaddress out_pos;
     unsigned long timer;
 };
+
+class ostream;
 
 class Ethernet
 {

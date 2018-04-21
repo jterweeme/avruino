@@ -11,6 +11,7 @@ Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 #include "webserver.h"
 #include "EthernetServer.h"
 #include "EthernetClient.h"
+#include "fatty.h"
 
 static W5100Class w5100;
 static EthernetClass eth(&w5100);

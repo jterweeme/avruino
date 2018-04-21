@@ -5,7 +5,6 @@ credits to SparkFun Electronics
 
 #ifndef _ZD2CARD_H_
 #define _ZD2CARD_H_
-#include "types.h"
 #include "board.h"
 
 static constexpr uint8_t

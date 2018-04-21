@@ -1,6 +1,6 @@
 #ifndef _USBSOUND_H_
 #define _USBSOUND_H_
-#include "types.h"
+#include "busby.h"
 
 #ifndef ATTR_PACKED
 #define ATTR_PACKED __attribute__ ((packed))

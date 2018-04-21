@@ -1,5 +1,6 @@
 #ifndef _USBMIDI_H_
 #define _USBMIDI_H_
+#include "busby.h"
 
 static const uint8_t
     MIDI_JACKTYPE_EMBEDDED = 0x01,

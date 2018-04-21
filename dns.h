@@ -17,5 +17,7 @@ public:
     int inet_aton(const char *aIPAddrString, IPAddrezz& aResult);
     int getHostByName(const char* aHostname, IPAddrezz& aResult);
 };
-
 #endif
+
+
+

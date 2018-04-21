@@ -1,7 +1,6 @@
-#include "busby.h"
+#include "usbmidi.h"
 #include "usbsound.h"
 #include <avr/pgmspace.h>
-#include "usbmidi.h"
 
 static const DescDev PROGMEM devDesc =
 {
