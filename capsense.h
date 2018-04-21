@@ -1,7 +1,5 @@
 #ifndef _CAPSENSE_H_
 #define _CAPSENSE_H_
-
-#include "types.h"
 #include "misc.h"
 
 class CapSense

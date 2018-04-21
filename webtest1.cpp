@@ -4,8 +4,14 @@
 
 #include <util/delay.h>
 #include "webtest1.h"
+#include "client.h"
+#include "stream.h"
 
-void WebTest1::dispatch(UIPClient &client)
+WebTest1::WebTest1(ostream *serial) : _serial(serial)
+{
+}
+
+void WebTest1::dispatch(Client &client)
 {
     if (client)
     {
@@ -20,25 +26,25 @@ void WebTest1::dispatch(UIPClient &client)
 
                 if (c == '\n' && currentLineIsBlank)
                 {
-                    client.write("HTTP/1.1 200 OK\r\n");
-                    client.write("Content-Type: text/html\r\n");
-                    client.write("Connection: close\r\n");
-                    client.write("Refresh: 5\r\n\r\n");
-                    client.write("<!DOCTYPE HTML>\r\n");
-                    client.write("<html>\r\n");
+                    client << "HTTP/1.1 200 OK\r\n";
+                    client << "Content-Type: text/html\r\n";
+                    client << "Connection: close\r\n";
+                    client << "Refresh: 5\r\n\r\n";
+                    client << "<!DOCTYPE HTML>\r\n";
+                    client << "<html>\r\n";
 
                     for (uint8_t analogChannel = 0; analogChannel < 6; analogChannel++)
                     {
-                        client.write("analog input ");
-                        client.write(nibble(analogChannel & 0xf));
-                        client.write(" is ");
+                        client << "analog input ";
+                        client.put(nibble(analogChannel & 0xf));
+                        client << " is ";
                         uint8_t count = _count++;
-                        client.write(nibble(count >> 4 & 0xf));
-                        client.write(nibble(count & 0xf));
-                        client.write("<br />\r\n");
+                        client.put(nibble(count >> 4 & 0xf));
+                        client.put(nibble(count & 0xf));
+                        client << "<br />\r\n";
                     }
 
-                    client.write("</html>\r\n");
+                    client << "</html>\r\n";
                     break;
                 }
 

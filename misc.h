@@ -1,7 +1,6 @@
 #ifndef _MISC_H_
 #define _MISC_H_
 #include <stdlib.h>
-#include "types.h"
 #include "storage.h"
 #include "pinport.h"
 

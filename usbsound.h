@@ -1,5 +1,6 @@
 #ifndef _USBSOUND_H_
 #define _USBSOUND_H_
+#include "types.h"
 
 #ifndef ATTR_PACKED
 #define ATTR_PACKED __attribute__ ((packed))
@@ -145,11 +146,6 @@ struct USB_Descriptor_Configuration_t
     AudioEndpoint Audio_StreamEndpoint;
     AudioEndpointSpc Audio_StreamEndpoint_SPC;
 } ATTR_PACKED;
-
-
-
-
-
 #endif
 
 

@@ -1,21 +1,24 @@
+/*
+this is a comment
+I love comments
+*/
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
-#include "EthernetClient.h"
 #include "EthernetServer.h"
-#include "misc.h"
+#include "EthernetClient.h"
 #include "board.h"
 #include "stream.h"
 #include <avr/interrupt.h>
-#include "util.h"
 #include "dhcp2.h"
+#include "util.h"
+#include "webtest1.h"
 
 static W5100Class w5100;
 static EthernetClass eth(&w5100);
-static uint8_t g_count = 0;
 W5100Class *g_w5100 = &w5100;
 ostream *gout;
 
@@ -36,7 +39,6 @@ int main()
 
     cout << "Initialize Ethernet...\r\n";
     cout.flush();
-#if 1
     w5100.init();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     w5100.setMACAddress(mac);
@@ -53,57 +55,14 @@ int main()
 
     server.begin();
     cout << "Server started\r\n";
+    WebTest1 web(&cout);
 
     while (true)
     {
         EthernetClient client = server.available();
-
-        if (client)
-        {
-            bool currentLineIsBlank = true;
-        
-            while (client.connected())
-            {
-                if (client.available())
-                {
-                    char c = client.read();
-
-                    if (c == '\n' && currentLineIsBlank)
-                    {
-                        client.write("HTTP/1.1 200 OK\r\n");
-                        client.write("Content-Type: text/html\r\n");
-                        client.write("Connection: close\r\n");
-                        client.write("Refresh: 5\r\n\r\n");
-                        client.write("<!DOCTYPE HTML>\r\n");
-                        client.write("<html>\r\n");
-
-                        for (uint8_t analogChannel = 0; analogChannel < 6; analogChannel++)
-                        {
-                            client.write("analog input ");
-                            client.write(nibble(analogChannel & 0xf));
-                            client.write(" is ");
-                            uint8_t count = g_count++;
-                            client.write(nibble(count >> 4 & 0xf));
-                            client.write(nibble(count & 0xf));
-                            client.write("<br />\r\n");
-                        }
-
-                        client.write("</html>\r\n");
-                        break;
-                    }
-
-                    if (c == '\n')
-                        currentLineIsBlank = true;
-                    else if (c != '\r')
-                        currentLineIsBlank = false;
-                }
-            }
-
-            _delay_ms(1);
-            client.stop();
-        }
+        web.dispatch(client);
     }
-#endif
+
     return 0;
 }
 

@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -85,7 +85,7 @@ TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
 endif
 
 ifeq ($(POOL3), ja)
-TARGETS += app_sound1.elf app_analogweb1.elf app_analogweb2.elf app_nslookup1.elf \
+TARGETS += app_sound1.elf app_webtest1enc28.elf app_webtest1w5100.elf app_nslookup1.elf \
     app_ps2kb2.elf
 endif
 
@@ -111,13 +111,13 @@ app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 app_usbsound2.hex: app_usbsound2.asm
 
-app_analogweb1.elf: app_analogweb1.o arp.o dns.o uip_server.o \
+app_webtest1enc28.elf: app_webtest1enc28.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
-app_analogweb2.elf: app_analogweb2.o dns2.o ethernet.o \
+app_webtest1w5100.elf: app_webtest1w5100.o dns2.o ethernet.o \
     uart.o pinport.o stream.o EthernetServer.o socket.o dhcp2.o \
-    EthernetUdp.o EthernetClient.o w5100.o misc.o eth.o
+    EthernetUdp.o EthernetClient.o w5100.o misc.o eth.o webtest1.o
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
@@ -201,13 +201,13 @@ app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
 app_bbs1.o: app_bbs1.cpp uip_server.h stream.h dhcp.h uip_udp.h uip.h \
     enc28j60.h mempool.h misc.h ipaddrezz.h types.h
 
-app_analogweb1.o: app_analogweb1.cpp uip_server.h misc.h board.h stream.h dhcp.h \
+app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h dhcp.h \
     uip.h uip_udp.h enc28j60.h mempool.h ipaddrezz.h types.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
-app_analogweb2.o: app_analogweb2.cpp
+app_webtest1w5100.o: app_webtest1w5100.cpp
 app_blink1.o: app_blink1.cpp misc.h
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
