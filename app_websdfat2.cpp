@@ -9,6 +9,8 @@ Webserver, gebruikt index.html op FAT geformatteerd SD kaart
 #include "util.h"
 #include "dhcp2.h"
 #include "webserver.h"
+#include "EthernetServer.h"
+#include "EthernetClient.h"
 
 static W5100Class w5100;
 static EthernetClass eth(&w5100);
@@ -62,11 +64,11 @@ int main()
     }
 
     cout << "SD Card initialized successful\r\n";
-    Webserver web(&server, &zd, &cout);
+    Webserver web(&zd, &cout);
 
     while (true)
     {
-        EthernetClient client = web.available();
+        EthernetClient client = server.available();
         web.dispatch(client);
     }
 

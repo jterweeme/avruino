@@ -184,6 +184,7 @@ void Webserver::dispatch(Client &client)
     }   
 }
 
+#if 0
 void Webserver::run()
 {
     while (true)
@@ -192,6 +193,7 @@ void Webserver::run()
         dispatch(client);
     }
 }
+#endif
 
 bool Buffer::end() const
 {
