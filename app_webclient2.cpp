@@ -2,7 +2,7 @@
 #include "stream.h"
 #include "w5100dhcp.h"
 #include "w5100eth.h"
-#include "w5100dns.h"
+#include "dns.h"
 #include "board.h"
 #include "util.h"
 #include <avr/interrupt.h>

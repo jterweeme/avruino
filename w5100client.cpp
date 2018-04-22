@@ -5,26 +5,8 @@
 #include <util/delay.h>
 #include "socket.h"
 #include "w5100client.h"
-//#include "w5100dns.h"
 
 uint16_t EthernetClient::_srcport = 1024;
-
-#if 0
-int EthernetClient::connect(const char* host, uint16_t port)
-{
-    // Look up the host first
-    int ret = 0;
-    DNSClient dns(_eth);
-    uint32_t remote_addr;
-    dns.begin(_eth->dnsServerIP());
-    ret = dns.getHostByName(host, remote_addr);
-    
-    if (ret == 1)
-        return connect(remote_addr, port);
-
-    return ret;
-}
-#endif
 
 int EthernetClient::connect(uint32_t ip, uint16_t port)
 {

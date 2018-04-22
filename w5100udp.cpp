@@ -28,7 +28,6 @@
 
 #include "w5100eth.h"
 #include "w5100udp.h"
-//#include "w5100dns.h"
 
 uint8_t EthernetUDP::begin(uint16_t port)
 {
@@ -64,22 +63,6 @@ void EthernetUDP::stop()
     EthernetClass::_server_port[_sock] = 0;
     _sock = MAX_SOCK_NUM;
 }
-
-#if 0
-int EthernetUDP::beginPacket(const char *host, uint16_t port)
-{
-    int ret = 0;
-    DNSClient dns(_eth);
-    uint32_t remote_addr;
-    dns.begin(_eth->dnsServerIP());
-    ret = dns.getHostByName(host, remote_addr);
-
-    if (ret == 1)
-        return beginPacket(remote_addr, port);
-
-    return ret;
-}
-#endif
 
 int EthernetUDP::beginPacket(uint32_t ip, uint16_t port)
 {

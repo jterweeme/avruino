@@ -8,8 +8,6 @@
 #include "udp.h"
 #include <string.h>
 
-extern uint32_t millis();
-
 static constexpr uint8_t
     SOCKET_NONE = 255,
     UDP_HEADER_SIZE = 8,
@@ -59,7 +57,7 @@ int DNSClient::inet_aton(const char *aIPAddrString, uint32_t &aResult)
 {
     // See if we've been given a valid IP address
     const char* p = aIPAddrString;
-    
+
     while (*p && ((*p == '.') || (*p >= '0') || (*p <= '9') ))
         p++;
 
@@ -126,7 +124,8 @@ int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
         return INVALID_SERVER;
 	
     // Find a socket to use
-    if (iUdp->begin(1024+(millis() & 0xF)) == 1)
+    //if (iUdp->begin(1024+(millis() & 0xF)) == 1)
+    if (iUdp->begin(1024) == 1)
     {
         // Try up to three times
         int retries = 0;
@@ -167,7 +166,7 @@ int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
 
 uint16_t DNSClient::BuildRequest(const char *aName)
 {
-    iRequestId = millis(); // generate a random ID
+    iRequestId++;
     uint16_t twoByteBuffer;
     iUdp->write((uint8_t*)&iRequestId, sizeof(iRequestId));
     twoByteBuffer = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY | RECURSION_DESIRED_FLAG);
@@ -218,13 +217,12 @@ uint16_t DNSClient::BuildRequest(const char *aName)
 
 uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
 {
-    uint32_t startTime = millis();
-
     // Wait for a response packet
-    while(iUdp->parsePacket() <= 0)
+    for (uint8_t i = 0; iUdp->parsePacket() <= 0; i++)
     {
-        if((millis() - startTime) > aTimeout)
+        if (i >= 0xf0)
             return TIMED_OUT;
+
         _delay_ms(50);
     }
 
