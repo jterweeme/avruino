@@ -309,7 +309,7 @@ uint8_t DhcpClass::parseDHCPResponse(uint32_t responseTimeout, uint32_t& transac
                 case dhcpServerIdentifier :
                     opt_len = _dhcpUdpSocket.read();
                     if( *((uint32_t*)_dhcpDhcpServerIp) == 0 || 
-                        IPAddrezz(_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP() )
+                        *((uint32_t *)_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP() )
                     {
                         _dhcpUdpSocket.read(_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
                     }

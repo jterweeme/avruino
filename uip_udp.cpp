@@ -197,10 +197,10 @@ void UIPUDP::flush()
     appdata.packet_in = NOBLOCK;
 }
 
-// Return the IP address of the host who sent the current incoming packet
-IPAddrezz UIPUDP::remoteIP()
+uint32_t UIPUDP::remoteIP()
 {
-    return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz();
+    return _uip_udp_conn ? *((uint32_t *)_uip_udp_conn->ripaddr) : 0;
+    //return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz(0);
 }
 
 void UIPEthernetClass::uipudp_appcall()

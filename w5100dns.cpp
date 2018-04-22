@@ -1,23 +1,21 @@
-// Arduino DNS client for WizNet5100-based Ethernet shield
-// (c) Copyright 2009-2010 MCQN Ltd.
-// Released under Apache License, version 2.0
-
 #ifndef F_CPU
-#define F_CPU 16000000
+#define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
 #include "util.h"
-#include "w5100dns.h"
+#include "dns.h"
 #include "udp.h"
 #include <string.h>
 
-#define SOCKET_NONE	255
-// Various flags and header field values for a DNS message
-#define UDP_HEADER_SIZE	8
-#define DNS_HEADER_SIZE	12
-#define TTL_SIZE        4
-#define QUERY_FLAG               (0)
+static constexpr uint8_t
+    SOCKET_NONE = 255,
+    UDP_HEADER_SIZE = 8,
+    DNS_HEADER_SIZE = 12,
+    TTL_SIZE = 4,
+    QUERY_FLAG = 0,
+    DNS_PORT = 53;
+
 #define RESPONSE_FLAG            (1<<15)
 #define QUERY_RESPONSE_MASK      (1<<15)
 #define OPCODE_STANDARD_QUERY    (0)
@@ -38,38 +36,29 @@
 #define TYPE_A                   (0x0001)
 #define CLASS_IN                 (0x0001)
 #define LABEL_COMPRESSION_MASK   (0xC0)
-// Port number that DNS servers listen on
-#define DNS_PORT        53
 
-// Possible return codes from ProcessResponse
 #define SUCCESS          1
 #define TIMED_OUT        -1
 #define INVALID_SERVER   -2
 #define TRUNCATED        -3
 #define INVALID_RESPONSE -4
 
-void DNSClient::begin(const uint32_t &aDNSServer)
+void DNSClient::begin(uint32_t ip)
 {
-    iDNSServer = aDNSServer;
+    iDNSServer = ip;
     iRequestId = 0;
 }
-
-#if 0
-DNSClient::DNSClient(EthernetClass *eth) : iUdp(eth)
-{
-}
-#endif
 
 DNSClient::DNSClient(UDP *udp) : iUdp(udp)
 {
 }
 
-int DNSClient::inet_aton(const char* aIPAddrString, uint32_t &aResult)
+int DNSClient::inet_aton(const char *aIPAddrString, uint32_t &aResult)
 {
     // See if we've been given a valid IP address
     const char* p = aIPAddrString;
 
-    while (*p && ( (*p == '.') || (*p >= '0') || (*p <= '9') ))
+    while (*p && ((*p == '.') || (*p >= '0') || (*p <= '9') ))
         p++;
 
     if (*p == '\0')
@@ -196,10 +185,9 @@ uint16_t DNSClient::BuildRequest(const char *aName)
     {
         // Find out how long this section of the name is
         end = start;
+
         while (*end && (*end != '.') )
-        {
             end++;
-        }
 
         if (end-start > 0)
         {
@@ -290,18 +278,14 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
             {
                 // Don't need to actually read the data out for the string, just
                 // advance ptr to beyond it
-                while(len--)
-                {
+                while (len--)
                     iUdp->read(); // we don't care about the returned byte
-                }
             }
         } while (len != 0);
 
         // Now jump over the type and class
         for (int i =0; i < 4; i++)
-        {
             iUdp->read(); // we don't care about the returned byte
-        }
     }
 
     // Now we're up to the bit we're interested in, the answer
@@ -325,9 +309,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
                     // Don't need to actually read the data out for the string,
                     // just advance ptr to beyond it
                     while(len--)
-                    {
                         iUdp->read(); // we don't care about the returned byte
-                    }
                 }
             }
             else
@@ -353,9 +335,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
 
         // Ignore the Time-To-Live as we don't do any caching
         for (int i =0; i < TTL_SIZE; i++)
-        {
             iUdp->read(); // we don't care about the returned byte
-        }
 
         // And read out the length of this answer
         // Don't need header_flags anymore, so we can reuse it here
@@ -377,9 +357,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
         {
             // This isn't an answer type we're after, move onto the next one
             for (uint16_t i =0; i < htons(header_flags); i++)
-            {
                 iUdp->read(); // we don't care about the returned byte
-            }
         }
     }
 
@@ -389,4 +367,6 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
     // If we get here then we haven't found an answer
     return -10;//INVALID_RESPONSE;
 }
+
+
 

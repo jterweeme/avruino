@@ -1,9 +1,5 @@
-// Arduino DNS client for WizNet5100-based Ethernet shield
-// (c) Copyright 2009-2010 MCQN Ltd.
-// Released under Apache License, version 2.0
-
-#ifndef _DNS2_H_
-#define _DNS2_H_
+#ifndef _DNS_H_
+#define _DNS_H_
 #include "types.h"
 
 class UDP;
@@ -18,7 +14,7 @@ protected:
     UDP *iUdp;
 public:
     DNSClient(UDP *udp);
-    void begin(const uint32_t &aDNSServer);
+    void begin(uint32_t ip);
     int inet_aton(const char *aIPAddrString, uint32_t &aResult);
     int getHostByName(const char* aHostname, uint32_t &aResult);
 };

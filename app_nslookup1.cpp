@@ -32,7 +32,8 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 
-    DNSClient dns(&eth);
+    UIPUDP udp(&eth);
+    DNSClient dns(&udp);
     dns.begin(0x08080808);
     uint32_t remote_addr;
     int ret = dns.getHostByName("www.astron.nl", remote_addr);

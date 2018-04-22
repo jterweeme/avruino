@@ -111,7 +111,7 @@ app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 app_usbsound2.hex: app_usbsound2.asm
 
-app_webtest1enc28.elf: app_webtest1enc28.o arp.o dns.o uip_server.o \
+app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
@@ -119,7 +119,7 @@ app_webtest1w5100.elf: app_webtest1w5100.o w5100eth.o \
     uart.o pinport.o stream.o w5100server.o socket.o w5100dhcp.o \
     w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o
 
-app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
+app_telnet1.elf: app_telnet1.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
     misc.o stream.o eth.o
 
@@ -127,7 +127,7 @@ app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o 
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
     misc.o stream.o fatty.o zd2card.o eth.o
 
-app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
+app_websdfat1.elf: app_websdfat1.o arp.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 

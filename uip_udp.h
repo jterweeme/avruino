@@ -1,12 +1,13 @@
 #ifndef _UIPUDP_H_
 #define _UIPUDP_H_
 #include "uip.h"
+#include "udp.h"
 
 static const uint16_t UIP_UDP_MAXDATALEN = 1500;
 #define UIP_UDP_PHYH_LEN UIP_LLH_LEN+UIP_IPUDPH_LEN
 #define UIP_UDP_MAXPACKETSIZE UIP_UDP_MAXDATALEN+UIP_UDP_PHYH_LEN
 
-class UIPUDP
+class UIPUDP : public UDP
 {
 private:
     struct uip_udp_conn *_uip_udp_conn = NULL;
@@ -28,7 +29,7 @@ public:
     int read(char* buffer, size_t len) { return read((uint8_t *) buffer, len); }
     int peek();
     void flush();	// Finish reading the current packet
-    IPAddrezz remoteIP();
+    uint32_t remoteIP();
     uint16_t remotePort() { return _uip_udp_conn ? ntohs(_uip_udp_conn->rport) : 0; }
 };
 #endif
