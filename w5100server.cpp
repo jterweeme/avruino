@@ -1,6 +1,6 @@
 #include "socket.h"
-#include "EthernetServer.h"
-#include "EthernetClient.h"
+#include "w5100server.h"
+#include "w5100client.h"
 
 void EthernetServer::begin()
 {

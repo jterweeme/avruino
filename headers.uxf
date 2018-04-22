@@ -223,8 +223,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1508</x>
-      <y>403</y>
+      <x>1456</x>
+      <y>351</y>
       <w>130</w>
       <h>39</h>
     </coordinates>
@@ -234,8 +234,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1638</x>
-      <y>650</y>
+      <x>1599</x>
+      <y>325</y>
       <w>130</w>
       <h>39</h>
     </coordinates>
@@ -245,35 +245,35 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1534</x>
-      <y>650</y>
-      <w>130</w>
-      <h>52</h>
+      <x>1521</x>
+      <y>351</y>
+      <w>169</w>
+      <h>169</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;80.0;20.0</additional_attributes>
+    <additional_attributes>10.0;110.0;110.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1495</x>
-      <y>429</y>
-      <w>78</w>
-      <h>91</h>
+      <x>1482</x>
+      <y>377</y>
+      <w>52</w>
+      <h>143</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;50.0;40.0;10.0</additional_attributes>
+    <additional_attributes>20.0;90.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>1482</x>
       <y>273</y>
-      <w>117</w>
-      <h>156</h>
+      <w>65</w>
+      <h>104</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>70.0;100.0;10.0;10.0</additional_attributes>
+    <additional_attributes>30.0;60.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -762,12 +762,12 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1560</x>
+      <x>1534</x>
       <y>1092</y>
-      <w>130</w>
+      <w>156</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>dhcp2.h</panel_attributes>
+    <panel_attributes>w5100dhcp.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -789,7 +789,7 @@
       <w>182</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>EthernetUdp.h</panel_attributes>
+    <panel_attributes>w5100udp.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -866,7 +866,7 @@
       <w>273</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>EthernetServer.h</panel_attributes>
+    <panel_attributes>w5100server.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -943,7 +943,7 @@
       <w>221</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>EthernetClient.h</panel_attributes>
+    <panel_attributes>w5100client.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -965,7 +965,7 @@
       <w>130</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>ethernet.h</panel_attributes>
+    <panel_attributes>w5100eth.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -1312,8 +1312,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1690</x>
-      <y>312</y>
+      <x>1768</x>
+      <y>325</y>
       <w>130</w>
       <h>39</h>
     </coordinates>
@@ -1324,12 +1324,12 @@
     <id>Relation</id>
     <coordinates>
       <x>1534</x>
-      <y>338</y>
-      <w>260</w>
-      <h>221</h>
+      <y>351</y>
+      <w>338</w>
+      <h>208</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;150.0;180.0;10.0</additional_attributes>
+    <additional_attributes>10.0;140.0;240.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -1352,5 +1352,16 @@
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>10.0;30.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1534</x>
+      <y>247</y>
+      <w>143</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>90.0;60.0;10.0;10.0</additional_attributes>
   </element>
 </diagram>

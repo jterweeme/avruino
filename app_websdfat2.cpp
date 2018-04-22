@@ -2,15 +2,15 @@
 Mega eth CS: D53
 Mega SD CS: D9
 
-Webserver, gebruikt index.html op FAT geformatteerd SD kaart
+Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
 #include <avr/interrupt.h>
 #include "util.h"
-#include "dhcp2.h"
+#include "w5100dhcp.h"
 #include "webserver.h"
-#include "EthernetServer.h"
-#include "EthernetClient.h"
+#include "w5100server.h"
+#include "w5100client.h"
 #include "fatty.h"
 
 static W5100Class w5100;

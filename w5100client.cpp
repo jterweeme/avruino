@@ -4,8 +4,8 @@
 
 #include <util/delay.h>
 #include "socket.h"
-#include "EthernetClient.h"
-#include "dns2.h"
+#include "w5100client.h"
+#include "w5100dns.h"
 
 uint16_t EthernetClient::_srcport = 1024;
 

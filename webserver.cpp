@@ -39,8 +39,11 @@ void Webserver::printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
 
         if (entry.isDirectory())
         {
+            os << "<td>DIR</td>";
+#if 0
             os.put('/');
             printDirectory(entry, numTabs + 1, os);
+#endif
         }
         else
         {
@@ -91,6 +94,8 @@ void Webserver::contentType(Client &client, const char *ext)
         client << "Content-Type: text/html\r\n";
     else if (my_strncasecmp(ext, "svg", 3) == 0)
         client << "Content-Type: image/svg+xml\r\n";
+    else if (my_strncasecmp(ext, "jpg", 3) == 0)
+        client << "Content-Type: image/jpeg\r\n";
     else if (my_strncasecmp(ext, "css", 3) == 0)
         client << "Content-Type: text/css\r\n";
     else if (my_strncasecmp(ext, "js", 2) == 0)

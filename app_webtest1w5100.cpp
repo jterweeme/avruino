@@ -8,12 +8,12 @@ I love comments
 #endif
 
 #include <util/delay.h>
-#include "EthernetServer.h"
-#include "EthernetClient.h"
+#include "w5100server.h"
+#include "w5100client.h"
 #include "board.h"
 #include "stream.h"
 #include <avr/interrupt.h>
-#include "dhcp2.h"
+#include "w5100dhcp.h"
 #include "util.h"
 #include "webtest1.h"
 

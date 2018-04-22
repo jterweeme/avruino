@@ -18,11 +18,11 @@
  
  */
 
-#include "EthernetClient.h"
-#include "EthernetServer.h"
+#include "w5100client.h"
+#include "w5100server.h"
 #include <avr/interrupt.h>
 #include "util.h"
-#include "dhcp2.h"
+#include "w5100dhcp.h"
 #include "board.h"
 #include "stream.h"
 

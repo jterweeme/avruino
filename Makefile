@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -115,9 +115,9 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
-app_webtest1w5100.elf: app_webtest1w5100.o dns2.o ethernet.o \
-    uart.o pinport.o stream.o EthernetServer.o socket.o dhcp2.o \
-    EthernetUdp.o EthernetClient.o w5100.o misc.o eth.o webtest1.o
+app_webtest1w5100.elf: app_webtest1w5100.o w5100dns.o w5100eth.o \
+    uart.o pinport.o stream.o w5100server.o socket.o w5100dhcp.o \
+    w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o
 
 app_telnet1.elf: app_telnet1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
@@ -129,14 +129,14 @@ app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o 
 
 app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
-    zd2card.o fatty.o pinport.o uart.o stream.o misc.o
+    zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
-app_websdfat2.elf: app_websdfat2.o dns2.o ethernet.o uart.o pinport.o stream.o \
-    EthernetServer.o socket.o dhcp2.o EthernetUdp.o EthernetClient.o w5100.o  \
+app_websdfat2.elf: app_websdfat2.o w5100dns.o w5100eth.o uart.o pinport.o stream.o \
+    w5100server.o socket.o w5100dhcp.o w5100udp.o w5100client.o w5100.o  \
     zd2card.o fatty.o misc.o eth.o webserver.o
 
-app_chatserver1.elf: app_chatserver1.o EthernetServer.o ethernet.o EthernetClient.o \
-    w5100.o EthernetUdp.o socket.o dhcp2.o dns2.o misc.o pinport.o eth.o \
+app_chatserver1.elf: app_chatserver1.o w5100server.o w5100eth.o w5100client.o \
+    w5100.o w5100udp.o socket.o w5100dhcp.o w5100dns.o misc.o pinport.o eth.o \
     stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
@@ -202,13 +202,25 @@ app_bbs1.o: app_bbs1.cpp uip_server.h stream.h dhcp.h uip_udp.h uip.h \
     enc28j60.h mempool.h misc.h ipaddrezz.h types.h
 
 app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h dhcp.h \
-    uip.h uip_udp.h enc28j60.h mempool.h ipaddrezz.h types.h
+    uip.h uip_udp.h enc28j60.h mempool.h ipaddrezz.h types.h webtest1.h uart.h \
+    uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h ipaddrezz.h \
+    eth.h cdc.h busby.h
+
+app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h w5100dhcp.h stream.h board.h \
+    w5100client.h w5100server.h cdc.h busby.h board.h mega.h uno.h leonardo.h \
+    misc.h storage.h pinport.h types.h w5100eth.h w5100.h eth.h mempool.h client.h \
+    stream2.h print.h udp.h w5100udp.h socket.h uart.h
+
+app_websdfat2.o: app_websdfat2.cpp util.h w5100dhcp.h webserver.h w5100server.h \
+    w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
+    stream.h types.h w5100udp.h socket.h udp.h stream2.h print.h w5100.h \
+    w5100eth.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
+    storage.h pinport.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
-app_webtest1w5100.o: app_webtest1w5100.cpp
-app_blink1.o: app_blink1.cpp misc.h
+app_blink1.o: app_blink1.cpp board.h uno.h leonardo.h mega.h misc.h storage.h pinport.h types.h
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
 app_calc2.o: app_calc2.cpp misc.h
@@ -251,7 +263,6 @@ app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
-app_websdfat2.o: app_websdfat2.cpp fatty.h w5100.h
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp
@@ -276,17 +287,23 @@ uart.o: uart.cpp uart.h types.h misc.h storage.h pinport.h
 uno.o: uno.cpp uno.h misc.h types.h storage.h pinport.h
 usbkb.o: usbkb.cpp usbkb.h misc.h usbhid.h
 usbsd.o: usbsd.cpp usbsd.h busby.h
-vga.o: vga.cpp vga.h
+vga.o: vga.cpp vga.h misc.h storage.h pinport.h types.h
 vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
+w5100client.o: w5100client.cpp w5100client.h w5100dns.h
+w5100dns.o: w5100dns.cpp w5100dns.h
+w5100dhcp.o: w5100dhcp.cpp w5100dhcp.h
+w5100eth.o: w5100eth.cpp w5100eth.h w5100.h eth.h
+w5100server.o: w5100server.cpp w5100server.h
+w5100udp.o: w5100udp.cpp w5100udp.h
 webserver.o: webserver.cpp webserver.h
 webtest1.o: webtest1.cpp webtest1.h
-xmodem.o: xmodem.cpp xmodem.h stream.h types.h
+xmodem.o: xmodem.cpp xmodem.h stream.h busby.h cdc.h types.h board.h
 ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

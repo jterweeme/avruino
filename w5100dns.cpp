@@ -7,10 +7,8 @@
 #endif
 
 #include <util/delay.h>
-#include "w5100.h"
-#include "EthernetUdp.h"
 #include "util.h"
-#include "dns2.h"
+#include "w5100dns.h"
 #include <string.h>
 
 #define SOCKET_NONE	255

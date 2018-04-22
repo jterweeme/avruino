@@ -26,9 +26,9 @@
  * bjoern@cs.stanford.edu 12/30/2008
  */
 
-#include "ethernet.h"
-#include "EthernetUdp.h"
-#include "dns2.h"
+#include "w5100eth.h"
+#include "w5100udp.h"
+#include "w5100dns.h"
 
 uint8_t EthernetUDP::begin(uint16_t port)
 {
