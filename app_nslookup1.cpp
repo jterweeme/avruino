@@ -8,23 +8,6 @@
 
 static UIPEthernetClass eth;
 
-static void addresses(UIPEthernetClass &eth, ostream &os)
-{
-    uint32_t ip = eth.localIP();
-    uint32_t subnet = eth.subnetMask();
-    uint32_t gw = eth.gatewayIP();
-    uint32_t dns = eth.dnsServerIP();
-    os << "IP:      ";
-    hex32(ip, os);
-    os << "\r\nSubnet:  ";
-    hex32(subnet, os);
-    os << "\r\nGateway: ";
-    hex32(gw, os);
-    os << "\r\nDNS:     ";
-    hex32(dns, os);
-    os << "\r\n";
-}
-
 int main()
 {
     DefaultUart s;
@@ -45,21 +28,28 @@ int main()
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
-    addresses(eth, cout);
+    eth.addresses(cout);
     cout << "\r\n";
 
     UIPClient client(&eth);
-    
-    if (client.connect("astron.nl", 80))
+
+    while (true)
     {
-        cout << "connected\r\n";
-        client.write("GET / HTTP/1.1\r\n");
-        client.write("Host: astron.nl\r\n");
-        client.write("Connection: close\r\n\r\n");
-    }
-    else
-    {
-        cout << "Connection failed\r\n";
+        if (client.connect("astron.nl", 80))
+        {
+            cout << "connected\r\n";
+            client.write("GET / HTTP/1.1\r\n");
+            client.write("Host: astron.nl\r\n");
+            client.write("Connection: close\r\n\r\n");
+            break;
+        }
+        else
+        {
+            cout << "Connection failed\r\n";
+
+            for (volatile uint32_t i = 0; i < 0x1ffff; i++);    // delay
+            continue;
+        }
     }
 
     while (true)

@@ -9,6 +9,7 @@
 #include <util/delay.h>
 #include "util.h"
 #include "w5100dns.h"
+#include "w5100udp.h"
 #include <string.h>
 
 #define SOCKET_NONE	255
@@ -51,6 +52,10 @@ void DNSClient::begin(const uint32_t &aDNSServer)
 {
     iDNSServer = aDNSServer;
     iRequestId = 0;
+}
+
+DNSClient::DNSClient(EthernetClass *eth) : iUdp(eth)
+{
 }
 
 int DNSClient::inet_aton(const char* aIPAddrString, uint32_t &aResult)
@@ -124,7 +129,8 @@ int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
         return INVALID_SERVER;
 	
     // Find a socket to use
-    if (iUdp.begin(1024+(millis() & 0xF)) == 1)
+    //if (iUdp.begin(1024+(millis() & 0xF)) == 1)
+    if (iUdp.begin(1024) == 1)
     {
         // Try up to three times
         int retries = 0;
@@ -163,9 +169,9 @@ int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
     return ret;
 }
 
-uint16_t DNSClient::BuildRequest(const char* aName)
+uint16_t DNSClient::BuildRequest(const char *aName)
 {
-    iRequestId = millis();
+    iRequestId++;
     uint16_t twoByteBuffer;
     iUdp.write((uint8_t*)&iRequestId, sizeof(iRequestId));
     twoByteBuffer = htons(QUERY_FLAG | OPCODE_STANDARD_QUERY | RECURSION_DESIRED_FLAG);
@@ -217,13 +223,12 @@ uint16_t DNSClient::BuildRequest(const char* aName)
 
 uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
 {
-    uint32_t startTime = millis();
-
     // Wait for a response packet
-    while(iUdp.parsePacket() <= 0)
+    for (uint8_t i = 0; iUdp.parsePacket() <= 0; i++)
     {
-        if((millis() - startTime) > aTimeout)
+        if (i >= 0xf0)
             return TIMED_OUT;
+
         _delay_ms(50);
     }
 

@@ -66,7 +66,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_test2.elf app_calc1.elf app_calc2.elf app_ts2.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf  \
     app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_blink3.elf app_megaboot4.hex \
+    app_blink3.elf app_megaboot4.hex app_webclient2.elf \
     app_websdfat1.elf app_websdfat2.elf app_bbs1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
@@ -142,6 +142,9 @@ app_chatserver1.elf: app_chatserver1.o w5100server.o w5100eth.o w5100client.o \
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o
 
+app_webclient2.elf: app_webclient2.o w5100client.o w5100eth.o w5100.o w5100udp.o socket.o \
+    w5100dhcp.o w5100dns.o misc.o pinport.o eth.o stream.o uart.o
+
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
     stream.o md5sum.o uart.o misc.o
 
@@ -211,6 +214,8 @@ app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h w5100dhcp.h stream.
     misc.h storage.h pinport.h types.h w5100eth.h w5100.h eth.h mempool.h client.h \
     stream2.h print.h udp.h w5100udp.h socket.h uart.h
 
+app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
+
 app_websdfat2.o: app_websdfat2.cpp util.h w5100dhcp.h webserver.h w5100server.h \
     w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
     stream.h types.h w5100udp.h socket.h udp.h stream2.h print.h w5100.h \
@@ -262,7 +267,7 @@ app_usbpiano1.o: app_usbpiano1.cpp busby.h
 app_usbsound1.o: app_usbsound1.cpp
 app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
-app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
+app_webclient2.o: app_webclient2.cpp
 analog.o: analog.cpp analog.h
 bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp

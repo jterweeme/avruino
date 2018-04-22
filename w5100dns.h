@@ -12,10 +12,10 @@ protected:
     uint16_t BuildRequest(const char* aName);
     uint16_t ProcessResponse(uint16_t aTimeout, uint32_t &aAddress);
     uint32_t iDNSServer;
-    uint16_t iRequestId;
+    uint16_t iRequestId = 0;
     EthernetUDP iUdp;
 public:
-    DNSClient(EthernetClass *eth) : iUdp(eth) { }
+    DNSClient(EthernetClass *eth);
     void begin(const uint32_t &aDNSServer);
 
     /** Convert a numeric IP address string into a four-byte IP address.
@@ -33,8 +33,6 @@ public:
                 else error code
     */
     int getHostByName(const char* aHostname, uint32_t &aResult);
-
-
 };
 #endif
 
