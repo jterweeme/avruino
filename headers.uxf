@@ -322,7 +322,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1794</x>
+      <x>1781</x>
       <y>910</y>
       <w>130</w>
       <h>52</h>
@@ -586,13 +586,13 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1729</x>
+      <x>1768</x>
       <y>845</y>
-      <w>143</w>
+      <w>91</w>
       <h>91</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;90.0;50.0</additional_attributes>
+    <additional_attributes>10.0;10.0;50.0;50.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -795,7 +795,7 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1599</x>
+      <x>1612</x>
       <y>1040</y>
       <w>78</w>
       <h>78</h>
@@ -817,13 +817,13 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1612</x>
+      <x>1638</x>
       <y>936</y>
-      <w>78</w>
+      <w>52</w>
       <h>104</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;40.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;20.0;60.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -839,13 +839,13 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1456</x>
+      <x>1482</x>
       <y>1118</y>
-      <w>195</w>
+      <w>143</w>
       <h>117</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;70.0;130.0;10.0</additional_attributes>
+    <additional_attributes>10.0;70.0;90.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -916,24 +916,24 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1846</x>
-      <y>1014</y>
-      <w>130</w>
+      <x>1742</x>
+      <y>650</y>
+      <w>156</w>
       <h>39</h>
     </coordinates>
-    <panel_attributes>dns2.h</panel_attributes>
+    <panel_attributes>w5100dns.h</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1729</x>
-      <y>1014</y>
-      <w>143</w>
-      <h>39</h>
+      <x>1534</x>
+      <y>637</y>
+      <w>234</w>
+      <h>52</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+    <additional_attributes>10.0;10.0;160.0;20.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>

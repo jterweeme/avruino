@@ -53,7 +53,7 @@ public:
     virtual int read(char* buffer, size_t len) =0;
     virtual int peek() =0;
     virtual void flush() =0;	// Finish reading the current packet
-    //virtual IPAddress remoteIP() =0;
+    virtual uint32_t remoteIP() =0;
     virtual uint16_t remotePort() =0;
 };
 #endif

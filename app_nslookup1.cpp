@@ -1,6 +1,7 @@
 #include "uip_client.h"
 #include "stream.h"
 #include "dhcp.h"
+#include "dns.h"
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -31,6 +32,25 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 
+    DNSClient dns(&eth);
+    dns.begin(0x08080808);
+    uint32_t remote_addr;
+    int ret = dns.getHostByName("www.astron.nl", remote_addr);
+
+    if (ret == 1)
+    {
+        hex32(remote_addr, cout);
+        cout << "\r\n";
+    }
+    else
+    {
+        cout << "Failed\r\n";
+    }
+
+    while (true)
+    {
+    }
+#if 0
     UIPClient client(&eth);
 
     while (true)
@@ -60,7 +80,7 @@ int main()
             cout.put(c);
         }
     }
-
+#endif
     return 0;
 }
 

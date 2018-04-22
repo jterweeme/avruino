@@ -1,5 +1,5 @@
 #include "uip_client.h"
-#include "dns.h"
+//#include "dns.h"
 
 #define UIP_TCP_PHYH_LEN UIP_LLH_LEN+UIP_IPTCPH_LEN
 
@@ -75,6 +75,7 @@ int UIPClient::connect(IPAddrezz ip, uint16_t port)
     return 0;
 }
 
+#if 0
 int UIPClient::connect(const char *host, uint16_t port)
 {
     int ret = 0;
@@ -88,6 +89,7 @@ int UIPClient::connect(const char *host, uint16_t port)
 
     return ret;
 }
+#endif
 
 void UIPClient::stop()
 {

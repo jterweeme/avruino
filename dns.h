@@ -6,7 +6,7 @@ class DNSClient
 {
 protected:
     uint16_t BuildRequest(const char* aName);
-    uint16_t ProcessResponse(uint16_t aTimeout, IPAddrezz& aAddress);
+    uint16_t ProcessResponse(uint16_t aTimeout, uint32_t &aAddress);
     IPAddrezz iDNSServer;
     uint16_t iRequestId;
     UIPUDP iUdp;
@@ -14,8 +14,8 @@ protected:
 public:
     DNSClient(UIPEthernetClass *eth) : iUdp(eth), _eth(eth) { }
     void begin(uint32_t ip);
-    int inet_aton(const char *aIPAddrString, IPAddrezz& aResult);
-    int getHostByName(const char* aHostname, IPAddrezz& aResult);
+    int inet_aton(const char *aIPAddrString, uint32_t &aResult);
+    int getHostByName(const char* aHostname, uint32_t &aResult);
 };
 #endif
 

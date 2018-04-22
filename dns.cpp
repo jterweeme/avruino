@@ -54,7 +54,7 @@ void DNSClient::begin(uint32_t ip)
     iRequestId = 0;
 }
 
-int DNSClient::inet_aton(const char* aIPAddrString, IPAddrezz& aResult)
+int DNSClient::inet_aton(const char *aIPAddrString, uint32_t &aResult)
 {
     // See if we've been given a valid IP address
     const char* p =aIPAddrString;
@@ -80,7 +80,8 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddrezz& aResult)
                 }
                 else
                 {
-                    aResult[segment] = (uint8_t)segmentValue;
+                    uint8_t *ptrResult = (uint8_t *)&aResult;
+                    ptrResult[segment] = (uint8_t)segmentValue;
                     segment++;
                     segmentValue = 0;
                 }
@@ -102,7 +103,8 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddrezz& aResult)
         }
         else
         {
-            aResult[segment] = (uint8_t)segmentValue;
+            uint8_t *ptrResult = (uint8_t *)&aResult;
+            ptrResult[segment] = (uint8_t)segmentValue;
             return 1;
         }
     }
@@ -114,7 +116,7 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddrezz& aResult)
 
 const IPAddrezz INADDR_NUNE(0,0,0,0);
 
-int DNSClient::getHostByName(const char* aHostname, IPAddrezz& aResult)
+int DNSClient::getHostByName(const char* aHostname, uint32_t &aResult)
 {
     int ret =0;
 
@@ -245,7 +247,7 @@ uint16_t DNSClient::BuildRequest(const char* aName)
 }
 
 
-uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddrezz& aAddress)
+uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, uint32_t &aAddress)
 {
     uint32_t startTime = millis();
 
@@ -382,7 +384,7 @@ uint16_t DNSClient::ProcessResponse(uint16_t aTimeout, IPAddrezz& aAddress)
                 return -9;//INVALID_RESPONSE;
             }
 
-            iUdp.read(aAddress.raw_address(), 4);
+            iUdp.read((uint8_t *)&aAddress, 4);
             return SUCCESS;
         }
         else

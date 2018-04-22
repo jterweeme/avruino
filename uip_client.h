@@ -12,7 +12,7 @@ public:
     UIPClient(struct uip_conn *_conn);
     UIPClient(UIPEthernetClass * const eth, uip_userdata_t* conn_data);
     int connect(IPAddrezz ip, uint16_t port);
-    int connect(const char *host, uint16_t port);
+    //int connect(const char *host, uint16_t port);
     int read(uint8_t *buf, size_t size);
     void stop();
     uint8_t connected();

@@ -9,7 +9,7 @@
 #include <util/delay.h>
 #include "util.h"
 #include "w5100dns.h"
-#include "w5100udp.h"
+#include "udp.h"
 #include <string.h>
 
 #define SOCKET_NONE	255
@@ -60,7 +60,7 @@ DNSClient::DNSClient(EthernetClass *eth) : iUdp(eth)
 }
 #endif
 
-DNSClient::DNSClient(EthernetUDP *udp) : iUdp(udp)
+DNSClient::DNSClient(UDP *udp) : iUdp(udp)
 {
 }
 
