@@ -163,11 +163,11 @@ private:
   uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t &transactionId);
 public:
     DhcpClass(EthernetClass *eth) : _dhcpUdpSocket(eth) { }
-    uint32_t localIp();
-    uint32_t subnetMask2();
-    uint32_t gateway();
-    uint32_t dhcpServerIp();
-    uint32_t dnsServer();
+    uint32_t localIp() { return *((uint32_t *)&_dhcpLocalIp); }
+    uint32_t subnetMask2() { return *((uint32_t *)&_dhcpSubnetMask); }
+    uint32_t gateway() { return *((uint32_t *)&_dhcpGatewayIp); }
+    uint32_t dhcpServerIp() { return *((uint32_t *)&_dhcpDhcpServerIp); }
+    uint32_t dnsServer() { return *((uint32_t *)&_dhcpDnsServerIp); }
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, unsigned long responseTimeout = 4000);
     int checkLease();
 };

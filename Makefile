@@ -115,7 +115,7 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o dns.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
-app_webtest1w5100.elf: app_webtest1w5100.o w5100dns.o w5100eth.o \
+app_webtest1w5100.elf: app_webtest1w5100.o w5100eth.o \
     uart.o pinport.o stream.o w5100server.o socket.o w5100dhcp.o \
     w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o
 
@@ -131,12 +131,12 @@ app_websdfat1.elf: app_websdfat1.o arp.o dns.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
-app_websdfat2.elf: app_websdfat2.o w5100dns.o w5100eth.o uart.o pinport.o stream.o \
+app_websdfat2.elf: app_websdfat2.o w5100eth.o uart.o pinport.o stream.o \
     w5100server.o socket.o w5100dhcp.o w5100udp.o w5100client.o w5100.o  \
     zd2card.o fatty.o misc.o eth.o webserver.o
 
 app_chatserver1.elf: app_chatserver1.o w5100server.o w5100eth.o w5100client.o \
-    w5100.o w5100udp.o socket.o w5100dhcp.o w5100dns.o misc.o pinport.o eth.o \
+    w5100.o w5100udp.o socket.o w5100dhcp.o misc.o pinport.o eth.o \
     stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \

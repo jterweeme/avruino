@@ -44,7 +44,8 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 #if 1
-    DNSClient dns(&eth);
+    EthernetUDP udp(&eth);
+    DNSClient dns(&udp);
     dns.begin(0x08080808);
     uint32_t remote_addr;
     int ret = dns.getHostByName("www.astron.nl", remote_addr);
@@ -62,8 +63,7 @@ int main()
     while (true)
     {
     }
-#endif
-
+#else
     EthernetClient client(&eth);
     
     if (client.connect("www.astron.nl", 80))
@@ -86,7 +86,7 @@ int main()
             cout.put(c);
         }
     }
-
+#endif
     return 0;
 }
 

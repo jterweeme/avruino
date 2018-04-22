@@ -480,31 +480,6 @@ int DhcpClass::checkLease(){
     return rc;
 }
 
-uint32_t DhcpClass::localIp()
-{
-    return *((uint32_t *)&_dhcpLocalIp);
-}
-
-uint32_t DhcpClass::subnetMask2()
-{
-    return *((uint32_t *)&_dhcpSubnetMask);
-}
-
-uint32_t DhcpClass::gateway()
-{
-    return *((uint32_t *)&_dhcpGatewayIp);
-}
-
-uint32_t DhcpClass::dnsServer()
-{
-    return *((uint32_t *)&_dhcpDnsServerIp);
-}
-
-uint32_t DhcpClass::dhcpServerIp()
-{
-    return *((uint32_t *)&_dhcpDhcpServerIp);
-}
-
 void DhcpClass::printByte(char * buf, uint8_t n)
 {
     char *str = &buf[1];

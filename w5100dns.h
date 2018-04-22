@@ -13,9 +13,10 @@ protected:
     uint16_t ProcessResponse(uint16_t aTimeout, uint32_t &aAddress);
     uint32_t iDNSServer;
     uint16_t iRequestId = 0;
-    EthernetUDP iUdp;
+    EthernetUDP *iUdp;
 public:
-    DNSClient(EthernetClass *eth);
+    //DNSClient(EthernetClass *eth);
+    DNSClient(EthernetUDP *udp);
     void begin(const uint32_t &aDNSServer);
 
     /** Convert a numeric IP address string into a four-byte IP address.

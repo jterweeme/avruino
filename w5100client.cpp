@@ -5,10 +5,11 @@
 #include <util/delay.h>
 #include "socket.h"
 #include "w5100client.h"
-#include "w5100dns.h"
+//#include "w5100dns.h"
 
 uint16_t EthernetClient::_srcport = 1024;
 
+#if 0
 int EthernetClient::connect(const char* host, uint16_t port)
 {
     // Look up the host first
@@ -23,6 +24,7 @@ int EthernetClient::connect(const char* host, uint16_t port)
 
     return ret;
 }
+#endif
 
 int EthernetClient::connect(uint32_t ip, uint16_t port)
 {
@@ -97,8 +99,9 @@ int EthernetClient::read() {
   }
 }
 
-int EthernetClient::read(uint8_t *buf, size_t size) {
-  return recv(_sock, buf, size);
+int EthernetClient::read(uint8_t *buf, size_t size)
+{
+    return recv(_sock, buf, size);
 }
 
 int EthernetClient::peek() {
