@@ -33,14 +33,20 @@ void UIPUDP::stop()
     }
 }
 
+#define uip_ip_addr(addr, ip) do { \
+                     ((uint16_t *)(addr))[0] = HTONS(((ip[0]) << 8) | (ip[1])); \
+                     ((uint16_t *)(addr))[1] = HTONS(((ip[2]) << 8) | (ip[3])); \
+                  } while(0)
+
 int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
 {
     _eth->tick();
 
     if (ip && port)
     {
-        uip_ipaddr_t ripaddr;
-        uip_ip_addr(&ripaddr, IPAddrezz(ip));
+        uint16_t ripaddr[2];
+        ripaddr[0] = (uint16_t)(ip & 0xffff);
+        ripaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
 
         if (_uip_udp_conn)
         {

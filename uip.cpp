@@ -296,6 +296,13 @@ sendandfree:
     return true;
 }
 
+#define uip_seteth_addr(eaddr) do {uip_ethaddr.addr[0] = eaddr[0]; \
+                              uip_ethaddr.addr[1] = eaddr[1];\
+                              uip_ethaddr.addr[2] = eaddr[2];\
+                              uip_ethaddr.addr[3] = eaddr[3];\
+                              uip_ethaddr.addr[4] = eaddr[4];\
+                              uip_ethaddr.addr[5] = eaddr[5];} while(0)
+
 void UIPEthernetClass::init(const uint8_t* mac)
 {
     periodic_timer = millis() + UIP_PERIODIC_TIMER;

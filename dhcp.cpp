@@ -1,13 +1,18 @@
-#include "dhcp.h"
-//#include "uip_timer.h"
-#include <string.h>
-#include <stdlib.h>
-
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
+#include "dhcp.h"
+#include <string.h>
+#include <stdlib.h>
 #include <util/delay.h>
+
+static constexpr uint32_t htonl(uint32_t x)
+{
+    return (x<<24 & 0xff000000) | (x<<8 & 0xff0000) | (x>>8 & 0xff00) | (x>>24 & 0xff);
+}
+
+static constexpr uint32_t ntohl(uint32_t x) { return htonl(x); }
 
 extern uint32_t millis();
 
@@ -125,13 +130,9 @@ void DhcpClass::send_DHCP_MESSAGE(uint8_t messageType, uint16_t secondsElapsed)
 {
     uint8_t buffer[32];
     memset(buffer, 0, 32);
-    IPAddrezz dest_addr( 255, 255, 255, 255 ); // Broadcast address
 
-    if (-1 == _dhcpUdpSocket.beginPacket(dest_addr, DHCP_SERVER_PORT))
-    {
-        // FIXME Need to return errors
+    if (_dhcpUdpSocket.beginPacket(0xffffffff, DHCP_SERVER_PORT) == -1)
         return;
-    }
 
     buffer[0] = DHCP_BOOTREQUEST;   // op
     buffer[1] = DHCP_HTYPE10MB;     // htype

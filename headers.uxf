@@ -1147,28 +1147,6 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>533</x>
-      <y>910</y>
-      <w>169</w>
-      <h>39</h>
-    </coordinates>
-    <panel_attributes>ipaddrezz.h</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>637</x>
-      <y>793</y>
-      <w>195</w>
-      <h>143</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;90.0;130.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
       <x>650</x>
       <y>1027</y>
       <w>169</w>

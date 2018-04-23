@@ -202,11 +202,11 @@ app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
     stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_bbs1.o: app_bbs1.cpp uip_server.h stream.h dhcp.h uip_udp.h uip.h \
-    enc28j60.h mempool.h misc.h ipaddrezz.h types.h
+    enc28j60.h mempool.h misc.h types.h
 
 app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h dhcp.h \
-    uip.h uip_udp.h enc28j60.h mempool.h ipaddrezz.h types.h webtest1.h uart.h \
-    uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h ipaddrezz.h \
+    uip.h uip_udp.h enc28j60.h mempool.h types.h webtest1.h uart.h \
+    uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h \
     eth.h cdc.h busby.h
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h w5100dhcp.h stream.h board.h \
