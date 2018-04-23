@@ -36,7 +36,8 @@ int main()
 
     cout << "Starting DHCP...\r\n";
     cout.flush();
-    DhcpClass dhcp(&eth);
+    EthernetUDP udp(&eth);
+    DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     w5100.setIPAddress(dhcp.localIp());
     w5100.setGatewayIp(dhcp.gateway());
@@ -44,8 +45,8 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 #if 1
-    EthernetUDP udp(&eth);
-    DNSClient dns(&udp);
+    EthernetUDP udp2(&eth);
+    DNSClient dns(&udp2);
     dns.begin(0x08080808);
     uint32_t remote_addr;
     int ret = dns.getHostByName("www.astron.nl", remote_addr);

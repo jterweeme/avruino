@@ -33,7 +33,8 @@ int main()
     w5100.setIPAddress(0);
     
     cout << "Starting DHCP...\r\n";
-    DhcpClass dhcp(&eth);
+    EthernetUDP udp(&eth);
+    DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     w5100.setIPAddress(dhcp.localIp());
     w5100.setGatewayIp(dhcp.gateway());

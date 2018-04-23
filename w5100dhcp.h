@@ -143,7 +143,7 @@ private:
     signed long _lastCheck;
     uint32_t _timeout, _responseTimeout, _secTimeout;
     uint8_t _dhcp_state;
-    EthernetUDP _dhcpUdpSocket;
+    EthernetUDP *_dhcpUdpSocket;
     int request_DHCP_lease();
     void reset_DHCP_lease() { memset(_dhcpLocalIp, 0, 20); }
     void presend_DHCP();
@@ -151,7 +151,7 @@ private:
     void printByte(char *, uint8_t);
     uint8_t parseDHCPResponse(uint32_t responseTimeout, uint32_t &transactionId);
 public:
-    DhcpClass(EthernetClass *eth) : _dhcpUdpSocket(eth) { }
+    DhcpClass(EthernetUDP *udp) : _dhcpUdpSocket(udp) { }
     uint32_t localIp() { return *((uint32_t *)&_dhcpLocalIp); }
     uint32_t subnetMask2() { return *((uint32_t *)&_dhcpSubnetMask); }
     uint32_t gateway() { return *((uint32_t *)&_dhcpGatewayIp); }
