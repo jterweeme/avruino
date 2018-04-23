@@ -169,7 +169,7 @@ public:
     uint32_t dhcpServerIp() { return *((uint32_t *)&_dhcpDhcpServerIp); }
     uint32_t dnsServer() { return *((uint32_t *)&_dhcpDnsServerIp); }
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, unsigned long responseTimeout = 4000);
-    int checkLease();
+    //int checkLease();
 };
 
 #endif

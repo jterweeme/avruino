@@ -14,32 +14,24 @@
 
 extern ostream *gout;
 
-void randomSeed(unsigned int seed)
+void randomSeed(uint16_t seed)
 {
-  if (seed != 0) {
-    srandom(seed);
-  }
+    if (seed != 0)
+        srandom(seed);
 }
 
 long random(long howbig)
 {
-  if (howbig == 0) {
-    return 0;
-  }
-  return random() % howbig;
+    return howbig == 0 ? 0 : random() % howbig;
 }
 
 long random(long howsmall, long howbig)
 {
-  if (howsmall >= howbig) {
-    return howsmall;
-  }
-  long diff = howbig - howsmall;
-  return random(diff) + howsmall;
+    return howsmall >= howbig ? howsmall : random(howbig - howsmall) + howsmall;
 }
 
 
-int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
+int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTimeout)
 {
     _dhcpLeaseTime=0;
     _dhcpT1=0;
@@ -68,8 +60,6 @@ int DhcpClass::request_DHCP_lease(){
     
     uint8_t messageType = 0;
   
-    
-  
     // Pick an initial transaction ID
     _dhcpTransactionId = random(1UL, 2000UL);
     _dhcpInitialTransactionId = _dhcpTransactionId;
@@ -85,19 +75,23 @@ int DhcpClass::request_DHCP_lease(){
     
     int result = 0;
     
-    unsigned long startTime = millis();
+    //unsigned long startTime = millis();
     
-    while (_dhcp_state != STATE_DHCP_LEASED)
+    for (uint8_t tries = 0; _dhcp_state != STATE_DHCP_LEASED; tries++)
     {
         if (_dhcp_state == STATE_DHCP_START)
         {
             _dhcpTransactionId++;
-            send_DHCP_MESSAGE(DHCP_DISCOVER, ((millis() - startTime) / 1000));
+            *gout << "Sending DHCP Start\r\n";
+            //send_DHCP_MESSAGE(DHCP_DISCOVER, ((millis() - startTime) / 1000));
+            send_DHCP_MESSAGE(DHCP_DISCOVER, 0);
             _dhcp_state = STATE_DHCP_DISCOVER;
         }
         else if(_dhcp_state == STATE_DHCP_REREQUEST){
             _dhcpTransactionId++;
-            send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime)/1000));
+            *gout << "Sending DHCP Request\r\n";
+            //send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime)/1000));
+            send_DHCP_MESSAGE(DHCP_REQUEST, 0);
             _dhcp_state = STATE_DHCP_REQUEST;
         }
         else if(_dhcp_state == STATE_DHCP_DISCOVER)
@@ -109,7 +103,9 @@ int DhcpClass::request_DHCP_lease(){
                 // We'll use the transaction ID that the offer came with,
                 // rather than the one we were up to
                 _dhcpTransactionId = respId;
-                send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime) / 1000));
+                *gout << "Sending DHCP Discover\r\n";
+                //send_DHCP_MESSAGE(DHCP_REQUEST, ((millis() - startTime) / 1000));
+                send_DHCP_MESSAGE(DHCP_REQUEST, 0);
                 _dhcp_state = STATE_DHCP_REQUEST;
             }
         }
@@ -126,11 +122,13 @@ int DhcpClass::request_DHCP_lease(){
                     _dhcpLeaseTime = DEFAULT_LEASE;
                 }
                 //calculate T1 & T2 if we didn't get it
-                if(_dhcpT1 == 0){
+                if (_dhcpT1 == 0)
+                {
                     //T1 should be 50% of _dhcpLeaseTime
                     _dhcpT1 = _dhcpLeaseTime >> 1;
                 }
-                if(_dhcpT2 == 0){
+                if (_dhcpT2 == 0)
+                {
                     //T2 should be 87.5% (7/8ths) of _dhcpLeaseTime
                     _dhcpT2 = _dhcpT1 << 1;
                 }
@@ -146,9 +144,13 @@ int DhcpClass::request_DHCP_lease(){
             messageType = 0;
             _dhcp_state = STATE_DHCP_START;
         }
-        
+#if 0
         if(result != 1 && ((millis() - startTime) > _timeout))
             break;
+#else
+        if (tries > 5)
+            break;
+#endif
     }
  
      *gout << "Debug bericht\r\n";  
@@ -290,15 +292,14 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
 {
     uint8_t type = 0;
     uint8_t opt_len = 0;
-     
-    unsigned long startTime = millis();
+    //uint32_t startTime = millis();
 
-    while(_dhcpUdpSocket.parsePacket() <= 0)
+    for (uint32_t i = 0; _dhcpUdpSocket.parsePacket() <= 0; i++)
     {
-        if((millis() - startTime) > responseTimeout)
-        {
+        //if ((millis() - startTime) > responseTimeout)
+        if (i > 0xff)
             return 255;
-        }
+        
         _delay_ms(50);
     }
     // start reading in the packet
@@ -329,31 +330,25 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
         {
             switch (_dhcpUdpSocket.read()) 
             {
-                case endOption :
+                case endOption:
+                case padOption:
                     break;
-                    
-                case padOption :
-                    break;
-                
-                case dhcpMessageType :
+                case dhcpMessageType:
                     opt_len = _dhcpUdpSocket.read();
                     type = _dhcpUdpSocket.read();
                     break;
-                
-                case subnetMask :
+                case subnetMask:
                     opt_len = _dhcpUdpSocket.read();
                     _dhcpUdpSocket.read(_dhcpSubnetMask, 4);
                     break;
-                
                 case routersOnSubnet :
                     opt_len = _dhcpUdpSocket.read();
                     _dhcpUdpSocket.read(_dhcpGatewayIp, 4);
+
                     for (int i = 0; i < opt_len-4; i++)
-                    {
                         _dhcpUdpSocket.read();
-                    }
+
                     break;
-                
                 case dns :
                     opt_len = _dhcpUdpSocket.read();
                     _dhcpUdpSocket.read(_dhcpDnsServerIp, 4);
@@ -375,9 +370,7 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                     {
                         // Skip over the rest of this option
                         while (opt_len--)
-                        {
                             _dhcpUdpSocket.read();
-                        }
                     }
                     break;
 
@@ -404,9 +397,8 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                     opt_len = _dhcpUdpSocket.read();
                     // Skip over the rest of this option
                     while (opt_len--)
-                    {
                         _dhcpUdpSocket.read();
-                    }
+                    
                     break;
             }
         }
@@ -427,17 +419,21 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
     3/DHCP_CHECK_REBIND_FAIL: rebind fail
     4/DHCP_CHECK_REBIND_OK: rebind success
 */
-int DhcpClass::checkLease(){
+#if 0
+int DhcpClass::checkLease()
+{
     //this uses a signed / unsigned trick to deal with millis overflow
-    unsigned long now = millis();
-    signed long snow = (long)now;
+    uint32_t now = millis();
+    int32_t snow = (int32_t)now;
     int rc=DHCP_CHECK_NONE;
-    if (_lastCheck != 0){
-        signed long factor;
+
+    if (_lastCheck != 0)
+    {
         //calc how many ms past the timeout we are
-        factor = snow - (long)_secTimeout;
+        int32_t factor = snow - (int32_t)_secTimeout;
         //if on or passed the timeout, reduce the counters
-        if ( factor >= 0 ){
+        if (factor >= 0)
+        {
             //next timeout should be now plus 1000 ms minus parts of second in factor
             _secTimeout = snow + 1000 - factor % 1000;
             //how many seconds late are we, minimum 1
@@ -447,12 +443,12 @@ int DhcpClass::checkLease(){
             //if we can assume that the cycle time (factor) is fairly constant
             //and if the remainder is less than cycle time * 2 
             //do it early instead of late
-            if(_renewInSec < factor*2 )
+            if (_renewInSec < factor * 2)
                 _renewInSec = 0;
             else
                 _renewInSec -= factor;
             
-            if(_rebindInSec < factor*2 )
+            if (_rebindInSec < factor * 2)
                 _rebindInSec = 0;
             else
                 _rebindInSec -= factor;
@@ -465,20 +461,24 @@ int DhcpClass::checkLease(){
         }
 
         //if we have a lease or is renewing but should bind, do it
-        if( (_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START) && _rebindInSec <=0){
+        if ((_dhcp_state == STATE_DHCP_LEASED || _dhcp_state == STATE_DHCP_START)
+            && _rebindInSec <=0)
+        {
             //this should basically restart completely
             _dhcp_state = STATE_DHCP_START;
             reset_DHCP_lease();
             rc = 3 + request_DHCP_lease();
         }
     }
-    else{
+    else
+    {
         _secTimeout = snow + 1000;
     }
 
     _lastCheck = now;
     return rc;
 }
+#endif
 
 void DhcpClass::printByte(char * buf, uint8_t n)
 {
@@ -487,10 +487,14 @@ void DhcpClass::printByte(char * buf, uint8_t n)
 
     do
     {
-        unsigned long m = n;
+        uint32_t m = n;
         n /= 16;
         char c = m - 16 * n;
         *str-- = c < 10 ? c + '0' : c + 'A' - 10;
     }
     while (n);
 }
+
+
+
+

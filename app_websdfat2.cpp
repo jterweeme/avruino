@@ -5,8 +5,6 @@ Mega SD CS: D9
 Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
-#include <avr/interrupt.h>
-#include "util.h"
 #include "w5100dhcp.h"
 #include "webserver.h"
 #include "w5100server.h"
@@ -20,14 +18,9 @@ ostream *gout;
 
 int main()
 {
-    // 16,000,000/16,000 = 1000
-    // 16,000 / 256 = 62
-
     Board b;
     Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
-    TCCR0B = CS02; // | CS00;
-    TIMSK0 |= 1<<TOIE0;
     zei();
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
@@ -75,46 +68,6 @@ int main()
 
     return 0;
 }
-
-#define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
-
-#define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
-
-#define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
-#define FRACT_MAX (1000 >> 3)
-
-volatile unsigned long timer0_overflow_count = 0;
-volatile unsigned long timer0_millis = 0;
-static unsigned char timer0_fract = 0;
-
-ISR(TIMER0_OVF_vect)
-{
-    unsigned long m = timer0_millis;
-    unsigned char f = timer0_fract;
-
-    m += MILLIS_INC;
-    f += FRACT_INC;
-    if (f >= FRACT_MAX) {
-        f -= FRACT_MAX;
-        m += 1;
-    }
-
-    timer0_fract = f;
-    timer0_millis = m;
-    timer0_overflow_count++;
-}
-
-unsigned long millis()
-{
-    unsigned long m;
-    uint8_t oldSREG = SREG;
-    cli();
-    m = timer0_millis;
-    SREG = oldSREG;
-
-    return m;
-}
-
 
 
 
