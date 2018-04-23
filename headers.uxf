@@ -344,8 +344,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1235</x>
-      <y>624</y>
+      <x>1742</x>
+      <y>650</y>
       <w>130</w>
       <h>39</h>
     </coordinates>
@@ -355,13 +355,13 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1326</x>
-      <y>585</y>
-      <w>117</w>
+      <x>1534</x>
+      <y>637</y>
+      <w>234</w>
       <h>65</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>70.0;10.0;10.0;30.0</additional_attributes>
+    <additional_attributes>10.0;10.0;160.0;30.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -912,28 +912,6 @@
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>10.0;10.0;20.0;90.0</additional_attributes>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
-      <x>1742</x>
-      <y>650</y>
-      <w>156</w>
-      <h>39</h>
-    </coordinates>
-    <panel_attributes>w5100dns.h</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1534</x>
-      <y>637</y>
-      <w>234</w>
-      <h>52</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;160.0;20.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>

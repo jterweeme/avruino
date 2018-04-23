@@ -12,8 +12,8 @@
 #include "enc28j60.h"
 #include "eth.h"
 
-typedef void* uip_tcp_appstate_t;
-typedef void* uip_udp_appstate_t;
+typedef void * uip_tcp_appstate_t;
+typedef void * uip_udp_appstate_t;
 static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
 #ifndef UIP_CONF_MAX_LISTENPORTS
@@ -90,11 +90,6 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 
 #define uip_udp_remove(conn) (conn)->lport = 0
 #define uip_udp_bind(conn, port) (conn)->lport = port
-
-#define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
-                     ((uint16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
-                     ((uint16_t *)(addr))[1] = HTONS(((addr2) << 8) | (addr3)); \
-                  } while(0)
 
 #define uip_ipaddr_copy(dest, src) do { \
                      ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
@@ -265,7 +260,7 @@ class UIPEthernetClass : public Ethernet
 {
 private:
     Enc28J60Network _nw;
-    unsigned long periodic_timer;
+    uint32_t periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
     void uipclient_appcall();
     void uipudp_appcall();
@@ -278,7 +273,7 @@ public:
     void uip_process(uint8_t flag);
     void process(uint8_t flags) { uip_process(flags); }
     void init(const uint8_t* mac);
-    void configure(IPAddrezz ip, IPAddrezz dns, IPAddrezz gateway, IPAddrezz subnet);
+    void configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_t subnet);
     uint16_t ipchksum();
     uint16_t upper_layer_chksum(uint8_t proto);
     memhandle in_packet;
@@ -287,7 +282,7 @@ public:
     memhandle uip_packet;
     uint8_t packetstate;
     void _flushBlocks(memhandle *blocks);
-    IPAddrezz _dnsServerAddress;
+    uint32_t _dnsServerAddress;
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }

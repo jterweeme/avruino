@@ -4,6 +4,12 @@
 
 #define ETH_HDR ((struct uip_eth_hdr *)&uip_buf[0])
 
+#define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
+                     ((uint16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
+                     ((uint16_t *)(addr))[1] = HTONS(((addr2) << 8) | (addr3)); \
+                  } while(0)
+
+
 static uint32_t g_millis = 0;
 
 uint32_t millis()
@@ -50,7 +56,7 @@ uint32_t UIPEthernetClass::gatewayIP()
 
 uint32_t UIPEthernetClass::dnsServerIP()
 {
-    return _dnsServerAddress.get32();
+    return _dnsServerAddress;
 }
 
 #define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
@@ -59,10 +65,8 @@ uint32_t UIPEthernetClass::dnsServerIP()
 
 #define uip_stop()          (uip_conn->tcpstateflags |= UIP_STOPPED)
 #define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
-#define uip_newdata()   (uip_flags & UIP_NEWDATA)
 #define uip_connected() (uip_flags & UIP_CONNECTED)
 #define uip_timedout()    (uip_flags & UIP_TIMEDOUT)
-#define uip_rexmit()     (uip_flags & UIP_REXMIT)
 
 void UIPEthernetClass::uipclient_appcall()
 {
@@ -79,7 +83,7 @@ void UIPEthernetClass::uipclient_appcall()
 
     if (u)
     {
-        if (uip_newdata())
+        if (uip_flags & UIP_NEWDATA)
         {
             if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
             {
@@ -132,7 +136,7 @@ finish_newdata:
         {
             UIPEthernetClass::instance->_eatBlock(&u->packets_out[0]);
         }
-        if ((uip_flags & UIP_POLL) || uip_rexmit())
+        if ((uip_flags & UIP_POLL) || (uip_flags & UIP_REXMIT))
         {
           if (u->packets_out[0] != NOBLOCK)
             {
@@ -227,16 +231,16 @@ void UIPEthernetClass::tick()
         }
     }
 
-  unsigned long now = millis();
-
+    uint32_t now = millis();
     bool periodic = (long)(now - periodic_timer) >= 0;
 
     for (int i = 0; i < UIP_CONNS; i++)
     {
         uip_conn = &uip_conns[i];
+
         if (periodic)
         {
-          process(UIP_TIMER);
+            process(UIP_TIMER);
         }
         else
         {
@@ -262,9 +266,7 @@ void UIPEthernetClass::tick()
             process(UIP_UDP_TIMER);
 
             if (uip_len > 0)
-            {
                 _send((uip_udp_userdata_t *)(uip_udp_conns[i].appstate));
-            }
         }
     }
 }
@@ -303,15 +305,17 @@ void UIPEthernetClass::init(const uint8_t* mac)
     uip_arp_init();
 }
 
-void UIPEthernetClass::configure(IPAddrezz ip, IPAddrezz dns,
-    IPAddrezz gateway, IPAddrezz subnet)
+void UIPEthernetClass::configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_t subnet)
 {
-    uip_ipaddr_t ipaddr;
-    uip_ip_addr(ipaddr, ip);
+    uint16_t ipaddr[2];
+    ipaddr[0] = (uint16_t)(ip & 0xffff);
+    ipaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
     uip_ipaddr_copy(uip_hostaddr, ipaddr);
-    uip_ip_addr(ipaddr, gateway);
+    ipaddr[0] = (uint16_t)(gw & 0xffff);
+    ipaddr[1] = (uint16_t)(gw >> 16 & 0xffff);
     uip_ipaddr_copy(uip_draddr, ipaddr);
-    uip_ip_addr(ipaddr, subnet);
+    ipaddr[0] = (uint16_t)(subnet & 0xffff);
+    ipaddr[1] = (uint16_t)(subnet >> 16 & 0xffff);
     uip_ipaddr_copy(uip_netmask, ipaddr);
     _dnsServerAddress = dns;
 }

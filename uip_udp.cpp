@@ -2,7 +2,6 @@
 
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define uip_poll()       (uip_flags & UIP_POLL)
-#define ip_addr_uip(a) IPAddrezz(a[0] & 0xFF, a[0] >> 8 , a[1] & 0xFF, a[1] >> 8)
 
 uint8_t UIPUDP::begin(uint16_t port)
 {
@@ -72,19 +71,6 @@ int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
     }
     return 0;
 }
-
-#if 0
-int UIPUDP::beginPacket(const char *host, uint16_t port)
-{
-    // Look up the host first
-    int ret = 0;
-    DNSClient dns(_eth);
-    IPAddrezz remote_addr;
-    dns.begin(_eth->dnsServerIP());
-    ret = dns.getHostByName(host, remote_addr);
-    return ret == 1 ? beginPacket(remote_addr, port) : ret;
-}
-#endif
 
 int UIPUDP::endPacket()
 {
@@ -200,7 +186,6 @@ void UIPUDP::flush()
 uint32_t UIPUDP::remoteIP()
 {
     return _uip_udp_conn ? *((uint32_t *)_uip_udp_conn->ripaddr) : 0;
-    //return _uip_udp_conn ? ip_addr_uip(_uip_udp_conn->ripaddr) : IPAddrezz(0);
 }
 
 void UIPEthernetClass::uipudp_appcall()

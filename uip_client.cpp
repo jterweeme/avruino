@@ -42,11 +42,13 @@ UIPClient::UIPClient(UIPEthernetClass * const eth, uip_userdata_t *conn_data) :
 {
 }
 
-int UIPClient::connect(IPAddrezz ip, uint16_t port)
+int UIPClient::connect(uint32_t ip, uint16_t port)
 {
     stop();
-    uip_ipaddr_t ipaddr;
-    uip_ip_addr(ipaddr, ip);
+    uint16_t ipaddr[2];
+    ipaddr[0] = (uint16_t)(ip & 0xffff);
+    ipaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
+    //uip_ip_addr(ipaddr, ip);
     struct uip_conn* conn = uip_connect(&ipaddr, htons(port));
 
     if (conn)
