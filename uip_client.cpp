@@ -7,29 +7,6 @@ static constexpr uint32_t htonl(uint32_t x)
 
 static constexpr uint32_t ntohl(uint32_t x) { return htonl(x); }
 
-class IPAddrezz
-{
-private:
-    union {
-        uint8_t a8[4];  // IPv4 address
-        uint32_t a32;
-    } _address;
-public:
-    uint8_t* raw_address() { return _address.a8; }
-    IPAddrezz() { memset(_address.a8, 0, sizeof(_address)); }
-    IPAddrezz(uint8_t first_octet, uint8_t second_octet, uint8_t third_octet, uint8_t fourth_octet);
-    IPAddrezz(uint32_t address) { _address.a32 = address; }
-    IPAddrezz(const uint8_t *address) { memcpy(_address.a8, address, sizeof(_address)); }
-    uint32_t get32() const { return _address.a32; }
-    operator uint32_t() { return _address.a32; }
-    bool operator==(const IPAddrezz& addr) { return _address.a32 == addr._address.a32; };
-    bool operator==(const uint8_t* addr);
-    uint8_t operator[](int index) const { return _address.a8[index]; };
-    uint8_t& operator[](int index) { return _address.a8[index]; };
-    IPAddrezz& operator=(const uint8_t *address);
-    IPAddrezz& operator=(uint32_t address);
-};
-
 #define UIP_TCP_PHYH_LEN UIP_LLH_LEN+UIP_IPTCPH_LEN
 
 extern uint32_t millis();
@@ -37,32 +14,7 @@ extern uint32_t millis();
 uip_userdata_t UIPEthernetClass::all_data[UIP_CONNS];
 
 
-IPAddrezz::IPAddrezz(uint8_t oct1, uint8_t oct2, uint8_t third_octet, uint8_t fourth_octet)
-{
-    _address.a8[0] = oct1;
-    _address.a8[1] = oct2;
-    _address.a8[2] = third_octet;
-    _address.a8[3] = fourth_octet;
-}
-
 #define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
-
-IPAddrezz& IPAddrezz::operator=(const uint8_t *address)
-{
-    memcpy(_address.a8, address, sizeof(_address));
-    return *this;
-}
-
-IPAddrezz& IPAddrezz::operator=(uint32_t address)
-{
-    _address.a32=address;
-    return *this;
-}
-
-bool IPAddrezz::operator==(const uint8_t* addr)
-{
-    return memcmp(addr, _address.a8, sizeof(_address)) == 0;
-}
 
 UIPClient::UIPClient(UIPEthernetClass * const eth) : _eth(eth), data(NULL) { }
 
@@ -105,22 +57,6 @@ int UIPClient::connect(uint32_t ip, uint16_t port)
     }
     return 0;
 }
-
-#if 0
-int UIPClient::connect(const char *host, uint16_t port)
-{
-    int ret = 0;
-    DNSClient dns(_eth);
-    IPAddrezz remote_addr;
-    dns.begin(_eth->_dnsServerAddress);
-    ret = dns.getHostByName(host, remote_addr);
-
-    if (ret == 1)
-        return connect(remote_addr, port);
-
-    return ret;
-}
-#endif
 
 void UIPClient::stop()
 {
