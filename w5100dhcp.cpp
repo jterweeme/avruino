@@ -8,7 +8,8 @@
 #include <util/delay.h>
 #include <string.h>
 #include <stdlib.h>
-#include "w5100dhcp.h"
+#include "dhcp.h"
+#include "udp.h"
 #include "util.h"
 #include "stream.h"
 

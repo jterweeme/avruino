@@ -3,7 +3,8 @@
 
 #ifndef _DHCP_H_
 #define _DHCP_H_
-#include "uip_udp.h"
+#include "types.h"
+#include <string.h>
 
 static constexpr uint8_t
     STATE_DHCP_START = 0,
@@ -39,7 +40,7 @@ static constexpr uint8_t
 
 #define MAGIC_COOKIE		0x63825363
 #define MAX_DHCP_OPT	16
-#define HOST_NAME "ENC28J"
+#define HOST_NAME "ARDUIN"
 #define DEFAULT_LEASE	(900) //default lease time in seconds
 
 enum
@@ -124,6 +125,8 @@ typedef struct _RIP_MSG_FIXED
 	uint8_t  giaddr[4];
 	uint8_t  chaddr[6];
 }RIP_MSG_FIXED;
+
+class UDP;
 
 class DhcpClass
 {

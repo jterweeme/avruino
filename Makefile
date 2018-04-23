@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -209,14 +209,14 @@ app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h 
     uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h \
     eth.h cdc.h busby.h
 
-app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h w5100dhcp.h stream.h board.h \
-    w5100client.h w5100server.h cdc.h busby.h board.h mega.h uno.h leonardo.h \
+app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h stream.h board.h \
+    cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
     misc.h storage.h pinport.h types.h w5100eth.h w5100.h eth.h mempool.h client.h \
-    stream2.h print.h udp.h w5100udp.h socket.h uart.h
+    print.h udp.h w5100server.h w5100udp.h w5100client.h socket.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 
-app_websdfat2.o: app_websdfat2.cpp util.h w5100dhcp.h webserver.h w5100server.h \
+app_websdfat2.o: app_websdfat2.cpp util.h dhcp.h webserver.h w5100server.h \
     w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
     stream.h types.h w5100udp.h socket.h udp.h stream2.h print.h w5100.h \
     w5100eth.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
@@ -296,7 +296,7 @@ vga.o: vga.cpp vga.h misc.h storage.h pinport.h types.h
 vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
 w5100client.o: w5100client.cpp w5100client.h
-w5100dhcp.o: w5100dhcp.cpp w5100dhcp.h
+w5100dhcp.o: w5100dhcp.cpp dhcp.h
 w5100eth.o: w5100eth.cpp w5100eth.h w5100.h eth.h
 w5100server.o: w5100server.cpp w5100server.h
 w5100udp.o: w5100udp.cpp w5100udp.h

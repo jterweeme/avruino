@@ -5,10 +5,11 @@ Mega SD CS: D9
 Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
-#include "w5100dhcp.h"
-#include "webserver.h"
+#include "w5100udp.h"
 #include "w5100server.h"
 #include "w5100client.h"
+#include "dhcp.h"
+#include "webserver.h"
 #include "fatty.h"
 
 static W5100Class w5100;

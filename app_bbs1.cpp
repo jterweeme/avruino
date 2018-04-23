@@ -1,11 +1,8 @@
 #include "uip_server.h"
+#include "uip_udp.h"
 #include "stream.h"
 #include "dhcp.h"
 #include "fatty.h"
-
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
 
 static UIPEthernetClass eth;
 

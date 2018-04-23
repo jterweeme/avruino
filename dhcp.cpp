@@ -3,16 +3,11 @@
 #endif
 
 #include "dhcp.h"
+#include "udp.h"
 #include <string.h>
 #include <stdlib.h>
 #include <util/delay.h>
-
-static constexpr uint32_t htonl(uint32_t x)
-{
-    return (x<<24 & 0xff000000) | (x<<8 & 0xff0000) | (x>>8 & 0xff00) | (x>>24 & 0xff);
-}
-
-static constexpr uint32_t ntohl(uint32_t x) { return htonl(x); }
+#include "util.h"
 
 extern uint32_t millis();
 

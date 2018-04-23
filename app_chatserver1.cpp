@@ -20,9 +20,9 @@
 
 #include "w5100client.h"
 #include "w5100server.h"
-#include <avr/interrupt.h>
+#include "w5100udp.h"
+#include "dhcp.h"
 #include "util.h"
-#include "w5100dhcp.h"
 #include "board.h"
 #include "stream.h"
 
@@ -34,7 +34,7 @@ int main()
     TCCR0A |= 1<<WGM01 | 1<<WGM00;
     TCCR0B |= 1<<CS01 | 1<<CS00;
     TIMSK0 |= 1<<TOIE0;
-    sei();
+    zei();
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;

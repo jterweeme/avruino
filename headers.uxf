@@ -762,17 +762,6 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>1534</x>
-      <y>1092</y>
-      <w>156</w>
-      <h>39</h>
-    </coordinates>
-    <panel_attributes>w5100dhcp.h</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
       <x>377</x>
       <y>702</y>
       <w>130</w>
@@ -791,17 +780,6 @@
     </coordinates>
     <panel_attributes>w5100udp.h</panel_attributes>
     <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1612</x>
-      <y>1040</y>
-      <w>78</w>
-      <h>78</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>40.0;10.0;10.0;40.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -835,17 +813,6 @@
     </coordinates>
     <panel_attributes>udp.h</panel_attributes>
     <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>1482</x>
-      <y>1118</y>
-      <w>143</w>
-      <h>117</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;70.0;90.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -1319,5 +1286,16 @@
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>90.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1482</x>
+      <y>1040</y>
+      <w>195</w>
+      <h>195</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;130.0;130.0;10.0</additional_attributes>
   </element>
 </diagram>

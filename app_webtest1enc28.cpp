@@ -4,6 +4,7 @@ Uno eth CS: D10/SS
 */
 
 #include "uip_server.h"
+#include "uip_udp.h"
 #include "board.h"
 #include "dhcp.h"
 #include "webtest1.h"

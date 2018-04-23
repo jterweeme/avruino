@@ -1,4 +1,5 @@
 #include "uip_client.h"
+#include "uip_udp.h"
 #include "stream.h"
 #include "dhcp.h"
 #include "dns.h"
