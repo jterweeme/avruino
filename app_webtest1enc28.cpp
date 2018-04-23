@@ -11,6 +11,7 @@ Uno eth CS: D10/SS
 #include "stream.h"
 
 static UIPEthernetClass eth;
+ostream *gout;
 
 int main()
 {
@@ -21,6 +22,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
     UIPServer server = UIPServer(&eth, 80);
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;

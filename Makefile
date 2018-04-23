@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -116,7 +116,7 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100eth.o \
-    uart.o pinport.o stream.o w5100server.o socket.o w5100dhcp.o \
+    uart.o pinport.o stream.o w5100server.o socket.o dhcp.o \
     w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o
 
 app_telnet1.elf: app_telnet1.o arp.o uip_server.o uart.o uip_client.o pinport.o \
@@ -132,18 +132,18 @@ app_websdfat1.elf: app_websdfat1.o arp.o uip_server.o uip_client.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
 app_websdfat2.elf: app_websdfat2.o w5100eth.o uart.o pinport.o stream.o \
-    w5100server.o socket.o w5100dhcp.o w5100udp.o w5100client.o w5100.o  \
+    w5100server.o socket.o dhcp.o w5100udp.o w5100client.o w5100.o  \
     zd2card.o fatty.o misc.o eth.o webserver.o
 
 app_chatserver1.elf: app_chatserver1.o w5100server.o w5100eth.o w5100client.o \
-    w5100.o w5100udp.o socket.o w5100dhcp.o misc.o pinport.o eth.o \
+    w5100.o w5100udp.o socket.o dhcp.o misc.o pinport.o eth.o \
     stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o
 
 app_webclient2.elf: app_webclient2.o w5100client.o w5100eth.o w5100.o w5100udp.o socket.o \
-    w5100dhcp.o dns.o misc.o pinport.o eth.o stream.o uart.o
+    dhcp.o dns.o misc.o pinport.o eth.o stream.o uart.o
 
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
     stream.o md5sum.o uart.o misc.o
@@ -296,7 +296,6 @@ vga.o: vga.cpp vga.h misc.h storage.h pinport.h types.h
 vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
 w5100client.o: w5100client.cpp w5100client.h
-w5100dhcp.o: w5100dhcp.cpp dhcp.h
 w5100eth.o: w5100eth.cpp w5100eth.h w5100.h eth.h
 w5100server.o: w5100server.cpp w5100server.h
 w5100udp.o: w5100udp.cpp w5100udp.h

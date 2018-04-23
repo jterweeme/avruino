@@ -13,6 +13,7 @@ Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 
 static UIPEthernetClass eth;
 static Fatty *g_zd;
+ostream *gout;
 
 int main()
 {
@@ -31,6 +32,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
 
     cout << "Initialize SD Card...\r\n";
     bool ret = zd.begin();

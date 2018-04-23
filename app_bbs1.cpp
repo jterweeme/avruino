@@ -5,8 +5,7 @@
 #include "fatty.h"
 
 static UIPEthernetClass eth;
-
-static ostream *gout;
+ostream *gout;
 
 static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,

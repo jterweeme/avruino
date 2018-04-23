@@ -4,6 +4,7 @@
 #include "dhcp.h"
 
 static UIPEthernetClass eth;
+ostream *gout;
 
 static inline char convertCase(char c)
 {
@@ -26,6 +27,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
 
     cout << "Initialize Ethernet\r\n";
     cout.flush();

@@ -5,6 +5,7 @@
 #include "dns.h"
 
 static UIPEthernetClass eth;
+ostream *gout;
 
 int main()
 {
@@ -12,6 +13,7 @@ int main()
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+    gout = &cout;
     *p_tccr0b = cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
