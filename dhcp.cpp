@@ -368,6 +368,7 @@ uint8_t DhcpClass::parseDHCPResponse(uint32_t responseTimeout, uint32_t& transac
     3/DHCP_CHECK_REBIND_FAIL: rebind fail
     4/DHCP_CHECK_REBIND_OK: rebind success
 */
+#if 0
 int DhcpClass::checkLease()
 {
     //this uses a signed / unsigned trick to deal with millis overflow
@@ -422,6 +423,7 @@ int DhcpClass::checkLease()
     _lastCheck = now;
     return rc;
 }
+#endif
 
 void DhcpClass::printByte(char * buf, uint8_t n ) {
   char *str = &buf[1];

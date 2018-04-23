@@ -51,7 +51,7 @@ int main()
     cout.flush();
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
-    eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+    eth.configure(dhcp.localIp(), dhcp.dnsServer(), dhcp.gateway(), dhcp.subnetMask2());
     eth.addresses(cout);
     cout << "\r\n";
 

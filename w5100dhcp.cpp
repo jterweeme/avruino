@@ -50,11 +50,6 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTi
     return request_DHCP_lease();
 }
 
-void DhcpClass::reset_DHCP_lease(){
-    // zero out _dhcpSubnetMask, _dhcpGatewayIp, _dhcpLocalIp, _dhcpDhcpServerIp, _dhcpDnsServerIp
-    memset(_dhcpLocalIp, 0, 20);
-}
-
 //return:0 on error, 1 if request is sent and response is received
 int DhcpClass::request_DHCP_lease(){
     

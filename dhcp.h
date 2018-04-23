@@ -41,6 +41,7 @@ static constexpr uint8_t
 #define MAX_DHCP_OPT	16
 #define HOST_NAME "ENC28J"
 #define DEFAULT_LEASE	(900) //default lease time in seconds
+
 enum
 {
 	padOption		=	0,
@@ -148,19 +149,16 @@ private:
     void presend_DHCP();
     void send_DHCP_MESSAGE(uint8_t, uint16_t);
     void printByte(char *, uint8_t);
-    uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t& transactionId);
-
-    uint32_t _toInt32(uint8_t *v)
-    { return (uint32_t)v[0] | (uint32_t)v[1] << 8 | (uint32_t)v[2] << 16 | (uint32_t)v[3] << 24; }
+    uint8_t parseDHCPResponse(uint32_t responseTimeout, uint32_t &transactionId);
 public:
     DhcpClass(UIPEthernetClass *eth) : _dhcpUdpSocket(eth) { }
-    uint32_t getLocalIp() { return _toInt32(_dhcpLocalIp); }
-    uint32_t getSubnetMask() { return _toInt32(_dhcpSubnetMask); }
-    uint32_t getGw() { return _toInt32(_dhcpGatewayIp); }
-    uint32_t getDhcpServerIp() { return _toInt32(_dhcpDhcpServerIp); }
-    uint32_t getDnsServerIp() { return _toInt32(_dhcpDnsServerIp); }
+    uint32_t localIp() { return *((uint32_t *)&_dhcpLocalIp); }
+    uint32_t subnetMask2() { return *((uint32_t *)&_dhcpSubnetMask); }
+    uint32_t gateway() { return *((uint32_t *)&_dhcpGatewayIp); }
+    uint32_t dhcpServerIp() { return *((uint32_t *)&_dhcpDhcpServerIp); }
+    uint32_t dnsServer() { return *((uint32_t *)&_dhcpDnsServerIp); }
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, uint32_t responseTimeout = 4000);
-    int checkLease();
+    //int checkLease();
 };
 #endif
 

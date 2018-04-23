@@ -1,56 +1,46 @@
 // DHCP Library v0.3 - April 25, 2009
 // Author: Jordan Terrell - blog.jordanterrell.com
 
-#ifndef Dhcp_h
-#define Dhcp_h
+#ifndef _DHCP_H_
+#define _DHCP_H_
 #include "w5100udp.h"
 
-/* DHCP state machine. */
-#define STATE_DHCP_START 0
-#define	STATE_DHCP_DISCOVER	1
-#define	STATE_DHCP_REQUEST	2
-#define	STATE_DHCP_LEASED	3
-#define	STATE_DHCP_REREQUEST	4
-#define	STATE_DHCP_RELEASE	5
+static constexpr uint8_t
+    STATE_DHCP_START = 0,
+    STATE_DHCP_DISCOVER = 1,
+    STATE_DHCP_REQUEST = 2,
+    STATE_DHCP_LEASED = 3,
+    STATE_DHCP_REREQUEST = 4,
+    STATE_DHCP_RELEASE = 5,
+    DHCP_SERVER_PORT = 67,
+    DHCP_CLIENT_PORT = 68,
+    DHCP_BOOTREQUEST = 1,
+    DHCP_BOOTREPLY = 2,
+    DHCP_DISCOVER = 1,
+    DHCP_OFFER = 2,
+    DHCP_REQUEST = 3,
+    DHCP_DECLINE = 4,
+    DHCP_ACK = 5,
+    DHCP_NAK = 6,
+    DHCP_RELEASE = 7,
+    DHCP_INFORM = 8,
+    DHCP_HTYPE10MB = 1,
+    DHCP_HTYPE100MB = 2,
+    DHCP_HLENETHERNET = 6,
+    DHCP_HOPS = 0,
+    DHCP_SECS = 0,
+    DHCP_CHECK_NONE = 0,
+    DHCP_CHECK_RENEW_FAIL = 1,
+    DHCP_CHECK_RENEW_OK = 2,
+    DHCP_CHECK_REBIND_FAIL = 3,
+    DHCP_CHECK_REBIND_OK = 4;
 
 #define DHCP_FLAGSBROADCAST	0x8000
 
-/* UDP port numbers for DHCP */
-#define	DHCP_SERVER_PORT	67	/* from server to client */
-#define DHCP_CLIENT_PORT	68	/* from client to server */
-
-/* DHCP message OP code */
-#define DHCP_BOOTREQUEST	1
-#define DHCP_BOOTREPLY		2
-
-/* DHCP message type */
-#define	DHCP_DISCOVER		1
-#define DHCP_OFFER		  2
-#define	DHCP_REQUEST		3
-#define	DHCP_DECLINE		4
-#define	DHCP_ACK		    5
-#define DHCP_NAK		    6
-#define	DHCP_RELEASE		7
-#define DHCP_INFORM		  8
-
-#define DHCP_HTYPE10MB		1
-#define DHCP_HTYPE100MB		2
-
-#define DHCP_HLENETHERNET	6
-#define DHCP_HOPS		0
-#define DHCP_SECS		0
-
 #define MAGIC_COOKIE		0x63825363
 #define MAX_DHCP_OPT	16
-
 #define HOST_NAME "WIZnet"
 #define DEFAULT_LEASE	(900) //default lease time in seconds
-
-#define DHCP_CHECK_NONE         (0)
-#define DHCP_CHECK_RENEW_FAIL   (1)
-#define DHCP_CHECK_RENEW_OK     (2)
-#define DHCP_CHECK_REBIND_FAIL  (3)
-#define DHCP_CHECK_REBIND_OK    (4)
 
 enum
 {
@@ -135,32 +125,31 @@ typedef struct _RIP_MSG_FIXED
 	uint8_t  chaddr[6];
 }RIP_MSG_FIXED;
 
-class DhcpClass {
+class DhcpClass
+{
 private:
-  uint32_t _dhcpInitialTransactionId;
-  uint32_t _dhcpTransactionId;
-  uint8_t  _dhcpMacAddr[6];
-  uint8_t  _dhcpLocalIp[4];
-  uint8_t  _dhcpSubnetMask[4];
-  uint8_t  _dhcpGatewayIp[4];
-  uint8_t  _dhcpDhcpServerIp[4];
-  uint8_t  _dhcpDnsServerIp[4];
-  uint32_t _dhcpLeaseTime;
-  uint32_t _dhcpT1, _dhcpT2;
-  signed long _renewInSec;
-  signed long _rebindInSec;
-  signed long _lastCheck;
-  unsigned long _timeout;
-  unsigned long _responseTimeout;
-  unsigned long _secTimeout;
-  uint8_t _dhcp_state;
-  EthernetUDP _dhcpUdpSocket;
-  int request_DHCP_lease();
-  void reset_DHCP_lease();
-  void presend_DHCP();
-  void send_DHCP_MESSAGE(uint8_t, uint16_t);
-  void printByte(char *, uint8_t);
-  uint8_t parseDHCPResponse(unsigned long responseTimeout, uint32_t &transactionId);
+    uint32_t _dhcpInitialTransactionId;
+    uint32_t _dhcpTransactionId;
+    uint8_t  _dhcpMacAddr[6];
+    uint8_t  _dhcpLocalIp[4];
+    uint8_t  _dhcpSubnetMask[4];
+    uint8_t  _dhcpGatewayIp[4];
+    uint8_t  _dhcpDhcpServerIp[4];
+    uint8_t  _dhcpDnsServerIp[4];
+    uint32_t _dhcpLeaseTime;
+    uint32_t _dhcpT1, _dhcpT2;
+    signed long _renewInSec;
+    signed long _rebindInSec;
+    signed long _lastCheck;
+    uint32_t _timeout, _responseTimeout, _secTimeout;
+    uint8_t _dhcp_state;
+    EthernetUDP _dhcpUdpSocket;
+    int request_DHCP_lease();
+    void reset_DHCP_lease() { memset(_dhcpLocalIp, 0, 20); }
+    void presend_DHCP();
+    void send_DHCP_MESSAGE(uint8_t, uint16_t);
+    void printByte(char *, uint8_t);
+    uint8_t parseDHCPResponse(uint32_t responseTimeout, uint32_t &transactionId);
 public:
     DhcpClass(EthernetClass *eth) : _dhcpUdpSocket(eth) { }
     uint32_t localIp() { return *((uint32_t *)&_dhcpLocalIp); }
@@ -168,8 +157,11 @@ public:
     uint32_t gateway() { return *((uint32_t *)&_dhcpGatewayIp); }
     uint32_t dhcpServerIp() { return *((uint32_t *)&_dhcpDhcpServerIp); }
     uint32_t dnsServer() { return *((uint32_t *)&_dhcpDnsServerIp); }
-    int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, unsigned long responseTimeout = 4000);
+    int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, uint32_t responseTimeout = 4000);
     //int checkLease();
 };
-
 #endif
+
+
+
+

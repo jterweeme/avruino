@@ -3,11 +3,6 @@ Mega eth CS: D53/SS
 Uno eth CS: D10/SS
 */
 
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
-
-#include <util/delay.h>
 #include "uip_server.h"
 #include "board.h"
 #include "dhcp.h"
@@ -39,7 +34,7 @@ int main()
     cout.flush();
     DhcpClass dhcp(&eth);
     dhcp.beginWithDHCP(mac);
-    eth.configure(dhcp.getLocalIp(), dhcp.getDnsServerIp(), dhcp.getGw(), dhcp.getSubnetMask());
+    eth.configure(dhcp.localIp(), dhcp.dnsServer(), dhcp.gateway(), dhcp.subnetMask2());
     eth.addresses(cout);
     cout << "\r\n";
 
