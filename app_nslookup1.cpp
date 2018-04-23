@@ -22,14 +22,15 @@ int main()
 
     cout << "Starting DHCP\r\n";
     cout.flush();
-    DhcpClass dhcp(&eth);
+    UIPUDP udp(&eth);
+    DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.localIp(), dhcp.dnsServer(), dhcp.gateway(), dhcp.subnetMask2());
     eth.addresses(cout);
     cout << "\r\n";
 
-    UIPUDP udp(&eth);
-    DNSClient dns(&udp);
+    UIPUDP udp2(&eth);
+    DNSClient dns(&udp2);
     dns.begin(0x08080808);
     uint32_t remote_addr;
     int ret = dns.getHostByName("www.astron.nl", remote_addr);

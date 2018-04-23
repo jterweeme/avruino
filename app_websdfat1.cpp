@@ -49,7 +49,8 @@ int main()
 
     cout << "Starting DHCP...\r\n";
     cout.flush();
-    DhcpClass dhcp(&eth);
+    UIPUDP udp(&eth);
+    DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.localIp(), dhcp.dnsServer(), dhcp.gateway(), dhcp.subnetMask2());
     eth.addresses(cout);
