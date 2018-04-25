@@ -9,9 +9,10 @@ PCSpeaker, MEGA: OC1A/D11/PB5
 
 #include "types.h"
 #include "board.h"
+#include "misc.h"
 
 #ifndef F_CPU
-#define F_CPU 16000000
+#define F_CPU 16000000UL
 #endif
 
 static constexpr uint8_t

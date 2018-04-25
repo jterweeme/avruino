@@ -1,13 +1,7 @@
 #ifndef _MISC_H_
 #define _MISC_H_
-#include <stdlib.h>
 #include "storage.h"
 #include "pinport.h"
-
-static inline char nibble(uint8_t n)
-{
-    return n <= 9 ? '0' + n : 'A' + n - 10;
-}
 
 static inline void *my_memcpy(void *dst, void *src, size_t n)
 {
@@ -134,9 +128,6 @@ public:
     static void *malloc(size_t size) { return ::malloc(size); }
 };
 
-inline void * operator new (size_t size) { return Utility::malloc(size); }
-inline void * operator new[] (size_t size) { return Utility::malloc(size); }
-
 struct DS1302_Regs
 {
     uint8_t seconds:4;
@@ -223,7 +214,6 @@ class WaveShare8Seg
 public:
     WaveShare8Seg() { }
 };
-
 #endif
 
 

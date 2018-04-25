@@ -2,6 +2,10 @@
 prints Lunar Lander 1976 on 1602LCD (from DFK Keyboard)
 */
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
 #include "board.h"
 #include "uart.h"
 #include <util/delay.h>

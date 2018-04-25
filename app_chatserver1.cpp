@@ -22,7 +22,6 @@
 #include "w5100server.h"
 #include "w5100udp.h"
 #include "dhcp.h"
-#include "util.h"
 #include "board.h"
 #include "stream.h"
 

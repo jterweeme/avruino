@@ -7,6 +7,8 @@ Adapted from LUFA code by Dean Camera
 #include "pgmspees.h"
 #include "int.h"
 
+#define NULL 0
+
 USB *USB::instance;
 
 uint8_t USB::getEndpointDirection() const

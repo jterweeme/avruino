@@ -8,9 +8,12 @@ LCD data 3 = D3
 LCD data 4 = D4
 */
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
 #include "board.h"
 #include "st7783.h"
-
 #include <util/delay.h>
 #include "pgmspees.h"
 #include "misc.h"

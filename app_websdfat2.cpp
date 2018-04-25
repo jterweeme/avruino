@@ -11,10 +11,9 @@ Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 #include "dhcp.h"
 #include "webserver.h"
 #include "fatty.h"
+#include "board.h"
 
-static W5100Class w5100;
-static EthernetClass eth(&w5100);
-W5100Class *g_w5100 = &w5100;
+W5100Class *g_w5100;
 ostream *gout;
 
 int main()
@@ -31,12 +30,15 @@ int main()
 
     cout << "Initialize Ethernet...\r\n";
     cout.flush();
+    W5100Class w5100;
+    g_w5100 = &w5100;
     w5100.init();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     w5100.setMACAddress(mac);
     w5100.setIPAddress(0);
 
     cout << "Starting DHCP...\r\n";
+    EthernetClass eth(&w5100);
     EthernetUDP udp(&eth);
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);

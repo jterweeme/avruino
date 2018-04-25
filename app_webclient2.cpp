@@ -4,16 +4,8 @@
 #include "stream.h"
 #include "dns.h"
 #include "board.h"
-#include "util.h"
-#include <avr/interrupt.h>
 
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
-
-static W5100Class w5100;
-static EthernetClass eth(&w5100);
-W5100Class *g_w5100 = &w5100;
+W5100Class *g_w5100;
 ostream *gout;
 
 int main()
@@ -23,12 +15,12 @@ int main()
     *p_ubrr9 = 16;
     UartStream cout(&s);
     gout = &cout;
-    *p_tccr0b = cs02; // | CS00;
-    *p_timsk0 |= 1<<toie0;
     zei();
 
     cout << "Initialize Ethernet\r\n";
     cout.flush();
+    W5100Class w5100;
+    g_w5100 = &w5100;
     w5100.init();
     uint8_t mac[6] = {0,1,2,3,4,5};
     w5100.setMACAddress(mac);
@@ -36,6 +28,7 @@ int main()
 
     cout << "Starting DHCP...\r\n";
     cout.flush();
+    EthernetClass eth(&w5100);
     EthernetUDP udp(&eth);
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
@@ -44,7 +37,7 @@ int main()
     w5100.setSubnetMask(dhcp.subnetMask2());
     eth.addresses(cout);
     cout << "\r\n";
-#if 1
+
     EthernetUDP udp2(&eth);
     DNSClient dns(&udp2);
     dns.begin(0x08080808);
@@ -61,13 +54,9 @@ int main()
         cout << "Failed\r\n";
     }
 
-    while (true)
-    {
-    }
-#else
     EthernetClient client(&eth);
     
-    if (client.connect("www.astron.nl", 80))
+    if (client.connect(remote_addr, 80))
     {
         cout << "connected\r\n";
         client << "GET / HTTP/1.1\r\n";
@@ -87,56 +76,9 @@ int main()
             cout.put(c);
         }
     }
-#endif
+
     return 0;
 }
-
-#define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
-
-#define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
-
-#define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
-#define FRACT_MAX (1000 >> 3)
-
-volatile unsigned long timer0_overflow_count = 0;
-volatile unsigned long timer0_millis = 0;
-static unsigned char timer0_fract = 0;
-
-ISR(TIMER0_OVF_vect)
-{
-    unsigned long m = timer0_millis;
-    unsigned char f = timer0_fract;
-
-    m += MILLIS_INC;
-    f += FRACT_INC;
-    if (f >= FRACT_MAX) {
-        f -= FRACT_MAX;
-        m += 1;
-    }
-
-    timer0_fract = f;
-    timer0_millis = m;
-    timer0_overflow_count++;
-}
-
-unsigned long millis()
-{
-    unsigned long m;
-    uint8_t oldSREG = SREG;
-    cli();
-    m = timer0_millis;
-    SREG = oldSREG;
-
-    return m;
-}
-
-#if 0
-extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER0_OVF
-{
-    //eth.tick2();
-}
-#endif
 
 
 

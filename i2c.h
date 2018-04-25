@@ -1,6 +1,6 @@
 #ifndef _I2C_H_
 #define _I2C_H_
-#include "stream.h"
+#include "storage.h"
 
 class I2CBus
 {
@@ -68,7 +68,7 @@ public:
     uint8_t min() const { return ((regs.minutes >> 4) & 0x07) * 10 + (regs.minutes & 0x0f); }
     uint8_t hour() const { return ((regs.hours >> 4) & 0x03) * 10 + (regs.hours & 0x0f); }
 };
-
-
 #endif
+
+
 

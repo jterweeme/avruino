@@ -3,11 +3,9 @@
 #endif
 
 #include <util/delay.h>
-#include <string.h>
 #include <stdlib.h>
 #include "dhcp.h"
 #include "udp.h"
-#include "util.h"
 #include "stream.h"
 
 extern ostream *gout;
@@ -23,6 +21,15 @@ long random(long howsmall, long howbig)
 {
     return howsmall >= howbig ? howsmall : random(howbig - howsmall) + howsmall;
 }
+
+#define htons(x) ( ((x)<<8) | (((x)>>8)&0xFF) )
+#define ntohs(x) htons(x)
+
+#define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \
+                   ((x)<< 8 & 0x00FF0000UL) | \
+                   ((x)>> 8 & 0x0000FF00UL) | \
+                   ((x)>>24 & 0x000000FFUL) )
+#define ntohl(x) htonl(x)
 
 int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTimeout)
 {

@@ -23,7 +23,6 @@ int main()
     *p_ubrr9 = 16;
     UartStream cout(&s);
     gout = &cout;
-    UIPServer server = UIPServer(&eth, 80);
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
@@ -42,6 +41,7 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 
+    UIPServer server = UIPServer(&eth, 80);
     server.begin();
     cout << "Server started\r\n";
     WebTest1 webtest1(&cout);

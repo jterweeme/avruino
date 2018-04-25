@@ -18,7 +18,6 @@ ostream *gout;
 
 int main()
 {
-    EthernetServer server = EthernetServer(&eth, 80);
     zei();
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
@@ -43,6 +42,7 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 
+    EthernetServer server = EthernetServer(&eth, 80);
     server.begin();
     cout << "Server started\r\n";
     WebTest1 web(&cout);

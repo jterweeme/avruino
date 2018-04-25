@@ -9,6 +9,7 @@ werkt met UNO
 #include "fatty.h"
 #include "misc.h"
 #include "stream.h"
+#include "board.h"
 
 static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
 {

@@ -2,6 +2,8 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 
+#define NULL 0
+
 static constexpr uint8_t
     INTERFACE_ID_JOYSTICK = 0;
 

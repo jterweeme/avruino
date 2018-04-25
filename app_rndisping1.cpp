@@ -7,6 +7,8 @@
 #include <util/delay.h>
 #include "busby.h"
 
+#define NULL 0
+
 #define SWAPENDIAN_16(x)   (uint16_t)((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
 
 #define USB_OPT_REG_DISABLED               (1 << 1)

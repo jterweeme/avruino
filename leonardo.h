@@ -1,12 +1,6 @@
 #ifndef _LEONARDO_H_
 #define _LEONARDO_H_
-
-#ifndef F_CPU
-#define F_CPU 16000000
-#endif
-
-#include "misc.h"
-#include "timer.h"
+#include "pinport.h"
 
 static constexpr uint8_t
     portb_base = 0x23,
@@ -366,6 +360,7 @@ static volatile uint16_t
     * const p_ubrr9 = (volatile uint16_t * const)ubrr9,
     * const p_udfnum = (volatile uint16_t * const)udfnum;
 
+#if 0
 class Timer3 : public Timer<uint16_t>
 {
 protected:
@@ -383,6 +378,7 @@ public:
     Timer4();
     static Timer4 *getInstance() { return instance; }
 };
+#endif
 
 struct Board
 {

@@ -12,10 +12,15 @@ CS12 CS11 CS10
 111 ext t1 rising
 */
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "board.h"
 #include <util/delay.h>
+#include "misc.h"
 
 Pin *g_buzz;
 

@@ -1,11 +1,24 @@
-#include "enc28j60.h"
-#include "board.h"
-
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
+#include "enc28j60.h"
+#include "board.h"
+
+static constexpr uint8_t
+#if defined (__AVR_ATmega32U4__)
+    cs_port_base = pin10_base,
+    cs_pin = pin10_bit,
+#else
+    cs_port_base = ss_port_base,
+    cs_pin = ss_bit,
+#endif
+    cs_ddr = cs_port_base + 1,
+    cs_port = cs_port_base + 2;
+
+static volatile uint8_t * const p_cs_ddr = (volatile uint8_t * const)cs_ddr;
+static volatile uint8_t * const p_cs_port = (volatile uint8_t * const)cs_port;
 
 Enc28J60Network *Enc28J60Network::instance;
 

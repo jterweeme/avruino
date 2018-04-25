@@ -1,10 +1,6 @@
 #ifndef _MEGA_H_
 #define _MEGA_H_
-#include "misc.h"
-
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
+#include "pinport.h"
 
 static constexpr uint8_t
     porta_base = 0x20,

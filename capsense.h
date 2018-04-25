@@ -1,6 +1,6 @@
 #ifndef _CAPSENSE_H_
 #define _CAPSENSE_H_
-#include "misc.h"
+#include "pinport.h"
 
 class CapSense
 {
@@ -26,7 +26,6 @@ public:
     uint16_t threshold() const { return _threshold; }
     CapSense(Pin send, Pin receive, uint16_t threshold = 0);
 };
-
 #endif
 
 

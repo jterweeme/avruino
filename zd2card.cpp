@@ -1,4 +1,5 @@
 #include "zd2card.h"
+#include "board.h"
 
 static uint16_t constexpr
     SD_INIT_TIMEOUT = 2000,

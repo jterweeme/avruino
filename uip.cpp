@@ -95,46 +95,48 @@ void UIPEthernetClass::uipclient_appcall()
 
                         if (u->packets_in[i] != NOBLOCK)
                         {
-                          Enc28J60Network::instance->copyPacket(u->packets_in[i],
-                            0, UIPEthernetClass::instance->in_packet,
-                            ((uint8_t*)uip_appdata)-uip_buf,uip_len);
+                            _nw.copyPacket(u->packets_in[i], 0, in_packet,
+                                ((uint8_t*)uip_appdata) - uip_buf,uip_len);
 
-                          if (i == UIP_SOCKET_NUMPACKETS-1)
+                            if (i == UIP_SOCKET_NUMPACKETS-1)
                                 uip_stop();
 
-                          goto finish_newdata;
+                            goto finish_newdata;
                         }
                     }
                 }
-              packetstate &= ~UIPETHERNET_FREEPACKET;
-              uip_stop();
+                packetstate &= ~UIPETHERNET_FREEPACKET;
+                uip_stop();
             }
         }
 finish_newdata:
-      if (u->state & UIP_CLIENT_RESTART)
+        if (u->state & UIP_CLIENT_RESTART)
         {
-          u->state &= ~UIP_CLIENT_RESTART;
-          uip_restart();
+            u->state &= ~UIP_CLIENT_RESTART;
+            uip_restart();
         }
 
-      // If the connection has been closed, save received but unread data.
-      if ((uip_flags & UIP_CLOSE) || uip_timedout())
+        // If the connection has been closed, save received but unread data.
+        if ((uip_flags & UIP_CLOSE) || uip_timedout())
         {
-          // drop outgoing packets not sent yet:
-          UIPEthernetClass::instance->_flushBlocks(&u->packets_out[0]);
-          if (u->packets_in[0] != NOBLOCK)
+            // drop outgoing packets not sent yet:
+            _flushBlocks(&u->packets_out[0]);
+
+            if (u->packets_in[0] != NOBLOCK)
             {
-              ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
-              u->state |= UIP_CLIENT_REMOTECLOSED;
+                ((uip_userdata_closed_t *)u)->lport = uip_conn->lport;
+                u->state |= UIP_CLIENT_REMOTECLOSED;
             }
-          else
-            u->state = 0;
-          uip_conn->appstate = NULL;
-          goto finish;
+            else
+            {    u->state = 0;
+            }
+
+            uip_conn->appstate = NULL;
+            goto finish;
         }
         if (uip_flags & UIP_ACKDATA)
         {
-            UIPEthernetClass::instance->_eatBlock(&u->packets_out[0]);
+            _eatBlock(&u->packets_out[0]);
         }
         if ((uip_flags & UIP_POLL) || (uip_flags & UIP_REXMIT))
         {

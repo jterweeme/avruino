@@ -10,6 +10,8 @@ buzzer: D5
 #define F_CPU 16000000
 #endif
 
+#define NULL 0
+
 static const DescDev PROGMEM devDesc =
 {
     sizeof(DescDev),

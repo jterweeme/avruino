@@ -1,5 +1,6 @@
 #include "uno.h"
 #include "stream.h"
+#include "misc.h"
 
 class App : public Board
 {

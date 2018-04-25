@@ -5,6 +5,7 @@
 #include "md5sum.h"
 #include "xmodem.h"
 #include "ymodem.h"
+#include "board.h"
 
 #ifndef ENABLE_YRECEIVER
 #define ENABLE_YRECEIVER

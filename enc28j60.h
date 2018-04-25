@@ -1,8 +1,6 @@
-#ifndef Enc28J60Network_H_
-#define Enc28J60Network_H_
-
+#ifndef _ENC28J60NETWORK_H_
+#define _ENC28J60NETWORK_H_
 #include "mempool.h"
-#include "board.h"
 
 // ENC28J60 Control Registers
 // Control register definitions are a combination of address,
@@ -233,22 +231,6 @@ static const uint8_t
 #define MAX_FRAMELEN        1500   // (note: maximum ethernet frame length would be 1518
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
-
-//void enc28J60_mempool_block_move_callback(memaddress,memaddress,memaddress);
-
-static constexpr uint8_t
-#if defined (__AVR_ATmega32U4__)
-    cs_port_base = pin10_base,
-    cs_pin = pin10_bit,
-#else
-    cs_port_base = ss_port_base,
-    cs_pin = ss_bit,
-#endif
-    cs_ddr = cs_port_base + 1,
-    cs_port = cs_port_base + 2;
-
-static volatile uint8_t * const p_cs_ddr = (volatile uint8_t * const)cs_ddr;
-static volatile uint8_t * const p_cs_port = (volatile uint8_t * const)cs_port;
 
 class Enc28J60Network : public MemoryPool
 {

@@ -2,6 +2,8 @@
 #include "uip_udp.h"
 #include "stream.h"
 #include "dhcp.h"
+#include "misc.h"
+#include "board.h"
 
 static UIPEthernetClass eth;
 ostream *gout;

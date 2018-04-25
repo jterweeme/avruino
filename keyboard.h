@@ -1,6 +1,6 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
-#include "misc.h"
+#include "pinport.h"
 
 // moet nog naar RingBuf veranderd worden
 class CircBuf
@@ -39,6 +39,7 @@ public:
     void isr();
     uint8_t get_scan_code() { return _buf.get(); }
 };
-
 #endif
+
+
 

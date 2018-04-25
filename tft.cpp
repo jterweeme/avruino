@@ -1,14 +1,14 @@
 // code from Adafruit TFT library
 
-#include "glcdfont.h"
-#include "tft.h"
-#include "board.h"
-
 #ifndef F_CPU
 #define F_CPU 16000000L
 #endif
 
 #include <util/delay.h>
+#include "glcdfont.h"
+#include "tft.h"
+#include "board.h"
+#include "misc.h"
 
 static const uint16_t TFTLCD_DELAY = 0xffff;
 

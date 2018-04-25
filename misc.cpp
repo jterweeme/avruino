@@ -1,3 +1,7 @@
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
 #include "board.h"
 #include "misc.h"
 #include <stdarg.h>

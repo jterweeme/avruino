@@ -18,6 +18,7 @@ VSync: D12
 #include "pgmspees.h"
 #include "sleepy.h"
 #include "board.h"
+#include "misc.h"
 
 static const uint8_t screen_font[8][256] PROGMEM = 
 {

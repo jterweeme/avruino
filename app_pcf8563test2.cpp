@@ -1,6 +1,7 @@
 #include "i2c.h"
 #include "stream.h"
 #include "board.h"
+#include "misc.h"
 #include <stdio.h>
 
 int main()

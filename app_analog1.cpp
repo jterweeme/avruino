@@ -4,6 +4,7 @@
 #include <avr/io.h>
 #include "uno.h"
 #include "uart.h"
+#include "misc.h"
 
 class App : public Board
 {

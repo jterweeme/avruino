@@ -2,6 +2,7 @@
 #include "fatty.h"
 #include <stdio.h>
 #include <string.h>
+#include "board.h"
 
 extern ostream *g_dout;
 

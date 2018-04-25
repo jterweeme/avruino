@@ -2,6 +2,8 @@
 #include "usbsound.h"
 #include <avr/pgmspace.h>
 
+#define NULL 0
+
 static const DescDev PROGMEM devDesc =
 {
     sizeof(DescDev),

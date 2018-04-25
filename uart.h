@@ -1,6 +1,6 @@
 #ifndef _UART_H_
 #define _UART_H_
-#include "misc.h"
+#include "pinport.h"
 
 class Terminal
 {

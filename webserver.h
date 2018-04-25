@@ -15,10 +15,11 @@ private:
     ostream * const _serial;
     void httpGet(Client &client, Buffer &buffer);
     void contentType(Client &client, const char *ext);
-    void httpDelete(Buffer &buffer);
+    void _httpDelete(Client &client, Buffer &buffer);
+    void _httpMkcol(Buffer &buffer);
     void serveFile(Client &client, const char *fn);
     void listing(Client &client) const;
-    void printDirectory(Fyle dir, uint8_t numTabs, Client &os) const;
+    void _printDirectory(Fyle dir, uint8_t numTabs, Client &os) const;
 public:
     Webserver(Fatty *fs, ostream *serial);
     void dispatch(Client &client);

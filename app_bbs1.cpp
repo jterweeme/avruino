@@ -3,6 +3,7 @@
 #include "stream.h"
 #include "dhcp.h"
 #include "fatty.h"
+#include "board.h"
 
 static UIPEthernetClass eth;
 ostream *gout;

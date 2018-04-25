@@ -243,6 +243,15 @@ typedef struct
 }
 uip_udp_userdata_t;
 
+struct uip_userdata_t
+{
+    uint8_t state;
+    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
+    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
+    memaddress out_pos;
+    uint32_t timer;
+};
+
 class UIPEthernetClass : public Ethernet
 {
 private:

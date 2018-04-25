@@ -6,6 +6,7 @@
 #include "pgmspees.h"
 #include "zd2card.h"
 #include "stream.h"
+#include "misc.h"
 
 uint8_t const BOOTSIG0 = 0X55;
 uint8_t const BOOTSIG1 = 0XAA;

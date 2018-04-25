@@ -209,14 +209,14 @@ app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h 
     uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h \
     eth.h cdc.h busby.h
 
-app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h util.h stream.h board.h \
+app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
     misc.h storage.h pinport.h types.h w5100eth.h w5100.h eth.h mempool.h client.h \
     print.h udp.h w5100server.h w5100udp.h w5100client.h socket.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 
-app_websdfat2.o: app_websdfat2.cpp util.h dhcp.h webserver.h w5100server.h \
+app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h w5100server.h \
     w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
     stream.h types.h w5100udp.h socket.h udp.h stream2.h print.h w5100.h \
     w5100eth.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
@@ -306,7 +306,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

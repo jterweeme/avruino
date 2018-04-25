@@ -1,15 +1,6 @@
 #ifndef _ETH_H_
 #define _ETH_H_
-#include "mempool.h"
-
-struct uip_userdata_t
-{
-    uint8_t state;
-    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
-    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
-    memaddress out_pos;
-    unsigned long timer;
-};
+#include "types.h"
 
 class ostream;
 

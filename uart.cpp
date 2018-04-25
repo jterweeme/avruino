@@ -6,6 +6,7 @@
 #include "uart.h"
 #include <stdarg.h>
 #include "board.h"
+#include "misc.h"
 
 void Terminal::printf(const char *format, ...)
 {

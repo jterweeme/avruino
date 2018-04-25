@@ -16,6 +16,11 @@ public:
     virtual void flush() { }
 };
 
+static inline char nibble(uint8_t n)
+{
+    return n <= 9 ? '0' + n : 'A' + n - 10;
+}
+
 static inline void hex32(uint32_t v, ostream &os)
 {
     os.put(nibble(v >> 28 & 0xf));

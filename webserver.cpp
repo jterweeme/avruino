@@ -17,7 +17,7 @@ Webserver::Webserver(Fatty *fs, ostream *serial) : _fs(fs), _serial(serial)
 {
 }
 
-void Webserver::printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
+void Webserver::_printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
 {
     os << "<table>\r\n";
 
@@ -42,7 +42,7 @@ void Webserver::printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
             os << "<td>DIR</td>";
 #if 0
             os.put('/');
-            printDirectory(entry, numTabs + 1, os);
+            _printDirectory(entry, numTabs + 1, os);
 #endif
         }
         else
@@ -72,7 +72,7 @@ void Webserver::listing(Client &client) const
     client << "<html>\r\n<head>\r\n<title>Listing</title>\r\n";
     client << "</head>\r\n<body>\r\n<h1>Listing</h1>\r\n";
     Fyle root = _fs->open("/");
-    printDirectory(root, 0, client);
+    _printDirectory(root, 0, client);
     root.close();
     client << "</body>\r\n</html>\r\n";
 }
@@ -138,7 +138,25 @@ void Webserver::httpGet(Client &client, Buffer &buffer)
         serveFile(client, fn);
 }
 
-void Webserver::httpDelete(Buffer &buffer)
+void Webserver::_httpMkcol(Buffer &buffer)
+{
+    char fn[50];
+
+    for (uint16_t i = 7; i < 512; i++)
+    {
+        if (buffer.get()[i] != ' ')
+            fn[i - 8] = buffer.get()[i];
+        else
+            break;
+    }
+
+    _fs->mkdir(fn + 1);
+    *_serial << buffer.get();
+    *_serial << "\r\n";
+    _serial->flush();
+}
+
+void Webserver::_httpDelete(Client &client, Buffer &buffer)
 {
     char fn[50];
 
@@ -150,10 +168,11 @@ void Webserver::httpDelete(Buffer &buffer)
             break;
     }
 
-    _fs->remove(fn);
-    *_serial << buffer.get();
+    *_serial << fn;
     *_serial << "\r\n";
     _serial->flush();
+    _fs->remove(fn);
+    client << "HTTP/1.1 200 OK\r\n\r\n";
 }
 
 void Webserver::dispatch(Client &client)
@@ -180,7 +199,9 @@ void Webserver::dispatch(Client &client)
                     else if (strncmp("PUT ", buffer.get(), 4) == 0)
                         client << "HTTP/1.1 200 OK\r\n\r\n";
                     else if (strncmp("DELETE ", buffer.get(), 7) == 0)
-                        httpDelete(buffer);
+                        _httpDelete(client, buffer);
+                    else if (strncmp("MKCOL ", buffer.get(), 6) == 0)
+                        _httpMkcol(buffer);
                     else if (strncmp("POST ", buffer.get(), 5) == 0)
                         *_serial << "POST\r\n";
 

@@ -3,6 +3,7 @@
 #include <avr/io.h>
 #include "uart.h"
 
+#if 0
 Timer0 *Timer0::instance;
 Timer1 *Timer1::instance;
 
@@ -33,7 +34,7 @@ extern "C" void __vector_25() __attribute__ ((signal, used, externally_visible))
 
 void __vector_20() { Timer1::getInstance()->onOverflow(); }
 void __vector_25() { Uart::getInstance()->onReceive(); }
-
+#endif
 
 
 

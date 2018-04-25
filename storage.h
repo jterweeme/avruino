@@ -1,6 +1,7 @@
 #ifndef _STORAGE_H_
 #define _STORAGE_H_
 #include "types.h"
+#include <stdlib.h>
 
 static inline size_t my_strlen(const char *s)
 {
@@ -43,6 +44,9 @@ public:
     void set(size_t pos, bool val = true) { if (val) data |= 1<<pos; else data &= ~(1<<pos); }
     unsigned long to_ulong() const { return data; }
 };
+
+inline void * operator new (size_t size) { return malloc(size); }
+inline void * operator new[] (size_t size) { return malloc(size); }
 
 template <class T> class vector
 {

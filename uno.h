@@ -1,10 +1,6 @@
 #ifndef _UNO_H_
 #define _UNO_H_
-#include "misc.h"
-
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
+#include "pinport.h"
 
 static constexpr uint8_t
     portb_base = 0x23,
@@ -345,15 +341,6 @@ struct Board
 #define TIMER0_COMPB __vector_15()
 #define TIMER0_OVF __vector_16()
 #define USART_RX __vector_18()
-
-#define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
-#define clockCyclesToMicroseconds(a) ( (a) / clockCyclesPerMicrosecond() )
-#define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
-#define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
-#define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
-static const uint8_t FRACT_MAX = 1000 >> 3;
-//static volatile unsigned long timer0_overflow_count = 0;
-
 #endif
 
 

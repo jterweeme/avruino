@@ -5,7 +5,7 @@ credits to SparkFun Electronics
 
 #ifndef _ZD2CARD_H_
 #define _ZD2CARD_H_
-#include "board.h"
+#include "pinport.h"
 
 static constexpr uint8_t
     R1_READY_STATE = 0x00,
