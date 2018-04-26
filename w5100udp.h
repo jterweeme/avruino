@@ -62,7 +62,6 @@ public:
     virtual int endPacket() { return sendUDP(_sock); }
     virtual size_t write(const uint8_t *buffer, size_t size);
     virtual size_t write(uint8_t c) { return write(&c, 1); }
-    using Print::write;
     virtual int parsePacket();
     virtual int available() { return _remaining; }
     virtual int read();

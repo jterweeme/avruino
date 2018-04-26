@@ -1,10 +1,5 @@
 #ifndef _CDC_H_
 #define _CDC_H_
-
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
-
 #include "busby.h"
 
 struct LineEncoding
@@ -31,8 +26,6 @@ public:
     uint8_t flush();
     CDC();
 };
-
-
 #endif
 
 

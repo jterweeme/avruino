@@ -93,7 +93,7 @@ int EthernetUDP::parsePacket()
         if (ret > 0)
         {
             //_remoteIP = tmpBuf;
-            memcpy(&_remoteIP, tmpBuf, 4);
+            my_memcpy(&_remoteIP, tmpBuf, 4);
             _remotePort = tmpBuf[4];
             _remotePort = (_remotePort << 8) + tmpBuf[5];
             _remaining = tmpBuf[6];

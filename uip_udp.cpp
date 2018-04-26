@@ -29,7 +29,7 @@ void UIPUDP::stop()
         _eth->nw()->freeBlock(appdata.packet_in);
         _eth->nw()->freeBlock(appdata.packet_next);
         _eth->nw()->freeBlock(appdata.packet_out);
-        memset(&appdata,0,sizeof(appdata));
+        my_memset(&appdata,0,sizeof(appdata));
     }
 }
 

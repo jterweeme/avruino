@@ -14,7 +14,6 @@ public:
     EthernetClient(EthernetClass * const eth, uint8_t sock) : _eth(eth), _sock(sock) { }
     uint8_t status();
     int connect(uint32_t ip, uint16_t port);
-    //int connect(const char *host, uint16_t port);
     size_t write(const uint8_t *buf, size_t size);
     int available();
     int read();
@@ -24,8 +23,6 @@ public:
     void stop();
     uint8_t connected();
     operator bool();
-    friend class EthernetServer;
-    using Print::write;
 };
 #endif
 

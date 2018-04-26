@@ -14,7 +14,7 @@ private:
     uip_udp_userdata_t appdata;
     UIPEthernetClass * const _eth;
 public:
-    UIPUDP(UIPEthernetClass *eth) : _eth(eth) { memset(&appdata, 0, sizeof(appdata)); }
+    UIPUDP(UIPEthernetClass *eth) : _eth(eth) { my_memset(&appdata, 0, sizeof(appdata)); }
     uint8_t begin(uint16_t);
     void stop();
     int beginPacket(uint32_t ip, uint16_t port);

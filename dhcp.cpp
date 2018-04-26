@@ -7,6 +7,8 @@
 #include "dhcp.h"
 #include "udp.h"
 #include "stream.h"
+#include "misc.h"
+#include <string.h>
 
 extern ostream *gout;
 
@@ -44,6 +46,11 @@ int DhcpClass::beginWithDHCP(uint8_t *mac, uint32_t timeout, uint32_t responseTi
     memcpy((void*)_dhcpMacAddr, (void*)mac, 6);
     _dhcp_state = STATE_DHCP_START;
     return request_DHCP_lease();
+}
+
+void DhcpClass::reset_DHCP_lease()
+{
+    my_memset(_dhcpLocalIp, 0, 20);
 }
 
 //return:0 on error, 1 if request is sent and response is received

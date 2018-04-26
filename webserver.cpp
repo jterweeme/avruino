@@ -1,6 +1,7 @@
 #include "webserver.h"
 #include "client.h"
 #include "fatty.h"
+#include <string.h>
 
 class Buffer
 {

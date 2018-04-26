@@ -4,7 +4,6 @@
 #ifndef _DHCP_H_
 #define _DHCP_H_
 #include "types.h"
-#include <string.h>
 
 static constexpr uint8_t
     STATE_DHCP_START = 0,
@@ -148,7 +147,7 @@ private:
     uint8_t _dhcp_state;
     UDP *_dhcpUdpSocket;
     int request_DHCP_lease();
-    void reset_DHCP_lease() { memset(_dhcpLocalIp, 0, 20); }
+    void reset_DHCP_lease();
     void presend_DHCP();
     void send_DHCP_MESSAGE(uint8_t, uint16_t);
     void printByte(char *, uint8_t);

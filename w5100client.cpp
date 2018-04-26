@@ -39,27 +39,29 @@ int EthernetClient::connect(uint32_t ip, uint16_t port)
         return 0;
     }
 
-  while (status() != SnSR::ESTABLISHED) {
-    _delay_ms(1);
-    if (status() == SnSR::CLOSED) {
-      _sock = MAX_SOCK_NUM;
-      return 0;
+    while (status() != SnSR::ESTABLISHED)
+    {
+        _delay_ms(1);
+
+        if (status() == SnSR::CLOSED)
+        {
+            _sock = MAX_SOCK_NUM;
+            return 0;
+        }
     }
-  }
 
   return 1;
 }
 
-size_t EthernetClient::write(const uint8_t *buf, size_t size) {
-  if (_sock == MAX_SOCK_NUM) {
-    setWriteError();
-    return 0;
-  }
-  if (!send(_sock, buf, size)) {
-    setWriteError();
-    return 0;
-  }
-  return size;
+size_t EthernetClient::write(const uint8_t *buf, size_t size)
+{
+    if (_sock == MAX_SOCK_NUM)
+        return 0;
+
+    if (!send(_sock, buf, size))
+        return 0;
+
+    return size;
 }
 
 int EthernetClient::available()

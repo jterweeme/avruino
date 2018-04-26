@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -77,7 +77,7 @@ TARGETS += app_ds1302test1.elf app_analog1.elf app_ts1.elf app_vga1.elf \
 endif
 
 ifeq ($(POOL2), ja)
-TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf app_usbsound2.hex \
+TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf \
     app_ledmatrix1.elf app_serialusb1.elf app_usbloop1.elf \
     app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
     app_usbpiano1.elf app_rndis1.elf app_rndis2.elf \
@@ -109,7 +109,6 @@ app_blink4.hex: app_blink4.asm
 app_heliosboot1.hex: app_heliosboot1.asm
 app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
-app_usbsound2.hex: app_usbsound2.asm
 
 app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
@@ -212,13 +211,13 @@ app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
     misc.h storage.h pinport.h types.h w5100eth.h w5100.h eth.h mempool.h client.h \
-    print.h udp.h w5100server.h w5100udp.h w5100client.h socket.h uart.h dhcp.h
+    udp.h w5100server.h w5100udp.h w5100client.h socket.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 
 app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h w5100server.h \
     w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
-    stream.h types.h w5100udp.h socket.h udp.h stream2.h print.h w5100.h \
+    stream.h types.h w5100udp.h socket.h udp.h stream2.h w5100.h \
     w5100eth.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
     storage.h pinport.h
 

@@ -8,7 +8,7 @@ JOY1: A1/ADC1
 JOY2: A3/ADC3
 */
 
-#include <avr/pgmspace.h>
+#include "pgmspees.h"
 #include <avr/interrupt.h>
 #include <math.h>
 #include <stdlib.h>
@@ -305,7 +305,7 @@ void VGAX::printPROGMEM(uint8_t *fnt, uint8_t glyphscount, uint8_t fntheight,
     char *pstr= (char*)str;
     char c;
 
-    while (c=pgm_read_byte(pstr++))
+    while ((c = pgm_read_byte(pstr++)))
     {
         PRINT_LOOP_CODE  
     }

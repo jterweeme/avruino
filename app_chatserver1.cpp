@@ -30,9 +30,6 @@ ostream *gout;
 
 int main()
 {
-    TCCR0A |= 1<<WGM01 | 1<<WGM00;
-    TCCR0B |= 1<<CS01 | 1<<CS00;
-    TIMSK0 |= 1<<TOIE0;
     zei();
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
@@ -73,8 +70,9 @@ int main()
 
         if (client)
         {
-            if (!gotAMessage) {
-                client.print("Hello, client!\r\n"); 
+            if (!gotAMessage)
+            {
+                client << "Hello, client!\r\n"; 
                 gotAMessage = true;
             }
 

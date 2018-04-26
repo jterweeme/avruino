@@ -1,10 +1,15 @@
 /*
 credits to Sandro Maffiodo
+
+Uno:
+Kleur1: D6/OC0A/PD6
+Kleur2: D7/PD7
+Vsync: D9/OC1A
+Hsync: D3/OC2B
 */
 
 #include "vgax.h"
-#include <avr/pgmspace.h>
-
+#include "pgmspees.h"
 
 static const uint8_t img_pirate_data[60*30] PROGMEM = {
     0,  7,255,192,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

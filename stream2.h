@@ -1,47 +1,41 @@
-/*
-  Stream.h - base class for character-based streams.
-  Copyright (c) 2010 David A. Mellis.  All right reserved.
+#ifndef _STREAM2_H_
+#define _STREAM2_H_
+//#include <string.h>
+#include "misc.h"
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-  parsing functions based on TextFinder library by Michael Margolis
-*/
-
-#ifndef Stream_h
-#define Stream_h
-
-#include <inttypes.h>
-#include "print.h"
-
-class Stream : public Print
+class Stream
 {
-  protected:
-    unsigned long _timeout;      // number of milliseconds to wait for the next char before aborting timed read
-    unsigned long _startMillis;  // used for timeout measurement
-    int timedRead();    // private method to read stream with timeout
-    int timedPeek();    // private method to peek stream with timeout
-    int peekNextDigit(); // returns the next numeric digit in the stream or -1 if timeout
+protected:
+    uint32_t _timeout;
+    uint32_t _startMillis;
+    int timedRead();
+    int timedPeek();
+    int peekNextDigit();
+public:
+    virtual size_t write(uint8_t) { return 0; }
 
-  public:
+    size_t write(const char *str)
+    {
+        if (str == 0)
+            return 0;
+        return write((const uint8_t *)str, my_strlen(str)); 
+    }
+
+    virtual size_t write(const uint8_t *buffer, size_t size)
+    {
+        size_t n = 0;
+
+        while (size--)
+            n += write(*buffer++);
+    
+        return n;
+    }
+
     virtual int available() = 0;
     virtual int read() = 0;
     virtual int peek() = 0;
     virtual void flush() = 0;
-
     Stream() {_timeout=1000;}
-
     void setTimeout(unsigned long timeout);  // sets o wait for stream daulcond
     bool find(char *target);   // reads data from the stream until the tinfound
     bool find(char *target, size_t length);   // reads et string of giveis found

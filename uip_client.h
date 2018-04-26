@@ -24,7 +24,7 @@ public:
     virtual bool operator!=(const UIPClient &rhs) { return !this->operator==(rhs); };
     size_t write(uint8_t c) { return _eth->_write(data, &c, 1); }
     size_t write(const uint8_t *buf, size_t size) { return _eth->_write(data, buf, size); }
-    size_t write(const char *buf) { return write((const uint8_t *)buf, strlen(buf)); }
+    size_t write(const char *buf) { return write((const uint8_t *)buf, my_strlen(buf)); }
     int available();
     int read();
     int peek();
