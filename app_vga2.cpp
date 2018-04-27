@@ -1,28 +1,17 @@
 #include "vga.h"
-#include <avr/sleep.h>
+#include "sleepy.h"
 
-class App
+int main()
 {
     VGA vga;
-public:
-    App() { }
-    int run();
-};
 
-int App::run()
-{
     while (true)
     {
         sleep_mode();
         vga.scanLine();
     }
-    return 0;
-}
 
-int main()
-{
-    App app;
-    return app.run();
+    return 0;
 }
 
 

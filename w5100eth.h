@@ -3,8 +3,6 @@
 #include "w5100.h"
 #include "eth.h"
 
-#define MAX_SOCK_NUM 4
-
 class EthernetClass : public Ethernet
 {
 private:

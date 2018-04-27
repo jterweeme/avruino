@@ -4,11 +4,8 @@
 #ifndef __DOXYGEN__
 #define __need_size_t
 #endif
-#include <inttypes.h>
-#include <stddef.h>
-#include <avr/io.h>
 
-#ifndef __DOXYGEN__
+#include "types.h"
 #ifndef __ATTR_CONST__
 #define __ATTR_CONST__ __attribute__((__const__))
 #endif
@@ -20,97 +17,16 @@
 #ifndef __ATTR_PURE__
 #define __ATTR_PURE__ __attribute__((__pure__))
 #endif
-#endif	/* !__DOXYGEN__ */
 
 #define PROGMEM __ATTR_PROGMEM__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(__DOXYGEN__)
-typedef void PROGMEM prog_void;
-
-typedef char PROGMEM prog_char;
-
-typedef unsigned char PROGMEM prog_uchar;
-
-typedef int8_t PROGMEM prog_int8_t;
-typedef uint8_t PROGMEM prog_uint8_t;
-typedef int16_t PROGMEM prog_int16_t;
-typedef uint16_t PROGMEM prog_uint16_t;
-typedef int32_t PROGMEM prog_int32_t;
-typedef uint32_t PROGMEM prog_uint32_t;
-typedef int64_t PROGMEM prog_int64_t;
-typedef uint64_t PROGMEM prog_uint64_t;
-
-#ifndef PGM_P
 #define PGM_P const char *
-#endif
-
-#ifndef PGM_VOID_P
 #define PGM_VOID_P const void *
-#endif
 
-#elif defined(__PROG_TYPES_COMPAT__)  /* !DOXYGEN */
 
-typedef void prog_void __attribute__((__progmem__,deprecated("prog_void type is deprecated.")));
-typedef char prog_char __attribute__((__progmem__,deprecated("prog_char type is deprecated.")));
-typedef unsigned char prog_uchar __attribute__((__progmem__,deprecated("prog_uchar type is deprecated.")));
-typedef int8_t    prog_int8_t   __attribute__((__progmem__,deprecated("prog_int8_t type is deprecated.")));
-typedef uint8_t   prog_uint8_t  __attribute__((__progmem__,deprecated("prog_uint8_t type is deprecated.")));
-typedef int16_t   prog_int16_t  __attribute__((__progmem__,deprecated("prog_int16_t type is deprecated.")));
-typedef uint16_t  prog_uint16_t __attribute__((__progmem__,deprecated("prog_uint16_t type is deprecated.")));
-typedef int32_t   prog_int32_t  __attribute__((__progmem__,deprecated("prog_int32_t type is deprecated.")));
-typedef uint32_t  prog_uint32_t __attribute__((__progmem__,deprecated("prog_uint32_t type is deprecated.")));
-#if !__USING_MINT8
-typedef int64_t   prog_int64_t  __attribute__((__progmem__,deprecated("prog_int64_t type is deprecated.")));
-typedef uint64_t  prog_uint64_t __attribute__((__progmem__,deprecated("prog_uint64_t type is deprecated.")));
-#endif
 
-#ifndef PGM_P
-#define PGM_P const prog_char *
-#endif
 
-#ifndef PGM_VOID_P
-#define PGM_VOID_P const prog_void *
-#endif
-
-#else /* !defined(__DOXYGEN__), !defined(__PROG_TYPES_COMPAT__) */
-
-#ifndef PGM_P
-#define PGM_P const char *
-#endif
-
-#ifndef PGM_VOID_P
-#define PGM_VOID_P const void *
-#endif
-#endif /* defined(__DOXYGEN__), defined(__PROG_TYPES_COMPAT__) */
-
-/* Although in C, we can get away with just using __c, it does not work in
-   C++. We need to use &__c[0] to avoid the compiler puking. Dave Hylands
-   explaned it thusly,
-
-     Let's suppose that we use PSTR("Test"). In this case, the type returned
-     by __c is a prog_char[5] and not a prog_char *. While these are
-     compatible, they aren't the same thing (especially in C++). The type
-     returned by &__c[0] is a prog_char *, which explains why it works
-     fine. */
-
-#if defined(__DOXYGEN__)
-/*
- * The #define below is just a dummy that serves documentation
- * purposes only.
- */
-/** \ingroup avr_pgmspace
-    \def PSTR(s)
-
-    Used to declare a static pointer to a string in program space. */
-# define PSTR(s) ((const PROGMEM char *)(s))
-#else  /* !DOXYGEN */
-/* The real thing. */
 # define PSTR(s) (__extension__({static const char __c[] PROGMEM = (s); &__c[0];}))
-#endif /* DOXYGEN */
 
 #ifndef __DOXYGEN__ /* Internal macros, not documented. */
 #define __LPM_classic__(addr)   \
@@ -311,6 +227,10 @@ typedef uint64_t  prog_uint64_t __attribute__((__progmem__,deprecated("prog_uint
     );                                      \
     __result;                               \
 }))
+
+#include <avr/io.h>
+
+
 
 #if defined (__AVR_HAVE_LPMX__)
 #define __LPM(addr)         __LPM_enhanced__(addr)
@@ -1316,33 +1236,7 @@ extern int strncasecmp_PF(const char *s1, uint_farptr_t s2, size_t n) __ATTR_PUR
     If \c s2 points to a string of zero length, the function returns \c s1. The
     contents of RAMPZ SFR are undefined when the function returns. */
 extern char *strstr_PF(const char *s1, uint_farptr_t s2);
-
-/** \ingroup avr_pgmspace
-    \fn size_t strlcpy_PF(char *dst, uint_farptr_t src, size_t siz)
-    \brief Copy a string from progmem to RAM.
-
-    Copy src to string dst of size siz.  At most siz-1 characters will be
-    copied. Always NULL terminates (unless siz == 0).
-
-    \returns The strlcpy_PF() function returns strlen(src). If retval >= siz,
-    truncation occurred.  The contents of RAMPZ SFR are undefined when the
-    function returns. */
 extern size_t strlcpy_PF(char *dst, uint_farptr_t src, size_t siz);
-
-/** \ingroup avr_pgmspace
-    \fn int memcmp_PF(const void *s1, uint_farptr_t s2, size_t len)
-    \brief Compare memory areas
-
-    The memcmp_PF() function compares the first \p len bytes of the memory
-    areas \p s1 and flash \p s2. The comparision is performed using unsigned
-    char operations. It is an equivalent of memcmp_P() function, except
-    that it is capable working on all FLASH including the exteded area
-    above 64kB.
-
-    \returns The memcmp_PF() function returns an integer less than, equal
-    to, or greater than zero if the first \p len bytes of \p s1 is found,
-    respectively, to be less than, to match, or be greater than the first
-    \p len bytes of \p s2.  */
 extern int memcmp_PF(const void *, uint_farptr_t, size_t) __ATTR_PURE__;
 
 extern size_t __strlen_P(const char *) __ATTR_CONST__;  /* internal helper function */
@@ -1351,9 +1245,7 @@ static __inline__ size_t strlen_P(const char *s) {
   return __builtin_constant_p(__builtin_strlen(s))
      ? __builtin_strlen(s) : __strlen_P(s);
 }
-
-#ifdef __cplusplus
-}
 #endif
 
-#endif /* __PGMSPACE_H_ */
+
+

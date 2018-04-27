@@ -1,11 +1,7 @@
-#ifndef _USBSD2_H_
-#define _USBSD2_H_
+#ifndef _USBSD_H_
+#define _USBSD_H_
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
 #include "busby.h"
-#include "misc.h"
 #include "zd2card.h"
 
 static constexpr uint32_t
@@ -58,7 +54,6 @@ public:
     bool decodeSCSICmd();
     USBSD();
 };
-
 #endif
 
 

@@ -1,7 +1,4 @@
 /*
-Mega eth CS: D53
-Mega SD CS: D9
-
 Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 */
 

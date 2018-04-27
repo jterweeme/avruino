@@ -1,20 +1,15 @@
 /*
-RGB: TX0
-HSYNC: OCR2B
-VSYNC: OCR1B
-
 Uno:
-RGB: D1
-HSync: D3
-VSync: D10
+RGB: D1/TX0
+HSync: D3/OCR2B
+VSync: D10/OCR1B
 
 Mega:
-RGB: D1
+RGB: D1/TX0
 HSync: D9
 VSync: D12
 */
 
-//#include <avr/interrupt.h>
 #include "pgmspees.h"
 #include "sleepy.h"
 #include "board.h"

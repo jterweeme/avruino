@@ -9,6 +9,7 @@
 #include "tft.h"
 #include "board.h"
 #include "misc.h"
+#include <avr/io.h>
 
 static const uint16_t TFTLCD_DELAY = 0xffff;
 

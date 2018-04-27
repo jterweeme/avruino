@@ -1,6 +1,5 @@
 #ifndef _STREAM2_H_
 #define _STREAM2_H_
-//#include <string.h>
 #include "misc.h"
 
 class Stream

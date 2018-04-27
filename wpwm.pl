@@ -12,7 +12,7 @@ use Time::HiRes qw/usleep/;
 
 
 my %g_dev = (
-	dev => '/dev/ttyACM0',
+	dev => '/dev/ttyUSB0',
 	speed => '230400',
 );
 

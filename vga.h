@@ -1,7 +1,7 @@
-#ifndef _FONT_H_
-#define _FONT_H_
-#include <avr/pgmspace.h>
+#ifndef _VGA_H_
+#define _VGA_H_
 #include "types.h"
+#include "pgmspees.h"
 
 const uint8_t screen_font [8] [256] PROGMEM =
 {
