@@ -71,10 +71,10 @@ public:
 class W5100Class
 {
 private:
-    static uint8_t write(uint16_t _addr, uint8_t _data);
-    static uint16_t write(uint16_t addr, const uint8_t *buf, uint16_t len);
-    static uint8_t read(uint16_t addr);
-    static uint16_t read(uint16_t addr, uint8_t *buf, uint16_t len);
+    uint8_t write(uint16_t _addr, uint8_t _data);
+    uint16_t write(uint16_t addr, const uint8_t *buf, uint16_t len);
+    uint8_t read(uint16_t addr);
+    uint16_t read(uint16_t addr, uint8_t *buf, uint16_t len);
 public:
     void init();
     void read_data(SOCKET s, volatile uint8_t * src, volatile uint8_t * dst, uint16_t len);
@@ -113,73 +113,61 @@ public:
     inline void writeRMSR(uint8_t data) { write(0x001a, data); }
     inline void writeTMSR(uint8_t data) { write(0x001b, data); }
 private:
-    static inline uint8_t readSn(SOCKET _s, uint16_t _addr);
-    static inline uint8_t writeSn(SOCKET _s, uint16_t _addr, uint8_t _data);
-    static inline uint16_t readSn(SOCKET _s, uint16_t _addr, uint8_t *_buf, uint16_t len);
-    static inline uint16_t writeSn(SOCKET _s, uint16_t _addr, uint8_t *_buf, uint16_t len);
+    inline uint8_t readSn(SOCKET s, uint16_t addr);
+    inline uint8_t writeSn(SOCKET s, uint16_t addr, uint8_t data);
+
+    inline void writeSn16(SOCKET s, uint16_t addr, uint16_t data)
+    {
+        writeSn(s, addr, data >> 8);
+        writeSn(s, addr + 1, data & 0xff);
+    }
+
+    inline uint16_t readSn16(SOCKET s, uint16_t addr)
+    {
+        uint16_t res1 = readSn(s, addr);
+        uint16_t res2 = readSn(s, addr + 1);
+        return (res1 << 8) | (res2 & 0xff);
+    }
+
+    inline uint16_t readSn(SOCKET s, uint16_t addr, uint8_t *buf, uint16_t len);
+    inline uint16_t writeSn(SOCKET s, uint16_t addr, uint8_t *buf, uint16_t len);
     static const uint16_t CH_BASE = 0x0400;
     static const uint16_t CH_SIZE = 0x0100;
-
-#define __SOCKET_REGISTER8(name, address)                    \
-  static inline void write##name(SOCKET _s, uint8_t _data) { \
-    writeSn(_s, address, _data);                             \
-  }                                                          \
-  static inline uint8_t read##name(SOCKET _s) {              \
-    return readSn(_s, address);                              \
-  }
-
-#define __SOCKET_REGISTER16(name, address)                   \
-  static void write##name(SOCKET _s, uint16_t _data) {       \
-    writeSn(_s, address,   _data >> 8);                      \
-    writeSn(_s, address+1, _data & 0xFF);                    \
-  }                                                          \
-  static uint16_t read##name(SOCKET _s) {                    \
-    uint16_t res = readSn(_s, address);                      \
-    uint16_t res2 = readSn(_s,address + 1);                  \
-    res = res << 8;                                          \
-    res2 = res2 & 0xFF;                                      \
-    res = res | res2;                                        \
-    return res;                                              \
-  }
 public:
-    static inline void writeSnMR(SOCKET s, uint8_t data) { writeSn(s, 0x0000, data); }
-    static inline uint8_t readSnMR(SOCKET s) { return readSn(s, 0x0000); }
-    __SOCKET_REGISTER8(SnCR, 0x0001)        // Command
-    __SOCKET_REGISTER8(SnIR, 0x0002)        // Interrupt
-    __SOCKET_REGISTER8(SnSR, 0x0003)        // Status
+    inline void writeSnMR(SOCKET s, uint8_t data) { writeSn(s, 0x0000, data); }
+    inline uint8_t readSnMR(SOCKET s) { return readSn(s, 0x0000); }
+    inline void writeSnCR(SOCKET s, uint8_t data) { writeSn(s, 0x0001, data); }
+    inline uint8_t readSnCR(SOCKET s) { return readSn(s, 0x0001); }
+    inline void writeSnIR(SOCKET s, uint8_t data) { writeSn(s, 0x0002, data); }
+    inline uint8_t readSnIR(SOCKET s) { return readSn(s, 0x0002); }
+    inline void writeSnSR(SOCKET s, uint8_t data) { writeSn(s, 0x0003, data); }
+    inline uint8_t readSnSR(SOCKET s) { return readSn(s, 0x0003); }
 
-    static void writeSnPORT(SOCKET _s, uint16_t _data)
+    void writeSnPORT(SOCKET _s, uint16_t _data)
     {
         writeSn(_s, 0x0004, _data >> 8);
         writeSn(_s, 0x0005, _data & 0xff);
     }
 
-    static uint16_t readSnPORT(SOCKET _s)
-    {
-        uint16_t res = readSn(_s, 0x0004);
-        uint16_t res2 = readSn(_s, 0x0005);
-        res = res << 8;
-        res2 = res2 & 0xff;
-        return res | res2;
-    }
+    uint16_t readSnPORT(SOCKET _s) { return readSn16(_s, 0x0004); }
+    uint16_t writeSnDHAR(SOCKET s, uint8_t *buf) { return writeSn(s, 0x0006, buf, 6); }
+    uint16_t writeSnDIPR(SOCKET s, uint8_t *buf) { return writeSn(s, 0x000c, buf, 4); }
 
-    static uint16_t writeSnDHAR(SOCKET s, uint8_t *buf) { return writeSn(s, 0x0006, buf, 6); }
-    static uint16_t writeSnDIPR(SOCKET s, uint8_t *buf) { return writeSn(s, 0x000c, buf, 4); }
+    void writeSnDPORT(SOCKET s, uint16_t data) { writeSn16(s, 0x0010, data); }
+    uint16_t readSnDPORT(SOCKET s) { return readSn16(s, 0x0010); }
+    void writeSnTX_FSR(SOCKET s, uint16_t data) { writeSn16(s, 0x0020, data); }
+    uint16_t readSnTX_FSR(SOCKET s) { return readSn16(s, 0x0020); }
+    void writeSnTX_RD(SOCKET s, uint16_t data) { writeSn16(s, 0x0022, data); }
+    uint16_t readSnTX_RD(SOCKET s) { return readSn16(s, 0x0022); }
+    void writeSnTX_WR(SOCKET s, uint16_t data) { writeSn16(s, 0x0024, data); }
+    uint16_t readSnTX_WR(SOCKET s) { return readSn16(s, 0x0024); }
 
-    __SOCKET_REGISTER16(SnDPORT,    0x0010)        // Destination Port
-    __SOCKET_REGISTER16(SnMSSR,     0x0012)        // Max Segment Size
-    __SOCKET_REGISTER8(SnPROTO,     0x0014)        // Protocol in IP RAW Mode
-    __SOCKET_REGISTER8(SnTOS,       0x0015)        // IP TOS
-    __SOCKET_REGISTER8(SnTTL,       0x0016)        // IP TTL
-    __SOCKET_REGISTER16(SnTX_FSR,   0x0020)        // TX Free Size
-    __SOCKET_REGISTER16(SnTX_RD,    0x0022)        // TX Read Pointer
-    __SOCKET_REGISTER16(SnTX_WR,    0x0024)        // TX Write Pointer
-    __SOCKET_REGISTER16(SnRX_RSR,   0x0026)        // RX Free Size
-    __SOCKET_REGISTER16(SnRX_RD,    0x0028)        // RX Read Pointer
-    __SOCKET_REGISTER16(SnRX_WR,    0x002A)        // RX Write Pointer (supported?)
-  
-#undef __SOCKET_REGISTER8
-#undef __SOCKET_REGISTER16
+    void writeSnRX_RSR(SOCKET s, uint16_t data) { writeSn16(s, 0x0026, data); }
+    uint16_t readSnRX_RSR(SOCKET s) { return readSn16(s, 0x0026); }
+    void writeSnRX_RD(SOCKET s, uint16_t data) { writeSn16(s, 0x0028, data); }
+    uint16_t readSnRX_RD(SOCKET s) { return readSn16(s, 0x0028); }
+    void writeSnRX_WR(SOCKET s, uint16_t data) { writeSn16(s, 0x002a, data); }
+    uint16_t readSnRX_WR(SOCKET s) { return readSn16(s, 0x002a); }
 private:
     static const uint8_t  RST = 7; // Reset BIT
     static const int SOCKETS = 4;
