@@ -28,7 +28,6 @@
 
 #include "w5100eth.h"
 #include "w5100udp.h"
-#include "socket.h"
 
 uint8_t EthernetUDP::begin(uint16_t port)
 {
@@ -51,7 +50,7 @@ uint8_t EthernetUDP::begin(uint16_t port)
 
     _port = port;
     _remaining = 0;
-    socket(_sock, SnMR::UDP, _port, 0);
+    _eth->socket(_sock, SnMR::UDP, _port, 0);
     return 1;
 }
 
@@ -60,7 +59,7 @@ void EthernetUDP::stop()
     if (_sock == MAX_SOCK_NUM)
         return;
 
-    close(_sock);
+    _eth->close(_sock);
     EthernetClass::_server_port[_sock] = 0;
     _sock = MAX_SOCK_NUM;
 }
@@ -128,7 +127,7 @@ int EthernetUDP::parsePacket()
         uint8_t tmpBuf[8];
         int ret =0; 
         //read 8 header bytes and get IP and port from it
-        ret = recv(_sock,tmpBuf,8);
+        ret = _eth->recv(_sock,tmpBuf,8);
 
         if (ret > 0)
         {
@@ -150,7 +149,7 @@ int EthernetUDP::read()
 {
   uint8_t byte;
 
-  if ((_remaining > 0) && (recv(_sock, &byte, 1) > 0))
+  if ((_remaining > 0) && (_eth->recv(_sock, &byte, 1) > 0))
   {
     // We read things without any problems
     _remaining--;
@@ -170,13 +169,13 @@ int EthernetUDP::read(unsigned char* buffer, size_t len)
         if (_remaining <= len)
         {
             // data should fit in the buffer
-            got = recv(_sock, buffer, _remaining);
+            got = _eth->recv(_sock, buffer, _remaining);
         }
         else
         {
             // too much data for the buffer, 
             // grab as much as will fit
-            got = recv(_sock, buffer, len);
+            got = _eth->recv(_sock, buffer, len);
         }
 
         if (got > 0)

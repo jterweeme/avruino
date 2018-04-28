@@ -9,6 +9,7 @@ private:
     EthernetClass * const _eth;
     uint8_t _sock;
     static uint16_t _srcport;
+    uint16_t send(SOCKET s, const uint8_t *buf, uint16_t len);
 public:
     EthernetClient(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM) { }
     EthernetClient(EthernetClass * const eth, uint8_t sock) : _eth(eth), _sock(sock) { }

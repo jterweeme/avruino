@@ -15,7 +15,10 @@ public:
     uint32_t localIP();
     uint32_t subnetMask();
     uint32_t gatewayIP();
+    int16_t recv(SOCKET s, uint8_t *buf, int16_t len);
     uint16_t peek(SOCKET s, uint8_t *buf);
+    void close(SOCKET s);
+    uint8_t socket(SOCKET s, uint8_t protocol, uint16_t port, uint8_t flag);
 };
 #endif
 

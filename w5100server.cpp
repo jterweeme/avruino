@@ -1,4 +1,3 @@
-#include "socket.h"
 #include "w5100server.h"
 #include "w5100client.h"
 
@@ -21,7 +20,7 @@ void EthernetServer::begin()
 
         if (client.status() == SnSR::CLOSED)
         {
-            socket(sock, SnMR::TCP, _port, 0);
+            _eth->socket(sock, SnMR::TCP, _port, 0);
             listen(sock);
             EthernetClass::_server_port[sock] = _port;
             break;
