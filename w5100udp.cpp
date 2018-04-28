@@ -28,6 +28,7 @@
 
 #include "w5100eth.h"
 #include "w5100udp.h"
+#include "socket.h"
 
 uint8_t EthernetUDP::begin(uint16_t port)
 {
@@ -123,35 +124,40 @@ int EthernetUDP::read()
 
 int EthernetUDP::read(unsigned char* buffer, size_t len)
 {
-
-  if (_remaining > 0)
-  {
-
-    int got;
-
-    if (_remaining <= len)
+    if (_remaining > 0)
     {
-      // data should fit in the buffer
-      got = recv(_sock, buffer, _remaining);
+        int got;
+
+        if (_remaining <= len)
+        {
+            // data should fit in the buffer
+            got = recv(_sock, buffer, _remaining);
+        }
+        else
+        {
+        // too much data for the buffer, 
+        // grab as much as will fit
+        got = recv(_sock, buffer, len);
+        }
+
+        if (got > 0)
+        {
+            _remaining -= got;
+            return got;
+        }
     }
-    else
-    {
-      // too much data for the buffer, 
-      // grab as much as will fit
-      got = recv(_sock, buffer, len);
-    }
 
-    if (got > 0)
-    {
-      _remaining -= got;
-      return got;
-    }
+    // If we get here, there's no data available or recv failed
+    return -1;
+}
 
-  }
+int EthernetUDP::endPacket()
+{
+    return sendUDP(_sock);
+}
 
-  // If we get here, there's no data available or recv failed
-  return -1;
-
+EthernetUDP::EthernetUDP(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM)
+{
 }
 
 int EthernetUDP::peek()

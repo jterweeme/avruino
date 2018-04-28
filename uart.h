@@ -1,6 +1,6 @@
 #ifndef _UART_H_
 #define _UART_H_
-#include "pinport.h"
+#include "types.h"
 
 class Terminal
 {
@@ -13,6 +13,8 @@ public:
     virtual uint8_t readByte() { return 0; }
     void operator<< (const char *s) { puts(s); }
 };
+
+class Pin;
 
 class LCD : public Terminal
 {

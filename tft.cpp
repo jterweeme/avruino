@@ -9,7 +9,6 @@
 #include "tft.h"
 #include "board.h"
 #include "misc.h"
-#include <avr/io.h>
 
 static const uint16_t TFTLCD_DELAY = 0xffff;
 
@@ -49,22 +48,10 @@ void TFT::init_table16(const void *table, int16_t size)
         }
         else
         {
-#if defined (__AVR_ATmega328P__)
-            *p_portc &= ~(1<<3);   // A3
+            *p_pinA3_port &= ~(1<<pinA3_bit);
             writeCmd(cmd);
             writeData(d);
-            *p_portc |= 1<<3;      // A3
-#elif defined (__AVR_ATmega2560__)
-            *p_portf &= ~(1<<3);   // A3
-            writeCmd(cmd);
-            writeData(d);
-            *p_portf |= 1<<3;      // A3
-#else
-            b.pinA3.clear();
-            writeCmd(cmd);
-            writeData(d);
-            b.pinA3.set();
-#endif
+            *p_pinA3_port |= 1<<pinA3_bit;
         }
         size -= 2 * sizeof(int16_t);
     }
@@ -88,8 +75,8 @@ void TFT::drawPixel(int16_t x, int16_t y, uint16_t color)
     if (x < 0 || y < 0 || x >= width() || y >= height())
         return;
 
-    b.pinA2.direction(OUTPUT);
-    b.pinA3.direction(OUTPUT);
+    *p_pinA2_ddr |= 1<<pinA2_bit;
+    *p_pinA3_ddr |= 1<<pinA3_bit;
     writeCmdData(_MC, x);
     writeCmdData(_MP, y);
     writeCmdData(_MW, color);
@@ -186,42 +173,42 @@ void TFT::begin()
 
     static const uint16_t ST7781_regValues[] PROGMEM =
     {
-            0x00FF, 0x0001,     //can we do 0xFF
-            0x00F3, 0x0008,
-            0x00, 0x0001,
-            0x0001, 0x0100,     // Driver Output Control Register (R01h)
-            0x0002, 0x0700,     // LCD Driving Waveform Control (R02h)
-            0x0003, 0x1030,     // Entry Mode (R03h)
-            0x0008, 0x0302,
-            0x0009, 0x0000,
-            0x0010, 0x0000,     // Power Control 1 (R10h)
-            0x0011, 0x0007,     // Power Control 2 (R11h)
-            0x0012, 0x0000,     // Power Control 3 (R12h)
-            0x0013, 0x0000,     // Power Control 4 (R13h)
-            TFTLCD_DELAY, 50,
-            0x0010, 0x14B0,     // Power Control 1 SAP=1, BT=4, APE=1, AP=3
-            TFTLCD_DELAY, 10,
-            0x0011, 0x0007,     // Power Control 2 VC=7
-            TFTLCD_DELAY, 10,
-            0x0012, 0x008E,     // Power Control 3 VCIRE=1, VRH=14
-            0x0013, 0x0C00,     // Power Control 4 VDV=12
-            0x0029, 0x0015,     // NVM read data 2 VCM=21
-            TFTLCD_DELAY, 10,
-            0x0030, 0x0000,     // Gamma Control 1
-            0x0031, 0x0107,     // Gamma Control 2
-            0x0032, 0x0000,     // Gamma Control 3
-            0x0035, 0x0203,     // Gamma Control 6
-            0x0036, 0x0402,     // Gamma Control 7
-            0x0037, 0x0000,     // Gamma Control 8
-            0x0038, 0x0207,     // Gamma Control 9
-            0x0039, 0x0000,     // Gamma Control 10
-            0x003C, 0x0203,     // Gamma Control 13
-            0x003D, 0x0403,     // Gamma Control 14
-            0x0060, 0xA700,     // Driver Output Control (R60h) .kbv was 0xa700
-            0x0061, 0x0001,     // Driver Output Control (R61h)
-            0x0090, 0X0029,     // Panel Interface Control 1 (R90h)
-            0x0007, 0x0133,     // Display Control (R07h)
-            TFTLCD_DELAY, 50,
+        0x00FF, 0x0001,     //can we do 0xFF
+        0x00F3, 0x0008,
+        0x00, 0x0001,
+        0x0001, 0x0100,     // Driver Output Control Register (R01h)
+        0x0002, 0x0700,     // LCD Driving Waveform Control (R02h)
+        0x0003, 0x1030,     // Entry Mode (R03h)
+        0x0008, 0x0302,
+        0x0009, 0x0000,
+        0x0010, 0x0000,     // Power Control 1 (R10h)
+        0x0011, 0x0007,     // Power Control 2 (R11h)
+        0x0012, 0x0000,     // Power Control 3 (R12h)
+        0x0013, 0x0000,     // Power Control 4 (R13h)
+        TFTLCD_DELAY, 50,
+        0x0010, 0x14B0,     // Power Control 1 SAP=1, BT=4, APE=1, AP=3
+        TFTLCD_DELAY, 10,
+        0x0011, 0x0007,     // Power Control 2 VC=7
+        TFTLCD_DELAY, 10,
+        0x0012, 0x008E,     // Power Control 3 VCIRE=1, VRH=14
+        0x0013, 0x0C00,     // Power Control 4 VDV=12
+        0x0029, 0x0015,     // NVM read data 2 VCM=21
+        TFTLCD_DELAY, 10,
+        0x0030, 0x0000,     // Gamma Control 1
+        0x0031, 0x0107,     // Gamma Control 2
+        0x0032, 0x0000,     // Gamma Control 3
+        0x0035, 0x0203,     // Gamma Control 6
+        0x0036, 0x0402,     // Gamma Control 7
+        0x0037, 0x0000,     // Gamma Control 8
+        0x0038, 0x0207,     // Gamma Control 9
+        0x0039, 0x0000,     // Gamma Control 10
+        0x003C, 0x0203,     // Gamma Control 13
+        0x003D, 0x0403,     // Gamma Control 14
+        0x0060, 0xA700,     // Driver Output Control (R60h) .kbv was 0xa700
+        0x0061, 0x0001,     // Driver Output Control (R61h)
+        0x0090, 0X0029,     // Panel Interface Control 1 (R90h)
+        0x0007, 0x0133,     // Display Control (R07h)
+        TFTLCD_DELAY, 50,
     };
 
     init_table16(ST7781_regValues, sizeof(ST7781_regValues));
@@ -243,14 +230,14 @@ uint8_t TFT::read8()
     *p_pinA0_port &= ~(1<<pinA0_bit);
     *p_pinA0_port &= ~(1<<pinA0_bit);
     *p_pinA0_port &= ~(1<<pinA0_bit);
-    dst |= b.pin8.read() ? 1<<0 : 0;
-    dst |= b.pin9.read() ? 1<<1 : 0;
-    dst |= b.pin2.read() ? 1<<2 : 0;
-    dst |= b.pin3.read() ? 1<<3 : 0;
-    dst |= b.pin4.read() ? 1<<4 : 0;
-    dst |= b.pin5.read() ? 1<<5 : 0;
-    dst |= b.pin6.read() ? 1<<6 : 0;
-    dst |= b.pin7.read() ? 1<<7 : 0;
+    dst |= (*p_pin8_in & 1<<pin8_bit) << 0;
+    dst |= (*p_pin9_in & 1<<pin9_bit) << 1;
+    dst |= (*p_pin2_in & 1<<pin2_bit) << 2;
+    dst |= (*p_pin3_in & 1<<pin3_bit) << 3;
+    dst |= (*p_pin4_in & 1<<pin4_bit) << 4;
+    dst |= (*p_pin5_in & 1<<pin5_bit) << 5;
+    dst |= (*p_pin6_in & 1<<pin6_bit) << 4;
+    dst |= (*p_pin7_in & 1<<pin7_bit) << 5;
     *p_pinA0_port |= 1<<pinA0_bit;
 #endif
     return dst;
@@ -258,54 +245,41 @@ uint8_t TFT::read8()
 
 void TFT::writeData(uint16_t x)
 {
-#if defined (__AVR_ATmega328P__)
-    PORTC |= 1<<2;
+    *p_pinA2_port |= 1<<pinA2_bit;
     write16(x);
-#else
-    b.pinA2.set();
-    write16(x);
-#endif
 }
 
 void TFT::writeCmdData(uint16_t cmd, uint16_t data)
 {
-#if defined (__AVR_ATmega328P__)
-    PORTC &= ~(1<<3);
-#else
-    b.pinA3.clear();
-#endif
+    *p_pinA3_port &= ~(1<<pinA3_bit);
     writeCmd(cmd);
     writeData(data);
-#if defined (__AVR_ATmega328P__)
-    PORTC |= 1<<3;
-#else
-    b.pinA3.set();
-#endif
+    *p_pinA3_port |= 1<<pinA3_bit;
 }
 
 void TFT::reset()
 {
-    b.pin8.direction(OUTPUT);
-    b.pin9.direction(OUTPUT);
-    b.pin2.direction(OUTPUT);
-    b.pin3.direction(OUTPUT);
-    b.pin4.direction(OUTPUT);
-    b.pin5.direction(OUTPUT);
-    b.pin6.direction(OUTPUT);
-    b.pin7.direction(OUTPUT);
-    b.pinA0.direction(OUTPUT);
-    b.pinA1.direction(OUTPUT);
-    b.pinA2.direction(OUTPUT);
-    b.pinA3.direction(OUTPUT);
-    b.pinA4.direction(OUTPUT);
-    b.pinA3.set();
-    b.pinA0.set();
-    b.pinA1.set();
-    b.pinA4.set();
+    *p_pin8_ddr |= 1<<pin8_bit;
+    *p_pin9_ddr |= 1<<pin9_bit;
+    *p_pin2_ddr |= 1<<pin2_bit;
+    *p_pin3_ddr |= 1<<pin3_bit;
+    *p_pin4_ddr |= 1<<pin4_bit;
+    *p_pin5_ddr |= 1<<pin5_bit;
+    *p_pin6_ddr |= 1<<pin6_bit;
+    *p_pin7_ddr |= 1<<pin7_bit;
+    *p_pinA0_ddr |= 1<<pinA0_bit;
+    *p_pinA1_ddr |= 1<<pinA1_bit;
+    *p_pinA2_ddr |= 1<<pinA2_bit;
+    *p_pinA3_ddr |= 1<<pinA3_bit;
+    *p_pinA4_ddr |= 1<<pinA4_bit;
+    *p_pinA3_port |= 1<<pinA3_bit;
+    *p_pinA0_port |= 1<<pinA0_bit;
+    *p_pinA1_port |= 1<<pinA1_bit;
+    *p_pinA4_port |= 1<<pinA4_bit;
     _delay_ms(50);
-    b.pinA4.clear();
+    *p_pinA4_port &= ~(1<<pinA4_bit);
     _delay_ms(100);
-    b.pinA4.set();
+    *p_pinA4_port |= 1<<pinA4_bit;
     _delay_ms(100);
     writeCmdData(0xB0, 0x0000);
 }
@@ -319,19 +293,19 @@ uint16_t TFT::read16()
 
 uint16_t TFT::readReg(uint16_t reg, int8_t index)
 {
-    uint16_t ret;
-    b.pinA3.clear();
+    *p_pinA3_port &= ~(1<<pinA3_bit);
     writeCmd(reg);
-    b.pin2.direction(INPUT);
-    b.pin3.direction(INPUT);
-    b.pin4.direction(INPUT);
-    b.pin5.direction(INPUT);
-    b.pin6.direction(INPUT);
-    b.pin7.direction(INPUT);
-    b.pin8.direction(INPUT);
-    b.pin9.direction(INPUT);
-    b.pinA2.set();
+    *p_pin2_ddr &= ~(1<<pin2_bit);
+    *p_pin3_ddr &= ~(1<<pin3_bit);
+    *p_pin4_ddr &= ~(1<<pin4_bit);
+    *p_pin5_ddr &= ~(1<<pin5_bit);
+    *p_pin6_ddr &= ~(1<<pin6_bit);
+    *p_pin7_ddr &= ~(1<<pin7_bit);
+    *p_pin8_ddr &= ~(1<<pin8_bit);
+    *p_pin9_ddr &= ~(1<<pin9_bit);
+    *p_pinA2_port |= 1<<pinA2_bit;
     _delay_ms(1);
+    uint16_t ret;
 
     do
     {
@@ -339,38 +313,40 @@ uint16_t TFT::readReg(uint16_t reg, int8_t index)
     }
     while (--index >= 0);
 
-    b.pinA0.set();
-    b.pinA3.set();
-    b.pin2.direction(OUTPUT);
-    b.pin3.direction(OUTPUT);
-    b.pin4.direction(OUTPUT);
-    b.pin5.direction(OUTPUT);
-    b.pin6.direction(OUTPUT);
-    b.pin7.direction(OUTPUT);
-    b.pin8.direction(OUTPUT);
-    b.pin9.direction(OUTPUT);
+    *p_pinA0_port |= 1<<pinA0_bit;
+    *p_pinA3_port |= 1<<pinA3_bit;
+    *p_pin2_ddr |= 1<<pin2_bit;
+    *p_pin3_ddr |= 1<<pin3_bit;
+    *p_pin4_ddr |= 1<<pin4_bit;
+    *p_pin5_ddr |= 1<<pin5_bit;
+    *p_pin6_ddr |= 1<<pin6_bit;
+    *p_pin7_ddr |= 1<<pin7_bit;
+    *p_pin8_ddr |= 1<<pin8_bit;
+    *p_pin9_ddr |= 1<<pin9_bit;
     return ret;
 }
 
 inline void TFT::write8(uint8_t x)
 {
+
 #if defined (__AVR_ATmega328P__)
     PORTB = (PORTB & ~0x03) | (x & 0x03);
     PORTD = (PORTD & ~0xfc) | (x & 0xfc);
     PORTC &= ~(1<<1);
     PORTC |= 1<<1;
 #elif defined (__AVR_ATmega2560__)
-    PORTH = (PORTH & 0x87);
-    PORTH |= (x << 5) & (1<<PH5 | 1<<PH6);
-    PORTH |= (x >> 3) & (1<<PH4 | 1<<PH3);
-    PORTE = (PORTE & 0xc7);
-    PORTE |= (x << 2) & (1<<PE4 | 1<<PE5);
-    PORTE |= (x >> 2) & (1<<PE3);
-    PORTG = (PORTG & 0xdf);
-    PORTG |= (x << 1) & (1<<PG5);
-    b.pinA1.clear();
-    b.pinA1.set();
+    *p_porth = *p_porth & 0x87;
+    *p_porth |= (x << 5) & (1<<ph5 | 1<<ph6);
+    *p_porth |= (x >> 3) & (1<<ph4 | 1<<ph3);
+    *p_porte = (*p_porte & 0xc7);
+    *p_porte |= (x << 2) & (1<<pe4 | 1<<pe5);
+    *p_porte |= (x >> 2) & (1<<pe3);
+    *p_portg = (*p_portg & 0xdf);
+    *p_portg |= (x << 1) & (1<<pg5);
+    *p_pinA1_port &= ~(1<<pinA1_bit);
+    *p_pinA1_port |= 1<<pinA1_bit;
 #else
+    Board b;
     b.pin8.set(x & 1<<0 ? true : false);
     b.pin9.set(x & 1<<1 ? true : false);
     b.pin2.set(x & 1<<2 ? true : false);
@@ -379,8 +355,8 @@ inline void TFT::write8(uint8_t x)
     b.pin5.set(x & 1<<5 ? true : false);
     b.pin6.set(x & 1<<6 ? true : false);
     b.pin7.set(x & 1<<7 ? true : false);
-    b.pinA1.clear();
-    b.pinA1.set();
+    *p_pinA1_port &= ~(1<<pinA1_bit);
+    *p_pinA1_port |= 1<<pinA1_bit;
 #endif
 }
 
@@ -393,7 +369,7 @@ void TFT::write16(uint16_t x)
 
 void TFT::writeCmd(uint16_t x)
 {
-    b.pinA2.clear();
+    *p_pinA2_port &= ~(1<<pinA2_bit);
     write16(x);
 }
 

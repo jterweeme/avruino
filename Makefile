@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -305,7 +305,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

@@ -46,6 +46,16 @@ static inline uint8_t spiRec(void)
     return *p_spdr;
 }
 
+void Sd2Card::chipSelectHigh()
+{
+    _cs->set();
+}
+
+void Sd2Card::chipSelectLow()
+{
+    _cs->clear();
+}
+
 uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg)
 {
     readEnd();  // end read if in partialBlockRead mode

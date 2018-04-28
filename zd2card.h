@@ -5,7 +5,7 @@ credits to SparkFun Electronics
 
 #ifndef _ZD2CARD_H_
 #define _ZD2CARD_H_
-#include "pinport.h"
+#include "types.h"
 
 static constexpr uint8_t
     R1_READY_STATE = 0x00,
@@ -170,6 +170,8 @@ union csd_t
     csd2_t v2;
 };
 
+class Pin;
+
 class Sd2Card
 {
 private:
@@ -186,8 +188,8 @@ private:
     void error(uint8_t code) {errorCode_ = code;}
     uint8_t readRegister(uint8_t cmd, void* buf);
     uint8_t sendWriteCommand(uint32_t blockNumber, uint32_t eraseCount);
-    void chipSelectHigh() { _cs->set(); }
-    void chipSelectLow() { _cs->clear(); }
+    void chipSelectHigh();
+    void chipSelectLow();
     void type(uint8_t value) {type_ = value;}
     uint8_t waitNotBusy(uint16_t timeoutMillis);
     uint8_t writeData(uint8_t token, const uint8_t* src);

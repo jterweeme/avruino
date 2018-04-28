@@ -1,22 +1,21 @@
 #ifndef _TFT_H_
 #define _TFT_H_
-#include "board.h"
+#include "types.h"
 
 static constexpr uint16_t
-AUTO_READINC  = 1<<1,
-READ_BGR      = 1<<2,
-READ_LOWHIGH  = 1<<3,
-READ_NODUMMY  = 1<<6,
-INVERT_GS     = 1<<8,
-INVERT_SS     = 1<<9,
-MV_AXIS       = 1<<10,
-INVERT_RGB    = 1<<11,
-REV_SCREEN    = 1<<12;
+    AUTO_READINC  = 1<<1,
+    READ_BGR      = 1<<2,
+    READ_LOWHIGH  = 1<<3,
+    READ_NODUMMY  = 1<<6,
+    INVERT_GS     = 1<<8,
+    INVERT_SS     = 1<<9,
+    MV_AXIS       = 1<<10,
+    INVERT_RGB    = 1<<11,
+    REV_SCREEN    = 1<<12;
 
 class TFT
 {
 protected:
-    Board b;
     uint16_t _lcd_ID, _lcd_rev, _lcd_madctl, _MC, _MP, _MW, _SC, _EC, _SP, _EP;
     uint16_t _lcd_capable;
     const int16_t WIDTH = 240, HEIGHT = 320;

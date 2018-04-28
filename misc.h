@@ -1,7 +1,6 @@
 #ifndef _MISC_H_
 #define _MISC_H_
 #include "storage.h"
-#include "pinport.h"
 
 static inline void *my_memcpy(void *dst, void *src, size_t n)
 {
@@ -170,6 +169,8 @@ struct DS1302_Regs
     uint8_t reserved6:7;
     uint8_t wp:1;
 } __attribute__ ((packed));
+
+class Pin;
 
 class DS1302
 {

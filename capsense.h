@@ -1,6 +1,8 @@
 #ifndef _CAPSENSE_H_
 #define _CAPSENSE_H_
-#include "pinport.h"
+#include "types.h"
+
+class Pin;
 
 class CapSense
 {

@@ -1,6 +1,6 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
-#include "pinport.h"
+#include "types.h"
 
 // moet nog naar RingBuf veranderd worden
 class CircBuf
@@ -24,6 +24,8 @@ public:
     uint8_t count() const { return _bitcount; }
     uint8_t incoming() const { return _incoming; }
 };
+
+class Pin;
 
 class PS2Keyboard
 {
