@@ -330,10 +330,10 @@ inline void TFT::write8(uint8_t x)
 {
 
 #if defined (__AVR_ATmega328P__)
-    PORTB = (PORTB & ~0x03) | (x & 0x03);
-    PORTD = (PORTD & ~0xfc) | (x & 0xfc);
-    PORTC &= ~(1<<1);
-    PORTC |= 1<<1;
+    *p_portb = (*p_portb & ~0x03) | (x & 0x03);
+    *p_portd = (*p_portd & ~0xfc) | (x & 0xfc);
+    *p_portc &= ~(1<<1);
+    *p_portc |= 1<<1;
 #elif defined (__AVR_ATmega2560__)
     *p_porth = *p_porth & 0x87;
     *p_porth |= (x << 5) & (1<<ph5 | 1<<ph6);

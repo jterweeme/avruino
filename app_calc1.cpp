@@ -91,7 +91,7 @@ void GUI::lightUp(Button *button)
 void OutputLine::redraw()
 {
     _tft->fillRect(0, 0, 240, 10, 0);
-    _tft->drawString(240 - strlen(_buffer) * 8, 0, _buffer);
+    _tft->drawString(240 - my_strlen(_buffer) * 8, 0, _buffer);
 }
 
 void GUI::draw()

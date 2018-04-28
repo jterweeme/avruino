@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -116,7 +116,7 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100eth.o \
     uart.o pinport.o stream.o w5100server.o socket.o dhcp.o \
-    w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o
+    w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o $(USBOPT)
 
 app_telnet1.elf: app_telnet1.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \

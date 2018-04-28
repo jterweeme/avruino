@@ -88,13 +88,15 @@ int EthernetClient::read(uint8_t *buf, size_t size)
     return recv(_sock, buf, size);
 }
 
-int EthernetClient::peek() {
-  uint8_t b;
-  // Unlike recv, peek doesn't check to see if there's any data available, so we must
-  if (!available())
-    return -1;
-  ::peek(_sock, &b);
-  return b;
+int EthernetClient::peek()
+{
+    uint8_t b;
+    // Unlike recv, peek doesn't check to see if there's any data available, so we must
+    if (!available())
+        return -1;
+
+    _eth->peek(_sock, &b);
+    return b;
 }
 
 void EthernetClient::flush()

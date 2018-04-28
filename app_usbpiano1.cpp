@@ -249,7 +249,7 @@ void MIDI::configure()
 
 uint16_t MIDI::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddr)
 {
-    const void *addr = NULL;
+    const void *addr = 0;
     uint16_t size = 0;
 
     switch (wValue >> 8)
@@ -386,7 +386,7 @@ void MIDI::task()
         ev.data1 = midiCommand | 1; // channel
         ev.data2 = midiPitch;
         ev.data3 = MIDI_STANDARD_VELOCITY;
-        writeStream2(&ev, sizeof(ev), NULL);
+        writeStream2(&ev, sizeof(ev), 0);
         *p_ueintx &= ~(1<<txini | 1<<fifocon);
     }
 
@@ -395,7 +395,7 @@ void MIDI::task()
     if (*p_ueintx & 1<<rxouti)
     {
         MIDIEventPacket ev;
-        readStream(&ev, sizeof(ev), NULL);
+        readStream(&ev, sizeof(ev), 0);
         
         if (bytesInEndpoint() == 0)
             *p_ueintx &= ~(1<<rxouti | 1<<fifocon); // clear out

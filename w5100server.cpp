@@ -2,6 +2,17 @@
 #include "w5100server.h"
 #include "w5100client.h"
 
+extern W5100Class *g_w5100;
+
+static uint8_t listen(SOCKET s)
+{
+    if (g_w5100->readSnSR(s) != SnSR::INIT)
+        return 0;
+
+    g_w5100->execCmdSn(s, Sock_LISTEN);
+    return 1;
+}
+
 void EthernetServer::begin()
 {
     for (int sock = 0; sock < MAX_SOCK_NUM; sock++)

@@ -1,7 +1,6 @@
 #ifndef _ANALOG_H_
 #define _ANALOG_H_
-#include "types.h"
-#include <avr/io.h>
+#include "board.h"
 
 class AnalogBase
 {
@@ -39,11 +38,11 @@ class Analog2
 {
 public:
     static constexpr uint8_t ADC0 = 0,
-        ADC1 = 1<<MUX0,
-        ADC2 = 1<<MUX1,
-        ADC3 = 1<<MUX0 | 1<<MUX1,
-        ADC4 = 1<<MUX2,
-        ADC5 = 1<<MUX0 | 1<<MUX2;
+        ADC1 = 1<<mux0,
+        ADC2 = 1<<mux1,
+        ADC3 = 1<<mux0 | 1<<mux1,
+        ADC4 = 1<<mux2,
+        ADC5 = 1<<mux0 | 1<<mux2;
     void init();
     uint16_t read(uint8_t input);
 };

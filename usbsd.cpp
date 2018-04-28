@@ -172,7 +172,7 @@ static const DescString<23> PROGMEM productString =
 
 uint16_t USBSD::getDesc(uint16_t wValue, uint16_t wIndex, const void **const descAddr)
 {
-    const void *addr = NULL;
+    const void *addr = 0;
     uint16_t size = 0;
 
     switch (wValue >> 8)
@@ -251,8 +251,8 @@ bool USBSD::decodeSCSICmd()
             break;
         }
 
-        writeStream2(&InquiryData, bytesTransferred, NULL);
-        nullStream(allocLen - bytesTransferred, NULL);
+        writeStream2(&InquiryData, bytesTransferred, 0);
+        nullStream(allocLen - bytesTransferred, 0);
         *p_ueintx &= ~(1<<txini | 1<<fifocon); // clear in
         cmdBlock.DataTransferLength -= bytesTransferred;
         success = true;
@@ -262,8 +262,8 @@ bool USBSD::decodeSCSICmd()
     {
         uint8_t AllocationLength = cmdBlock.cmdData[4];
         uint8_t BytesTransferred = min((size_t)AllocationLength, sizeof(senseData));
-        writeStream2(&senseData, BytesTransferred, NULL);
-        nullStream(AllocationLength - BytesTransferred, NULL);
+        writeStream2(&senseData, BytesTransferred, 0);
+        nullStream(AllocationLength - BytesTransferred, 0);
         *p_ueintx &= ~(1<<txini | 1<<fifocon); // clear in
         cmdBlock.DataTransferLength -= BytesTransferred;
         success = true;

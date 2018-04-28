@@ -19,10 +19,15 @@ ostream *gout;
 int main()
 {
     zei();
+#if defined (__AVR_ATmega32U4__)
+    CDC cdc;
+    USBStream cout(&cdc);
+#else
     DefaultUart s;
     *p_ucsr9a |= 1<<u2x9;
     *p_ubrr9 = 16;
     UartStream cout(&s);
+#endif
     gout = &cout;
 
     cout << "Initialize Ethernet...\r\n";
@@ -33,6 +38,7 @@ int main()
     w5100.setIPAddress(0);
     
     cout << "Starting DHCP...\r\n";
+    cout.flush();
     EthernetUDP udp(&eth);
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
@@ -41,10 +47,12 @@ int main()
     w5100.setSubnetMask(dhcp.subnetMask2());
     eth.addresses(cout);
     cout << "\r\n";
+    cout.flush();
 
     EthernetServer server = EthernetServer(&eth, 80);
     server.begin();
     cout << "Server started\r\n";
+    cout.flush();
     WebTest1 web(&cout);
 
     while (true)
@@ -55,5 +63,19 @@ int main()
 
     return 0;
 }
+
+#if defined (__AVR_ATmega32U4__)
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
+{
+    USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
+{
+    USB::instance->gen();
+}
+#endif
 
 

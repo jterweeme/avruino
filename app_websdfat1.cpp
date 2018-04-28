@@ -11,6 +11,7 @@ Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 #include "fatty.h"
 #include "webserver.h"
 #include "board.h"
+#include <avr/io.h>
 
 static UIPEthernetClass eth;
 static Fatty *g_zd;

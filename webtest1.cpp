@@ -16,6 +16,7 @@ void WebTest1::dispatch(Client &client)
     if (client)
     {
         *_serial << "Client\r\n";
+        _serial->flush();
         bool currentLineIsBlank = true;
 
         while (client.connected())

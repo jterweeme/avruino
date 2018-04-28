@@ -2,6 +2,7 @@
 #include "misc.h"
 #include <stdio.h>
 #include "uart.h"
+#include <avr/io.h>
 
 static constexpr uint8_t SAMPLES = 2;
 

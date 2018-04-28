@@ -228,8 +228,7 @@
     __result;                               \
 }))
 
-#include <avr/io.h>
-
+typedef uint32_t uint_farptr_t;
 
 
 #if defined (__AVR_HAVE_LPMX__)

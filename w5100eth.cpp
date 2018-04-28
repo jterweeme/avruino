@@ -25,5 +25,11 @@ uint32_t EthernetClass::gatewayIP()
     return ip;
 }
 
+uint16_t EthernetClass::peek(SOCKET s, uint8_t *buf)
+{
+    _nw->recv_data_processing(s, buf, 1, 1);
+    return 1;
+}
+
 
 

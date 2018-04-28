@@ -39,7 +39,7 @@ void close(SOCKET s)
     g_w5100->writeSnIR(s, 0xFF);
 }
 
-
+#if 0
 uint8_t listen(SOCKET s)
 {
     if (g_w5100->readSnSR(s) != SnSR::INIT)
@@ -48,6 +48,7 @@ uint8_t listen(SOCKET s)
     g_w5100->execCmdSn(s, Sock_LISTEN);
     return 1;
 }
+#endif
 
 uint8_t connect(SOCKET s, uint8_t * addr, uint16_t port)
 {
@@ -158,11 +159,13 @@ int16_t recv(SOCKET s, uint8_t *buf, int16_t len)
  * 		
  * @return
  */
+#if 0
 uint16_t peek(SOCKET s, uint8_t *buf)
 {
     g_w5100->recv_data_processing(s, buf, 1, 1);
     return 1;
 }
+#endif
 
 /**
  * @brief	This function is an application I/F function which is used to send the data for other then TCP mode. 
@@ -170,6 +173,7 @@ uint16_t peek(SOCKET s, uint8_t *buf)
  * 		
  * @return	This function return send data size for success else -1.
  */
+#if 0
 uint16_t sendto(SOCKET s, const uint8_t *buf, uint16_t len, uint8_t *addr, uint16_t port)
 {
     uint16_t ret = len > g_w5100->SSIZE ? g_w5100->SSIZE : len;
@@ -199,7 +203,7 @@ uint16_t sendto(SOCKET s, const uint8_t *buf, uint16_t len, uint8_t *addr, uint1
     }
     return ret;
 }
-
+#endif
 
 /**
  * @brief	This function is an application I/F function which is used to receive the data in other then
@@ -207,6 +211,7 @@ uint16_t sendto(SOCKET s, const uint8_t *buf, uint16_t len, uint8_t *addr, uint1
  * 	
  * @return	This function return received data size for success else -1.
  */
+#if 0
 uint16_t recvfrom(SOCKET s, uint8_t *buf, uint16_t len, uint8_t *addr, uint16_t *port)
 {
     uint8_t head[8];
@@ -264,57 +269,11 @@ uint16_t recvfrom(SOCKET s, uint8_t *buf, uint16_t len, uint8_t *addr, uint16_t 
     return data_len;
 }
 
-
-uint16_t igmpsend(SOCKET s, const uint8_t * buf, uint16_t len)
-{
-    uint16_t ret=0;
-
-    if (len > g_w5100->SSIZE) 
-        ret = g_w5100->SSIZE; // check size not to exceed MAX size.
-    else 
-        ret = len;
-
-    if (ret == 0)
-        return 0;
-
-    g_w5100->send_data_processing(s, (uint8_t *)buf, ret);
-    g_w5100->execCmdSn(s, Sock_SEND);
-
-    while ((g_w5100->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK ) 
-    {
-        //status = g_w5100->readSnSR(s);
-
-        if (g_w5100->readSnIR(s) & SnIR::TIMEOUT)
-        {
-            /* in case of igmp, if send fails, then socket closed */
-            /* if you want change, remove this code. */
-            close(s);
-            return 0;
-        }
-    }
-
-    g_w5100->writeSnIR(s, SnIR::SEND_OK);
-    return ret;
-}
-
 uint16_t bufferData(SOCKET s, uint16_t offset, const uint8_t* buf, uint16_t len)
 {
     uint16_t ret = len > g_w5100->getTXFreeSize(s) ? g_w5100->getTXFreeSize(s) : len;
     g_w5100->send_data_processing_offset(s, offset, buf, ret);
     return ret;
-}
-
-int startUDP(SOCKET s, uint8_t* addr, uint16_t port)
-{
-    if (((addr[0] == 0x00) && (addr[1] == 0x00) && (addr[2] == 0x00) && (addr[3] == 0x00)) ||
-        ((port == 0x00))) 
-    {
-        return 0;
-    }
-
-    g_w5100->writeSnDIPR(s, addr);
-    g_w5100->writeSnDPORT(s, port);
-    return 1;
 }
 
 int sendUDP(SOCKET s)
@@ -333,4 +292,6 @@ int sendUDP(SOCKET s)
     g_w5100->writeSnIR(s, SnIR::SEND_OK);
     return 1; // sent ok
 }
+#endif
+
 

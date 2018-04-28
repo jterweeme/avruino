@@ -1,7 +1,7 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 #include "analog.h"
-#include <string.h>
+#include "misc.h"
 #include "tft.h"
 
 class Frame
@@ -35,7 +35,7 @@ private:
     char _label[50] = {0};
 public:
     void draw(TFT *tft) const;
-    void label(const char *label) { strncpy(_label, label, 50); }
+    void label(const char *label) { my_strncpy(_label, label, 50); }
 };
 
 class Button : public Widget
@@ -50,7 +50,7 @@ public:
     inline uint16_t w() const { return _w; }
     inline uint16_t h() const { return _h; }
     void draw(TFT *tft) const;
-    void label(const char *label) { strncpy(_label, label, 10); }
+    void label(const char *label) { my_strncpy(_label, label, 10); }
     bool contains(TSPoint p) const;
 };
 

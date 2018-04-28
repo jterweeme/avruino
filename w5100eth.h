@@ -15,6 +15,7 @@ public:
     uint32_t localIP();
     uint32_t subnetMask();
     uint32_t gatewayIP();
+    uint16_t peek(SOCKET s, uint8_t *buf);
 };
 #endif
 

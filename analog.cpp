@@ -1,5 +1,6 @@
 #include "analog.h"
 #include "board.h"
+#include <avr/io.h>
 
 TSPoint TouchScreen::getPoint()
 {

@@ -65,6 +65,45 @@ void EthernetUDP::stop()
     _sock = MAX_SOCK_NUM;
 }
 
+extern W5100Class *g_w5100;
+
+static int startUDP(SOCKET s, uint8_t* addr, uint16_t port)
+{
+    if (((addr[0] == 0x00) && (addr[1] == 0x00) && (addr[2] == 0x00) && (addr[3] == 0x00)) ||
+        ((port == 0x00)))
+    {
+        return 0;
+    }
+
+    g_w5100->writeSnDIPR(s, addr);
+    g_w5100->writeSnDPORT(s, port);
+    return 1;
+}
+
+static int sendUDP(SOCKET s)
+{
+    g_w5100->execCmdSn(s, Sock_SEND);
+
+    while ((g_w5100->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK )
+    {
+        if (g_w5100->readSnIR(s) & SnIR::TIMEOUT)
+        {
+            g_w5100->writeSnIR(s, (SnIR::SEND_OK|SnIR::TIMEOUT));
+            return 0;
+        }
+    }
+
+    g_w5100->writeSnIR(s, SnIR::SEND_OK);
+    return 1; // sent ok
+}
+
+static uint16_t bufferData(SOCKET s, uint16_t offset, const uint8_t* buf, uint16_t len)
+{
+    uint16_t ret = len > g_w5100->getTXFreeSize(s) ? g_w5100->getTXFreeSize(s) : len;
+    g_w5100->send_data_processing_offset(s, offset, buf, ret);
+    return ret;
+}
+
 int EthernetUDP::beginPacket(uint32_t ip, uint16_t port)
 {
     _offset = 0;
@@ -135,9 +174,9 @@ int EthernetUDP::read(unsigned char* buffer, size_t len)
         }
         else
         {
-        // too much data for the buffer, 
-        // grab as much as will fit
-        got = recv(_sock, buffer, len);
+            // too much data for the buffer, 
+            // grab as much as will fit
+            got = recv(_sock, buffer, len);
         }
 
         if (got > 0)
@@ -162,14 +201,15 @@ EthernetUDP::EthernetUDP(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_
 
 int EthernetUDP::peek()
 {
-  uint8_t b;
-  // Unlike recv, peek doesn't check to see if there's any data available, so we must.
-  // If the user hasn't called parsePacket yet then return nothing otherwise they
-  // may get the UDP header
-  if (!_remaining)
-    return -1;
-  ::peek(_sock, &b);
-  return b;
+    uint8_t b;
+    // Unlike recv, peek doesn't check to see if there's any data available, so we must.
+    // If the user hasn't called parsePacket yet then return nothing otherwise they
+    // may get the UDP header
+    if (!_remaining)
+        return -1;
+
+    _eth->peek(_sock, &b);
+    return b;
 }
 
 
