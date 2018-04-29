@@ -10,8 +10,8 @@ private:
 public:
     W5100Class *nw() { return _nw; }
     EthernetClass(W5100Class *nw) : _nw(nw) { }
-    static uint8_t _state[MAX_SOCK_NUM];
-    static uint16_t _server_port[MAX_SOCK_NUM];
+    uint8_t _state[MAX_SOCK_NUM] = {0,0,0,0};
+    uint16_t _server_port[MAX_SOCK_NUM] = {0,0,0,0};
     uint32_t localIP();
     uint32_t subnetMask();
     uint32_t gatewayIP();

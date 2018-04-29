@@ -10,11 +10,11 @@ static const uint16_t UIP_UDP_MAXDATALEN = 1500;
 class UIPUDP : public UDP
 {
 private:
-    struct uip_udp_conn *_uip_udp_conn = NULL;
+    struct uip_udp_conn *_uip_udp_conn = 0;
     uip_udp_userdata_t appdata;
     UIPEthernetClass * const _eth;
 public:
-    UIPUDP(UIPEthernetClass *eth) : _eth(eth) { my_memset(&appdata, 0, sizeof(appdata)); }
+    UIPUDP(UIPEthernetClass *eth);
     uint8_t begin(uint16_t);
     void stop();
     int beginPacket(uint32_t ip, uint16_t port);

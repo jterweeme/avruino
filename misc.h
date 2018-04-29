@@ -2,7 +2,7 @@
 #define _MISC_H_
 #include "storage.h"
 
-static inline void *my_memcpy(void *dst, void *src, size_t n)
+static inline void *my_memcpy(void *dst, const void *src, size_t n)
 {
     uint8_t *csrc = (uint8_t *)src;
     uint8_t *cdst = (uint8_t *)dst;

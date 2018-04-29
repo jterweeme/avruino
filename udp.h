@@ -42,7 +42,6 @@ public:
     virtual uint8_t begin(uint16_t) =0;
     virtual void stop() =0;  // Finish with the UDP socket
     virtual int beginPacket(uint32_t ip, uint16_t port) { return 0; }
-    //virtual int beginPacket(const char *host, uint16_t port) =0;
     virtual int endPacket() { return 0; }
     virtual size_t write(uint8_t) { return 0; }
     virtual size_t write(const uint8_t *buffer, size_t size) { return 0; }

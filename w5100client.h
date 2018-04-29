@@ -1,7 +1,7 @@
 #ifndef _ETHERNETCLIENT_H_
 #define _ETHERNETCLIENT_H_
 #include "client.h"
-#include "w5100eth.h"
+#include "w5100ip.h"
 
 class EthernetClient : public Client
 {

@@ -1,8 +1,8 @@
-#include "w5100eth.h"
+#include "w5100ip.h"
 
 // XXX: don't make assumptions about the value of MAX_SOCK_NUM.
-uint8_t EthernetClass::_state[MAX_SOCK_NUM] = { 0, 0, 0, 0 };
-uint16_t EthernetClass::_server_port[MAX_SOCK_NUM] = { 0, 0, 0, 0 };
+//uint8_t EthernetClass::_state[MAX_SOCK_NUM] = { 0, 0, 0, 0 };
+//uint16_t EthernetClass::_server_port[MAX_SOCK_NUM] = { 0, 0, 0, 0 };
 
 uint32_t EthernetClass::localIP()
 {

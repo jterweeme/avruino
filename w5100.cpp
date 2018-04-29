@@ -7,18 +7,14 @@
  * published by the Free Software Foundation.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <avr/interrupt.h>
-#include "w5100.h"
-
 #ifndef F_CPU
 #define F_CPU 16000000
 #endif
 
 #include <util/delay.h>
 #include "board.h"
-#include <avr/pgmspace.h>
+#include "w5100.h"
+
 
 #define SPI_CLOCK_DIV4 0x00
 #define SPI_CLOCK_DIV16 0x01
@@ -47,12 +43,10 @@ public:
     static void setClockDivider(uint8_t);
 };
 
-//extern SPIClass SPI;
-
 uint8_t SPIClass::transfer(uint8_t _data)
 {
     *p_spdr = _data;
-    while (!(SPSR & _BV(SPIF)));
+    while ((*p_spsr & 1<<spif) == 0);
     return *p_spdr;
 }
 
@@ -88,13 +82,13 @@ void SPIClass::setBitOrder(uint8_t bitOrder)
 
 void SPIClass::setDataMode(uint8_t mode)
 {
-    *p_spcr = (SPCR & ~SPI_MODE_MASK) | mode;
+    *p_spcr = (*p_spcr & ~SPI_MODE_MASK) | mode;
 }
 
 void SPIClass::setClockDivider(uint8_t rate)
 {
-    *p_spcr = (SPCR & ~SPI_CLOCK_MASK) | (rate & SPI_CLOCK_MASK);
-    *p_spsr = (SPSR & ~SPI_2XCLOCK_MASK) | ((rate >> 2) & SPI_2XCLOCK_MASK);
+    *p_spcr = (*p_spcr & ~SPI_CLOCK_MASK) | (rate & SPI_CLOCK_MASK);
+    *p_spsr = (*p_spsr & ~SPI_2XCLOCK_MASK) | ((rate >> 2) & SPI_2XCLOCK_MASK);
 }
 
 #define TX_RX_MAX_BUF_SIZE 2048
@@ -173,7 +167,6 @@ void W5100Class::send_data_processing_offset(SOCKET s, uint16_t data_offset,
   ptr += len;
   writeSnTX_WR(s, ptr);
 }
-
 
 void W5100Class::recv_data_processing(SOCKET s, uint8_t *data, uint16_t len, uint8_t peek)
 {

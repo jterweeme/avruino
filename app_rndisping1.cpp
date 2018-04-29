@@ -1,13 +1,11 @@
-#include <avr/pgmspace.h>
-
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
+#include <avr/pgmspace.h>
 #include "busby.h"
-
-#define NULL 0
+#include "misc.h"
 
 #define SWAPENDIAN_16(x)   (uint16_t)((((x) & 0xFF00) >> 8) | (((x) & 0x00FF) << 8))
 
@@ -26,80 +24,6 @@
 
 #define FIXED_CONTROL_ENDPOINT_SIZE      8
 #define USB_Device_ControlEndpointSize FIXED_CONTROL_ENDPOINT_SIZE
-
-static inline uint8_t Endpoint_BytesToEPSizeMask(const uint16_t Bytes)
-{
-    uint8_t MaskVal = 0;
-    uint16_t CheckBytes = 8;
-
-    while (CheckBytes < Bytes)
-    {
-        MaskVal++;
-        CheckBytes <<= 1;
-    }
-
-    return MaskVal << EPSIZE0;
-}
-
-static inline void Endpoint_SelectEndpoint(const uint8_t Address)
-{
-    UENUM = (Address & ENDPOINT_EPNUM_MASK);
-}
-
-static bool Endpoint_ConfigureEndpoint_Prv(const uint8_t Number, const uint8_t UECFG0XData,
-                                    const uint8_t UECFG1XData)
-{
-    for (uint8_t EPNum = Number; EPNum < ENDPOINT_TOTAL_ENDPOINTS; EPNum++)
-    {
-        uint8_t UECFG0XTemp;
-        uint8_t UECFG1XTemp;
-        uint8_t UEIENXTemp;
-
-        Endpoint_SelectEndpoint(EPNum);
-
-        if (EPNum == Number)
-        {
-            UECFG0XTemp = UECFG0XData;
-            UECFG1XTemp = UECFG1XData;
-            UEIENXTemp  = 0;
-        }
-        else
-        {
-            UECFG0XTemp = UECFG0X;
-            UECFG1XTemp = UECFG1X;
-            UEIENXTemp  = UEIENX;
-        }
-
-        if (!(UECFG1XTemp & (1 << ALLOC)))
-            continue;
-
-        UECONX &= ~(1<<EPEN);
-        UECFG1X &= ~(1 << ALLOC);
-        UECONX |= 1<<EPEN;
-        UECFG0X = UECFG0XTemp;
-        UECFG1X = UECFG1XTemp;
-        UEIENX = UEIENXTemp;
-
-        if ((UESTA0X & 1<<CFGOK) == 0)
-            return false;
-    }
-
-    Endpoint_SelectEndpoint(Number);
-    return true;
-}
-
-static inline bool Endpoint_ConfigureEndpoint(const uint8_t Address,
-                         const uint8_t Type, const uint16_t Size, const uint8_t Banks)
-{
-    uint8_t Number = (Address & ENDPOINT_EPNUM_MASK);
-
-    if (Number >= ENDPOINT_TOTAL_ENDPOINTS)
-        return false;
-
-    return Endpoint_ConfigureEndpoint_Prv(Number,
-                        ((Type << EPTYPE0) | ((Address & ENDPOINT_DIR_IN) ? (1 << EPDIR) : 0)),
-          ((1 << ALLOC) | ((Banks > 1) ? (1 << EPBK0) : 0) | Endpoint_BytesToEPSizeMask(Size)));
-}
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,
@@ -264,27 +188,15 @@ static constexpr uint32_t
     OID_802_3_XMIT_ONE_COLLISION   = 0x01020102,
     OID_802_3_XMIT_MORE_COLLISIONS = 0x01020103;
 
-static inline int myMemcmp(const void* s1, const void* s2,size_t n)
-{
-    const uint8_t *p1 = (const uint8_t *)s1, *p2 = (const uint8_t *)s2;
-
-    while (n--)
-    {
-        if (*p1 != *p2)
-            return *p1 - *p2;
-
-        p1++,p2++;
-    }
-
-    return 0;
-}
-
-#define MAC_COMPARE(MAC1, MAC2)          (myMemcmp(MAC1, MAC2, sizeof(MacAddr)) == 0)
-
 struct MacAddr
 {
     uint8_t Octets[6];
 } __attribute__ ((packed));
+
+static bool MAC_COMPARE(const MacAddr *mac1, const MacAddr *mac2)
+{
+    return my_memcmp(mac1, mac2, 6);
+}
 
 typedef struct
 {
@@ -403,10 +315,8 @@ typedef struct
 #define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 1)
 #define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
 #define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 3)
-#define CDC_TXRX_EPSIZE                64
-#define CDC_NOTIFICATION_EPSIZE        8
-
-
+static constexpr uint8_t CDC_TXRX_EPSIZE = 64;
+static constexpr uint8_t CDC_NOTIFICATION_EPSIZE = 8;
 
 class RNDIS : public USB
 {
@@ -436,9 +346,9 @@ public:
 };
 
 RNDIS::RNDIS() :
-    _inpoint(CDC_TX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1),
-    _outpoint(CDC_RX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1),
-    _notif(CDC_NOTIFICATION_EPADDR, EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1)
+    _inpoint(CDC_TX_EPADDR, CDC_TXRX_EPSIZE, EP_TYPE_BULK, 1),
+    _outpoint(CDC_RX_EPADDR, CDC_TXRX_EPSIZE, EP_TYPE_BULK, 1),
+    _notif(CDC_NOTIFICATION_EPADDR, CDC_NOTIFICATION_EPSIZE, EP_TYPE_INTERRUPT, 1)
 {
     *p_usbcon &= ~(1<<otgpade);
 
@@ -545,12 +455,7 @@ typedef struct
     } State;
 } USB_ClassInfo_RNDIS_Device_t;
 
-void EVENT_USB_Device_ConfigurationChanged(void)
-{
-	Endpoint_ConfigureEndpoint(CDC_TX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1);
-	Endpoint_ConfigureEndpoint(CDC_RX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1);
-	Endpoint_ConfigureEndpoint(CDC_NOTIFICATION_EPADDR, EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-}
+
 
 static const uint32_t PROGMEM AdapterSupportedOIDList[]  =
 {
@@ -685,16 +590,14 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_INITIALIZE_MSG:
     {
         ResponseReady = true;
-
-        RNDIS_Initialize_Message_t *
-        INITIALIZE_Message  = (RNDIS_Initialize_Message_t*)&RNDISMessageBuffer;
+        RNDIS_Initialize_Message_t *initMsg = (RNDIS_Initialize_Message_t*)&RNDISMessageBuffer;
 
         RNDIS_Initialize_Complete_t *
         INITIALIZE_Response = (RNDIS_Initialize_Complete_t*)&RNDISMessageBuffer;
 
         INITIALIZE_Response->MessageType           = REMOTE_NDIS_INITIALIZE_CMPLT;
         INITIALIZE_Response->MessageLength         = sizeof(RNDIS_Initialize_Complete_t);
-        INITIALIZE_Response->RequestId             = INITIALIZE_Message->RequestId;
+        INITIALIZE_Response->RequestId             = initMsg->RequestId;
         INITIALIZE_Response->Status                = REMOTE_NDIS_STATUS_SUCCESS;
         INITIALIZE_Response->MajorVersion          = REMOTE_NDIS_VERSION_MAJOR;
         INITIALIZE_Response->MinorVersion          = REMOTE_NDIS_VERSION_MINOR;
@@ -772,26 +675,24 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_RESET_MSG:
     {
         ResponseReady = true;
-        RNDIS_Reset_Complete_t* RESET_Response = (RNDIS_Reset_Complete_t*)&RNDISMessageBuffer;
-        RESET_Response->MessageType         = REMOTE_NDIS_RESET_CMPLT;
-        RESET_Response->MessageLength       = sizeof(RNDIS_Reset_Complete_t);
-        RESET_Response->Status              = REMOTE_NDIS_STATUS_SUCCESS;
-        RESET_Response->AddressingReset     = 0;
+        RNDIS_Reset_Complete_t *RESET_Response = (RNDIS_Reset_Complete_t*)&RNDISMessageBuffer;
+        RESET_Response->MessageType = REMOTE_NDIS_RESET_CMPLT;
+        RESET_Response->MessageLength = sizeof(RNDIS_Reset_Complete_t);
+        RESET_Response->Status = REMOTE_NDIS_STATUS_SUCCESS;
+        RESET_Response->AddressingReset = 0;
     }
         break;
     case REMOTE_NDIS_KEEPALIVE_MSG:
     {
         ResponseReady = true;
-
-        RNDIS_KeepAlive_Message_t *
-        KEEPALIVE_Message = (RNDIS_KeepAlive_Message_t*)&RNDISMessageBuffer;
+        RNDIS_KeepAlive_Message_t *KEEPALIVE_msg = (RNDIS_KeepAlive_Message_t*)&RNDISMessageBuffer;
 
         RNDIS_KeepAlive_Complete_t *
-        KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&RNDISMessageBuffer;
+            KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&RNDISMessageBuffer;
 
         KEEPALIVE_Response->MessageType     = REMOTE_NDIS_KEEPALIVE_CMPLT;
         KEEPALIVE_Response->MessageLength   = sizeof(RNDIS_KeepAlive_Complete_t);
-        KEEPALIVE_Response->RequestId       = KEEPALIVE_Message->RequestId;
+        KEEPALIVE_Response->RequestId       = KEEPALIVE_msg->RequestId;
         KEEPALIVE_Response->Status          = REMOTE_NDIS_STATUS_SUCCESS;
     }
         break;
@@ -842,12 +743,9 @@ uint16_t RNDIS::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const de
 
 void RNDIS::configure()
 {
-#if 0
     configureEndpoint(_inpoint);
     configureEndpoint(_outpoint);
     configureEndpoint(_notif);
-#endif
-    EVENT_USB_Device_ConfigurationChanged();
 }
 
 typedef struct
@@ -859,10 +757,6 @@ typedef struct
 {
     uint8_t Octets[4];
 } IP_Address_t;
-
-
-#define DEFAULT_TTL                      128
-#define IP_COMPARE(IP1, IP2)             (myMemcmp(IP1, IP2, sizeof(IP_Address_t)) == 0)
 
 typedef struct
 {
@@ -976,10 +870,15 @@ uint16_t RNDIS::Ethernet_Checksum16(void* Data, uint16_t Bytes)
     return ~Checksum;
 }
 
+static bool IP_COMPARE(const IP_Address_t *ip1, const IP_Address_t *ip2)
+{
+    return my_memcmp(ip1, ip2, sizeof(IP_Address_t));
+}
+
 int16_t RNDIS::IP_ProcessIPPacket(void* InDataStart, void* OutDataStart)
 {
-    IP_Header_t* IPHeaderIN  = (IP_Header_t*)InDataStart;
-    IP_Header_t* IPHeaderOUT = (IP_Header_t*)OutDataStart;
+    IP_Header_t *IPHeaderIN  = (IP_Header_t*)InDataStart;
+    IP_Header_t *IPHeaderOUT = (IP_Header_t*)OutDataStart;
     uint16_t HeaderLengthBytes = (IPHeaderIN->HeaderLength * sizeof(uint32_t));
     int16_t RetSize = 0;
 
@@ -1008,7 +907,7 @@ int16_t RNDIS::IP_ProcessIPPacket(void* InDataStart, void* OutDataStart)
         IPHeaderOUT->Identification = 0;
         IPHeaderOUT->HeaderChecksum = 0;
         IPHeaderOUT->Protocol = IPHeaderIN->Protocol;
-        IPHeaderOUT->TTL = DEFAULT_TTL;
+        IPHeaderOUT->TTL = 128;
         IPHeaderOUT->SourceAddress = IPHeaderIN->DestinationAddress;
         IPHeaderOUT->DestinationAddress = IPHeaderIN->SourceAddress;
         IPHeaderOUT->HeaderChecksum = Ethernet_Checksum16(IPHeaderOUT, sizeof(IP_Header_t));
@@ -1045,20 +944,9 @@ int16_t RNDIS::ARP_ProcessARPPacket(void *inStart, void *outStart)
     return 0;
 }
 
-static inline void *myMemcpy(void *dest, const void *src, size_t n)
-{
-    char *dp = (char *)dest;
-    const char *sp = (const char *)src;
-
-    while (n--)
-        *dp++ = *sp++;
-
-    return dest;
-}
-
 static inline void *myMemmove(void *dest, const void *src, size_t n)
 {
-    return myMemcpy(dest, src, n);
+    return my_memcpy(dest, src, n);
 }
 
 int16_t RNDIS::ICMP_ProcessICMPPacket(void* InDataStart, void* OutDataStart)
@@ -1298,16 +1186,6 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
     return Size;
 }
 
-static inline void *myMemset(void *s, int c, size_t n)
-{
-    uint8_t *p = (uint8_t *)s;
-
-    while (n--)
-        *p++ = (uint8_t)c;
-
-    return s;
-}
-
 void RNDIS::rndisTask()
 {
 	selectEndpoint(CDC_NOTIFICATION_EPADDR);
@@ -1352,7 +1230,7 @@ void RNDIS::rndisTask()
 
         if ((*p_ueintx & 1<<txini) && frameOUT.len)
         {
-            myMemset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
+            my_memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
             RNDISPacketHeader.MessageType   = REMOTE_NDIS_PACKET_MSG;
             RNDISPacketHeader.MessageLength = sizeof(RNDIS_Packet_Message_t) + frameOUT.len;
 

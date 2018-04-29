@@ -26,10 +26,10 @@
  * bjoern@cs.stanford.edu 12/30/2008
  */
 
-#include "w5100eth.h"
 #include "w5100udp.h"
+#include "misc.h"
 
-uint8_t EthernetUDP::begin(uint16_t port)
+uint8_t W5100UDP::begin(uint16_t port)
 {
     if (_sock != MAX_SOCK_NUM)
         return 0;
@@ -54,19 +54,17 @@ uint8_t EthernetUDP::begin(uint16_t port)
     return 1;
 }
 
-void EthernetUDP::stop()
+void W5100UDP::stop()
 {
     if (_sock == MAX_SOCK_NUM)
         return;
 
     _eth->close(_sock);
-    EthernetClass::_server_port[_sock] = 0;
+    _eth->_server_port[_sock] = 0;
     _sock = MAX_SOCK_NUM;
 }
 
-extern W5100Class *g_w5100;
-
-static int startUDP(SOCKET s, uint8_t* addr, uint16_t port)
+int W5100UDP::startUDP(SOCKET s, uint8_t* addr, uint16_t port)
 {
     if (((addr[0] == 0x00) && (addr[1] == 0x00) && (addr[2] == 0x00) && (addr[3] == 0x00)) ||
         ((port == 0x00)))
@@ -74,49 +72,49 @@ static int startUDP(SOCKET s, uint8_t* addr, uint16_t port)
         return 0;
     }
 
-    g_w5100->writeSnDIPR(s, addr);
-    g_w5100->writeSnDPORT(s, port);
+    _eth->nw()->writeSnDIPR(s, addr);
+    _eth->nw()->writeSnDPORT(s, port);
     return 1;
 }
 
-static int sendUDP(SOCKET s)
+int W5100UDP::sendUDP(SOCKET s)
 {
-    g_w5100->execCmdSn(s, Sock_SEND);
+    _eth->nw()->execCmdSn(s, Sock_SEND);
 
-    while ((g_w5100->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK )
+    while ((_eth->nw()->readSnIR(s) & SnIR::SEND_OK) != SnIR::SEND_OK)
     {
-        if (g_w5100->readSnIR(s) & SnIR::TIMEOUT)
+        if (_eth->nw()->readSnIR(s) & SnIR::TIMEOUT)
         {
-            g_w5100->writeSnIR(s, (SnIR::SEND_OK|SnIR::TIMEOUT));
+            _eth->nw()->writeSnIR(s, (SnIR::SEND_OK|SnIR::TIMEOUT));
             return 0;
         }
     }
 
-    g_w5100->writeSnIR(s, SnIR::SEND_OK);
+    _eth->nw()->writeSnIR(s, SnIR::SEND_OK);
     return 1; // sent ok
 }
 
-static uint16_t bufferData(SOCKET s, uint16_t offset, const uint8_t* buf, uint16_t len)
+uint16_t W5100UDP::bufferData(SOCKET s, uint16_t offset, const uint8_t* buf, uint16_t len)
 {
-    uint16_t ret = len > g_w5100->getTXFreeSize(s) ? g_w5100->getTXFreeSize(s) : len;
-    g_w5100->send_data_processing_offset(s, offset, buf, ret);
+    uint16_t ret = len > _eth->nw()->getTXFreeSize(s) ? _eth->nw()->getTXFreeSize(s) : len;
+    _eth->nw()->send_data_processing_offset(s, offset, buf, ret);
     return ret;
 }
 
-int EthernetUDP::beginPacket(uint32_t ip, uint16_t port)
+int W5100UDP::beginPacket(uint32_t ip, uint16_t port)
 {
     _offset = 0;
     return startUDP(_sock, (uint8_t *)&ip, port);
 }
 
-size_t EthernetUDP::write(const uint8_t *buffer, size_t size)
+size_t W5100UDP::write(const uint8_t *buffer, size_t size)
 {
     uint16_t bytes_written = bufferData(_sock, _offset, buffer, size);
     _offset += bytes_written;
     return bytes_written;
 }
 
-int EthernetUDP::parsePacket()
+int W5100UDP::parsePacket()
 {
     // discard any remaining bytes in the last packet
     flush();
@@ -145,7 +143,7 @@ int EthernetUDP::parsePacket()
     return 0;
 }
 
-int EthernetUDP::read()
+int W5100UDP::read()
 {
   uint8_t byte;
 
@@ -160,7 +158,7 @@ int EthernetUDP::read()
   return -1;
 }
 
-int EthernetUDP::read(unsigned char* buffer, size_t len)
+int W5100UDP::read(unsigned char* buffer, size_t len)
 {
     if (_remaining > 0)
     {
@@ -189,16 +187,16 @@ int EthernetUDP::read(unsigned char* buffer, size_t len)
     return -1;
 }
 
-int EthernetUDP::endPacket()
+int W5100UDP::endPacket()
 {
     return sendUDP(_sock);
 }
 
-EthernetUDP::EthernetUDP(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM)
+W5100UDP::W5100UDP(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM)
 {
 }
 
-int EthernetUDP::peek()
+int W5100UDP::peek()
 {
     uint8_t b;
     // Unlike recv, peek doesn't check to see if there's any data available, so we must.

@@ -1,4 +1,5 @@
 #include "uip_udp.h"
+#include "misc.h"
 
 #define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define uip_poll()       (uip_flags & UIP_POLL)
@@ -31,6 +32,11 @@ void UIPUDP::stop()
         _eth->nw()->freeBlock(appdata.packet_out);
         my_memset(&appdata,0,sizeof(appdata));
     }
+}
+
+UIPUDP::UIPUDP(UIPEthernetClass *eth) : _eth(eth)
+{
+    my_memset(&appdata, 0, sizeof(appdata));
 }
 
 #define uip_ip_addr(addr, ip) do { \

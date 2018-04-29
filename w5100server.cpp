@@ -22,7 +22,7 @@ void EthernetServer::begin()
         {
             _eth->socket(sock, SnMR::TCP, _port, 0);
             listen(sock);
-            EthernetClass::_server_port[sock] = _port;
+            _eth->_server_port[sock] = _port;
             break;
         }
     }
@@ -40,15 +40,12 @@ void EthernetServer::accept()
     {
         EthernetClient client(_eth, sock);
 
-        if (EthernetClass::_server_port[sock] == _port)
+        if (_eth->_server_port[sock] == _port)
         {
-            if (client.status() == SnSR::LISTEN) {
+            if (client.status() == SnSR::LISTEN)
                 listening = 1;
-            } 
             else if (client.status() == SnSR::CLOSE_WAIT && !client.available())
-            {
                 client.stop();
-            }
         }
     }
 
@@ -64,14 +61,11 @@ EthernetClient EthernetServer::available()
     {
         EthernetClient client(_eth, sock);
 
-        if (EthernetClass::_server_port[sock] == _port &&
-            (client.status() == SnSR::ESTABLISHED ||
+        if (_eth->_server_port[sock] == _port && (client.status() == SnSR::ESTABLISHED ||
             client.status() == SnSR::CLOSE_WAIT))
         {
-            if (client.available()) {
-                // XXX: don't always pick the lowest numbered socket.
-                return client;
-            }
+            if (client.available())
+                return client;  // don't always pick the lowest numbered socket.
         }
     }
 
@@ -104,23 +98,24 @@ Client EthernetServer::available2()
 
 size_t EthernetServer::write(uint8_t b) 
 {
-  return write(&b, 1);
+    return write(&b, 1);
 }
 
 size_t EthernetServer::write(const uint8_t *buffer, size_t size) 
 {
-  size_t n = 0;
-  
-  accept();
+    size_t n = 0;
+    accept();
 
-  for (int sock = 0; sock < MAX_SOCK_NUM; sock++) {
-    EthernetClient client(_eth, sock);
+    for (int sock = 0; sock < MAX_SOCK_NUM; sock++)
+    {
+        EthernetClient client(_eth, sock);
 
-    if (EthernetClass::_server_port[sock] == _port &&
-      client.status() == SnSR::ESTABLISHED) {
-      n += client.write(buffer, size);
+        if (_eth->_server_port[sock] == _port && client.status() == SnSR::ESTABLISHED)
+            n += client.write(buffer, size);
     }
-  }
   
-  return n;
+    return n;
 }
+
+
+

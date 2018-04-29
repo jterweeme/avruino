@@ -1,12 +1,11 @@
 #ifndef _W5100UDP_H_
 #define _W5100UDP_H_
 #include "udp.h"
-
-class EthernetClass;
+#include "w5100ip.h"
 
 #define UDP_TX_PACKET_MAX_SIZE 24
 
-class EthernetUDP : public UDP
+class W5100UDP : public UDP
 {
 private:
     EthernetClass * const _eth;
@@ -16,8 +15,11 @@ private:
     uint16_t _remotePort; // remote port for the incoming packet whilst it's being processed
     uint16_t _offset; // offset into the packet being sent
     uint16_t _remaining; // remaining bytes of incoming packet yet to be processed
+    int sendUDP(SOCKET s);
+    int startUDP(SOCKET s, uint8_t *addr, uint16_t port);
+    uint16_t bufferData(SOCKET s, uint16_t offset, const uint8_t *buf, uint16_t len);
 public:
-    EthernetUDP(EthernetClass * const eth);
+    W5100UDP(EthernetClass * const eth);
     virtual uint8_t begin(uint16_t);	// initializeo sockets available to use
     virtual void stop();  // Finish with the UDP socket
     virtual int beginPacket(uint32_t ip, uint16_t port);

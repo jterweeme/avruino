@@ -39,7 +39,7 @@ int main()
     
     cout << "Starting DHCP...\r\n";
     cout.flush();
-    EthernetUDP udp(&eth);
+    W5100UDP udp(&eth);
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     w5100.setIPAddress(dhcp.localIp());

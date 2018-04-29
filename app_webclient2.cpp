@@ -29,7 +29,7 @@ int main()
     cout << "Starting DHCP...\r\n";
     cout.flush();
     EthernetClass eth(&w5100);
-    EthernetUDP udp(&eth);
+    W5100UDP udp(&eth);
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     w5100.setIPAddress(dhcp.localIp());
@@ -38,7 +38,7 @@ int main()
     eth.addresses(cout);
     cout << "\r\n";
 
-    EthernetUDP udp2(&eth);
+    W5100UDP udp2(&eth);
     DNSClient dns(&udp2);
     dns.begin(0x08080808);
     uint32_t remote_addr;
