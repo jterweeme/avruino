@@ -174,7 +174,7 @@ app_ringtone1.elf: app_ringtone1.o pinport.o uart.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
 app_rndisping1.elf: app_rndisping1.o busby.o
-app_rndisbridge1.elf: app_rndisbridge1.o busby.o enc28j60.o mempool.o
+app_rndisbridge1.elf: app_rndisbridge1.o busby.o w5100.o mempool.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_sdmbr1.elf: app_sdmbr1.o zd2card.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -211,11 +211,11 @@ app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
     misc.h storage.h pinport.h types.h w5100ip.h w5100.h eth.h mempool.h client.h \
-    udp.h w5100server.h w5100udp.h w5100client.h uart.h dhcp.h
+    udp.h w5100udp.h w5100client.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 
-app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h w5100server.h \
+app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
     w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
     stream.h types.h w5100udp.h udp.h stream2.h w5100.h \
     w5100ip.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
@@ -244,8 +244,8 @@ app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
-app_rndisping1.o: app_rndisping1.cpp
-app_rndisbridge1.o: app_rndisbridge1.cpp bogota.h busby.h enc28j60.h
+app_rndisping1.o: app_rndisping1.cpp busby.h misc.h
+app_rndisbridge1.o: app_rndisbridge1.cpp busby.h enc28j60.h
 app_segment1.o: app_segment1.cpp
 app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h stream.h
 app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
@@ -268,7 +268,6 @@ app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_webclient2.o: app_webclient2.cpp
 analog.o: analog.cpp analog.h
-bogota.o: bogota.cpp bogota.h busby.h
 busby.o: busby.cpp
 button.o: button.cpp button.h analog.h tft.h
 calc.o: calc.cpp calc.h types.h
@@ -296,7 +295,7 @@ vgax.o: vgax.cpp vgax.h
 w5100.o: w5100.cpp w5100.h
 w5100client.o: w5100client.cpp w5100client.h
 w5100ip.o: w5100ip.cpp w5100ip.h w5100.h eth.h
-w5100server.o: w5100server.cpp w5100server.h
+w5100server.o: w5100server.cpp w5100client.h
 w5100udp.o: w5100udp.cpp w5100udp.h
 webserver.o: webserver.cpp webserver.h
 webtest1.o: webtest1.cpp webtest1.h

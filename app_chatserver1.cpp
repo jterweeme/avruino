@@ -19,7 +19,6 @@
  */
 
 #include "w5100client.h"
-#include "w5100server.h"
 #include "w5100udp.h"
 #include "dhcp.h"
 #include "board.h"

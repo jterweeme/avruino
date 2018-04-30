@@ -198,13 +198,13 @@ static bool MAC_COMPARE(const MacAddr *mac1, const MacAddr *mac2)
     return my_memcmp(mac1, mac2, 6);
 }
 
-typedef struct
+struct RNDIS_Message_Header_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
-} __attribute__ ((packed)) RNDIS_Message_Header_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDISPktMsg
 {
     uint32_t MessageType;
     uint32_t MessageLength;
@@ -217,9 +217,9 @@ typedef struct
     uint32_t PerPacketInfoLength;
     uint32_t VcHandle;
     uint32_t Reserved;
-} __attribute__ ((packed)) RNDIS_Packet_Message_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDISInitMsg
 {
     uint32_t MessageType;
     uint32_t MessageLength;
@@ -227,9 +227,9 @@ typedef struct
     uint32_t MajorVersion;
     uint32_t MinorVersion;
     uint32_t MaxTransferSize;
-} __attribute__ ((packed)) RNDIS_Initialize_Message_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDISInitComplete
 {
     uint32_t MessageType;
     uint32_t MessageLength;
@@ -244,41 +244,60 @@ typedef struct
     uint32_t PacketAlignmentFactor;
     uint32_t AFListOffset;
     uint32_t AFListSize;
-} __attribute__ ((packed)) RNDIS_Initialize_Complete_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_KeepAlive_Message_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t RequestId;
-} __attribute__ ((packed)) RNDIS_KeepAlive_Message_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_KeepAlive_Complete_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} __attribute__ ((packed)) RNDIS_KeepAlive_Complete_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_Reset_Complete_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t Status;
     uint32_t AddressingReset;
-} __attribute__ ((packed)) RNDIS_Reset_Complete_t;
+} __attribute__ ((packed));
 
-typedef struct
+struct RNDIS_Set_Message_t
 {
     uint32_t MessageType;
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Oid;
-    uint32_t InformationBufferLength;
-    uint32_t InformationBufferOffset;
+    uint32_t infoBufferLength;
+    uint32_t infoBufferOffset;
     uint32_t DeviceVcHandle;
-} __attribute__ ((packed)) RNDIS_Set_Message_t;
+} __attribute__ ((packed));
+
+struct RNDIS_Set_Complete_t
+{
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Status;
+} __attribute__ ((packed));
+
+struct RNDIS_Query_Message_t
+{
+    uint32_t MessageType;
+    uint32_t MessageLength;
+    uint32_t RequestId;
+    uint32_t Oid;
+    uint32_t infoBufferLength;
+    uint32_t infoBufferOffset;
+    uint32_t DeviceVcHandle;
+} __attribute__ ((packed));
 
 typedef struct
 {
@@ -286,27 +305,8 @@ typedef struct
     uint32_t MessageLength;
     uint32_t RequestId;
     uint32_t Status;
-} __attribute__ ((packed)) RNDIS_Set_Complete_t;
-
-typedef struct
-{
-    uint32_t MessageType;
-    uint32_t MessageLength;
-    uint32_t RequestId;
-    uint32_t Oid;
-    uint32_t InformationBufferLength;
-    uint32_t InformationBufferOffset;
-    uint32_t DeviceVcHandle;
-} __attribute__ ((packed)) RNDIS_Query_Message_t;
-
-typedef struct
-{
-    uint32_t MessageType;
-    uint32_t MessageLength;
-    uint32_t RequestId;
-    uint32_t Status;
-    uint32_t InformationBufferLength;
-    uint32_t InformationBufferOffset;
+    uint32_t infoBufferLength;
+    uint32_t infoBufferOffset;
 } __attribute__ ((packed)) RNDIS_Query_Complete_t;
 
 #define RNDIS_DEVICE_MIN_MESSAGE_BUFFER_LENGTH  sizeof(AdapterSupportedOIDList) + \
@@ -351,15 +351,8 @@ RNDIS::RNDIS() :
     _notif(CDC_NOTIFICATION_EPADDR, CDC_NOTIFICATION_EPSIZE, EP_TYPE_INTERRUPT, 1)
 {
     *p_usbcon &= ~(1<<otgpade);
-
-    if (!(USB_Options & USB_OPT_REG_DISABLED))
-        UHWCON |= 1<<UVREGE;
-    else
-        UHWCON &= ~(1<<UVREGE);
-
-    if ((USB_Options & USB_OPT_MANUAL_PLL) == 0)
-        PLLFRQ = 1<<PDIV2;
-
+    *p_uhwcon |= 1<<uvrege;
+    *p_pllfrq |= 1<<pdiv2;
     USBCON &= ~(1<<VBUSTE);
     UDIEN = 0;
     USBINT = 0;
@@ -393,8 +386,6 @@ static constexpr uint16_t
     ETHERTYPE_IPV4             = 0x0800,
     ETHERTYPE_ARP              = 0x0806,
     ETHERTYPE_RARP             = 0x8035,
-    ETHERTYPE_APPLETALK        = 0x809b,
-    ETHERTYPE_APPLETALKARP     = 0x80f3,
     ETHERTYPE_IEEE8021Q        = 0x8100,
     ETHERTYPE_NOVELLIPX        = 0x8137,
     ETHERTYPE_NOVELL           = 0x8138,
@@ -406,15 +397,9 @@ static constexpr uint16_t
     ETHERTYPE_PPPoEDISCOVERY   = 0x8863,
     ETHERTYPE_PPPoESESSION     = 0x8864,
     ETHERTYPE_EAPOVERLAN       = 0x888E,
-    ETHERTYPE_HYPERSCSI        = 0x889A,
-    ETHERTYPE_ATAOVERETHERNET  = 0x88A2,
-    ETHERTYPE_ETHERCAT         = 0x88A4,
-    ETHERTYPE_SERCOSIII        = 0x88CD,
     ETHERTYPE_CESoE            = 0x88D8,
     ETHERTYPE_MACSECURITY      = 0x88E5,
-    ETHERTYPE_FIBRECHANNEL     = 0x8906,
-    ETHERTYPE_QINQ             = 0x9100,
-    ETHERTYPE_VLLT             = 0xCAFE;
+    ETHERTYPE_FIBRECHANNEL     = 0x8906;
 
 static constexpr uint8_t
     PROTOCOL_ICMP = 1,
@@ -488,8 +473,9 @@ static const uint32_t PROGMEM AdapterSupportedOIDList[]  =
     OID_802_3_XMIT_MORE_COLLISIONS,
 };
 
-uint8_t RNDISMessageBuffer[sizeof(AdapterSupportedOIDList) + sizeof(RNDIS_Query_Complete_t)];
-static RNDIS_Message_Header_t* MessageHeader = (RNDIS_Message_Header_t*)&RNDISMessageBuffer;
+//uint8_t RNDISMessageBuffer[sizeof(AdapterSupportedOIDList) + sizeof(RNDIS_Query_Complete_t)];
+static uint8_t msgBuf[sizeof(AdapterSupportedOIDList) + sizeof(RNDIS_Query_Complete_t)];
+static RNDIS_Message_Header_t* MessageHeader = (RNDIS_Message_Header_t*)&msgBuf;
 
 bool RNDIS::ProcessNDISQuery(const uint32_t OId, void* QueryData, uint16_t QuerySize,
                              void* ResponseData, uint16_t* ResponseSize)
@@ -561,7 +547,7 @@ bool RNDIS::ProcessNDISQuery(const uint32_t OId, void* QueryData, uint16_t Query
         return true;
     case OID_GEN_MAXIMUM_TOTAL_SIZE:
         *ResponseSize = sizeof(uint32_t);
-        *((uint32_t*)ResponseData) = (sizeof(RNDISMessageBuffer) + ETHERNET_FRAME_SIZE_MAX);
+        *((uint32_t*)ResponseData) = (sizeof(msgBuf) + ETHERNET_FRAME_SIZE_MAX);
         return true;
     default:
         return false;
@@ -590,27 +576,21 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_INITIALIZE_MSG:
     {
         ResponseReady = true;
-        RNDIS_Initialize_Message_t *initMsg = (RNDIS_Initialize_Message_t*)&RNDISMessageBuffer;
-
-        RNDIS_Initialize_Complete_t *
-        INITIALIZE_Response = (RNDIS_Initialize_Complete_t*)&RNDISMessageBuffer;
-
-        INITIALIZE_Response->MessageType           = REMOTE_NDIS_INITIALIZE_CMPLT;
-        INITIALIZE_Response->MessageLength         = sizeof(RNDIS_Initialize_Complete_t);
-        INITIALIZE_Response->RequestId             = initMsg->RequestId;
-        INITIALIZE_Response->Status                = REMOTE_NDIS_STATUS_SUCCESS;
-        INITIALIZE_Response->MajorVersion          = REMOTE_NDIS_VERSION_MAJOR;
-        INITIALIZE_Response->MinorVersion          = REMOTE_NDIS_VERSION_MINOR;
-        INITIALIZE_Response->DeviceFlags           = REMOTE_NDIS_DF_CONNECTIONLESS;
-        INITIALIZE_Response->Medium                = REMOTE_NDIS_MEDIUM_802_3;
-        INITIALIZE_Response->MaxPacketsPerTransfer = 1;
-
-        INITIALIZE_Response->MaxTransferSize = sizeof(RNDIS_Packet_Message_t) +
-            ETHERNET_FRAME_SIZE_MAX;
-
-        INITIALIZE_Response->PacketAlignmentFactor = 0;
-        INITIALIZE_Response->AFListOffset = 0;
-        INITIALIZE_Response->AFListSize = 0;
+        RNDISInitMsg *initMsg = (RNDISInitMsg *)&msgBuf;
+        RNDISInitComplete *initResponse = (RNDISInitComplete *)&msgBuf;
+        initResponse->MessageType = REMOTE_NDIS_INITIALIZE_CMPLT;
+        initResponse->MessageLength = sizeof(RNDISInitComplete);
+        initResponse->RequestId = initMsg->RequestId;
+        initResponse->Status = REMOTE_NDIS_STATUS_SUCCESS;
+        initResponse->MajorVersion = REMOTE_NDIS_VERSION_MAJOR;
+        initResponse->MinorVersion = REMOTE_NDIS_VERSION_MINOR;
+        initResponse->DeviceFlags = REMOTE_NDIS_DF_CONNECTIONLESS;
+        initResponse->Medium = REMOTE_NDIS_MEDIUM_802_3;
+        initResponse->MaxPacketsPerTransfer = 1;
+        initResponse->MaxTransferSize = sizeof(RNDISPktMsg) + ETHERNET_FRAME_SIZE_MAX;
+        initResponse->PacketAlignmentFactor = 0;
+        initResponse->AFListOffset = 0;
+        initResponse->AFListSize = 0;
         CurrRNDISState = RNDIS_Initialized;
     }
         break;
@@ -622,51 +602,45 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_QUERY_MSG:
     {
         ResponseReady = true;
-        RNDIS_Query_Message_t*  QUERY_Message  = (RNDIS_Query_Message_t*)&RNDISMessageBuffer;
-        RNDIS_Query_Complete_t* QUERY_Response = (RNDIS_Query_Complete_t*)&RNDISMessageBuffer;
-        uint32_t                Query_Oid      = QUERY_Message->Oid;
-
-        void *QueryData = &RNDISMessageBuffer[sizeof(RNDIS_Message_Header_t) +
-                                                QUERY_Message->InformationBufferOffset];
-
-        void *ResponseData = &RNDISMessageBuffer[sizeof(RNDIS_Query_Complete_t)];
+        RNDIS_Query_Message_t *QUERY_Message = (RNDIS_Query_Message_t*)&msgBuf;
+        RNDIS_Query_Complete_t *QUERY_Response = (RNDIS_Query_Complete_t*)&msgBuf;
+        uint32_t Query_Oid = QUERY_Message->Oid;
+        void *QueryData = &msgBuf[sizeof(RNDIS_Message_Header_t)+QUERY_Message->infoBufferOffset];
+        void *ResponseData = &msgBuf[sizeof(RNDIS_Query_Complete_t)];
         uint16_t ResponseSize;
-
         QUERY_Response->MessageType = REMOTE_NDIS_QUERY_CMPLT;
         QUERY_Response->MessageLength = sizeof(RNDIS_Query_Complete_t);
 
-        if (ProcessNDISQuery(Query_Oid, QueryData, QUERY_Message->InformationBufferLength,
+        if (ProcessNDISQuery(Query_Oid, QueryData, QUERY_Message->infoBufferLength,
                              ResponseData, &ResponseSize))
         {
             QUERY_Response->Status = REMOTE_NDIS_STATUS_SUCCESS;
             QUERY_Response->MessageLength += ResponseSize;
-            QUERY_Response->InformationBufferLength = ResponseSize;
+            QUERY_Response->infoBufferLength = ResponseSize;
 
-            QUERY_Response->InformationBufferOffset = (sizeof(RNDIS_Query_Complete_t) -
+            QUERY_Response->infoBufferOffset = (sizeof(RNDIS_Query_Complete_t) -
                 sizeof(RNDIS_Message_Header_t));
         }
         else
         {
             QUERY_Response->Status = REMOTE_NDIS_STATUS_NOT_SUPPORTED;
-            QUERY_Response->InformationBufferLength = 0;
-            QUERY_Response->InformationBufferOffset = 0;
+            QUERY_Response->infoBufferLength = 0;
+            QUERY_Response->infoBufferOffset = 0;
         }
     }
         break;
     case REMOTE_NDIS_SET_MSG:
     {
         ResponseReady = true;
-        RNDIS_Set_Message_t *SET_Message = (RNDIS_Set_Message_t*)&RNDISMessageBuffer;
-        RNDIS_Set_Complete_t *SET_Response = (RNDIS_Set_Complete_t*)&RNDISMessageBuffer;
+        RNDIS_Set_Message_t *SET_Message = (RNDIS_Set_Message_t*)&msgBuf;
+        RNDIS_Set_Complete_t *SET_Response = (RNDIS_Set_Complete_t*)&msgBuf;
         uint32_t SET_Oid = SET_Message->Oid;
         SET_Response->MessageType = REMOTE_NDIS_SET_CMPLT;
         SET_Response->MessageLength = sizeof(RNDIS_Set_Complete_t);
         SET_Response->RequestId = SET_Message->RequestId;
+        void *SetData = &msgBuf[sizeof(RNDIS_Message_Header_t) + SET_Message->infoBufferOffset];
 
-        void *SetData = &RNDISMessageBuffer[sizeof(RNDIS_Message_Header_t) +
-                                    SET_Message->InformationBufferOffset];
-
-        if (ProcessNDISSet(SET_Oid, SetData, SET_Message->InformationBufferLength))
+        if (ProcessNDISSet(SET_Oid, SetData, SET_Message->infoBufferLength))
             SET_Response->Status = REMOTE_NDIS_STATUS_SUCCESS;
         else
             SET_Response->Status = REMOTE_NDIS_STATUS_NOT_SUPPORTED;
@@ -675,7 +649,7 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_RESET_MSG:
     {
         ResponseReady = true;
-        RNDIS_Reset_Complete_t *RESET_Response = (RNDIS_Reset_Complete_t*)&RNDISMessageBuffer;
+        RNDIS_Reset_Complete_t *RESET_Response = (RNDIS_Reset_Complete_t*)&msgBuf;
         RESET_Response->MessageType = REMOTE_NDIS_RESET_CMPLT;
         RESET_Response->MessageLength = sizeof(RNDIS_Reset_Complete_t);
         RESET_Response->Status = REMOTE_NDIS_STATUS_SUCCESS;
@@ -685,15 +659,12 @@ void RNDIS::ProcessRNDISControlMessage()
     case REMOTE_NDIS_KEEPALIVE_MSG:
     {
         ResponseReady = true;
-        RNDIS_KeepAlive_Message_t *KEEPALIVE_msg = (RNDIS_KeepAlive_Message_t*)&RNDISMessageBuffer;
-
-        RNDIS_KeepAlive_Complete_t *
-            KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&RNDISMessageBuffer;
-
-        KEEPALIVE_Response->MessageType     = REMOTE_NDIS_KEEPALIVE_CMPLT;
-        KEEPALIVE_Response->MessageLength   = sizeof(RNDIS_KeepAlive_Complete_t);
-        KEEPALIVE_Response->RequestId       = KEEPALIVE_msg->RequestId;
-        KEEPALIVE_Response->Status          = REMOTE_NDIS_STATUS_SUCCESS;
+        RNDIS_KeepAlive_Message_t *KEEPALIVE_msg = (RNDIS_KeepAlive_Message_t*)&msgBuf;
+        RNDIS_KeepAlive_Complete_t * KEEPALIVE_Response = (RNDIS_KeepAlive_Complete_t*)&msgBuf;
+        KEEPALIVE_Response->MessageType = REMOTE_NDIS_KEEPALIVE_CMPLT;
+        KEEPALIVE_Response->MessageLength = sizeof(RNDIS_KeepAlive_Complete_t);
+        KEEPALIVE_Response->RequestId = KEEPALIVE_msg->RequestId;
+        KEEPALIVE_Response->Status = REMOTE_NDIS_STATUS_SUCCESS;
     }
         break;
     }
@@ -708,7 +679,7 @@ void RNDIS::customCtrl()
             REQREC_INTERFACE))
         {
             *p_ueintx &= ~(1<<rxstpi);
-            readControlStreamLE(RNDISMessageBuffer, _ctrlReq.wLength);
+            readControlStreamLE(msgBuf, _ctrlReq.wLength);
             *p_ueintx &= ~(1<<txini | 1<<fifocon);
             ProcessRNDISControlMessage();
         }
@@ -720,12 +691,12 @@ void RNDIS::customCtrl()
         {
             if (!(MessageHeader->MessageLength))
             {
-                RNDISMessageBuffer[0] = 0;
+                msgBuf[0] = 0;
                 MessageHeader->MessageLength = 1;
             }
 
             *p_ueintx &= ~(1<<rxstpi);
-            write_Control_Stream_LE(RNDISMessageBuffer, MessageHeader->MessageLength);
+            write_Control_Stream_LE(msgBuf, MessageHeader->MessageLength);
             *p_ueintx &= ~(1<<rxouti | 1<<fifocon);
             MessageHeader->MessageLength = 0;
         }
@@ -1206,14 +1177,14 @@ void RNDIS::rndisTask()
 		ResponseReady = false;
 	}
 
-	if ((CurrRNDISState == RNDIS_Data_Initialized) && !(MessageHeader->MessageLength))
+	if ((CurrRNDISState == RNDIS_Data_Initialized) && !MessageHeader->MessageLength)
 	{
-		RNDIS_Packet_Message_t RNDISPacketHeader;
+		RNDISPktMsg RNDISPacketHeader;
 		selectEndpoint(CDC_RX_EPADDR);
 
 		if ((*p_ueintx & 1<<rxouti) && !frameIN.len)
 		{
-			readStream(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
+			readStream(&RNDISPacketHeader, sizeof(RNDISPktMsg), NULL);
 
 			if (RNDISPacketHeader.DataLength > ETHERNET_FRAME_SIZE_MAX)
 			{
@@ -1230,15 +1201,12 @@ void RNDIS::rndisTask()
 
         if ((*p_ueintx & 1<<txini) && frameOUT.len)
         {
-            my_memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
-            RNDISPacketHeader.MessageType   = REMOTE_NDIS_PACKET_MSG;
-            RNDISPacketHeader.MessageLength = sizeof(RNDIS_Packet_Message_t) + frameOUT.len;
-
-			RNDISPacketHeader.DataOffset = (sizeof(RNDIS_Packet_Message_t) -
-                sizeof(RNDIS_Message_Header_t));
-
-			RNDISPacketHeader.DataLength    = frameOUT.len;
-			writeStream2(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
+            my_memset(&RNDISPacketHeader, 0, sizeof(RNDISPktMsg));
+            RNDISPacketHeader.MessageType = REMOTE_NDIS_PACKET_MSG;
+            RNDISPacketHeader.MessageLength = sizeof(RNDISPktMsg) + frameOUT.len;
+			RNDISPacketHeader.DataOffset = (sizeof(RNDISPktMsg) - sizeof(RNDIS_Message_Header_t));
+			RNDISPacketHeader.DataLength = frameOUT.len;
+			writeStream2(&RNDISPacketHeader, sizeof(RNDISPktMsg), NULL);
 			writeStream2(frameOUT.FrameData, RNDISPacketHeader.DataLength, NULL);
             *p_ueintx &= ~(1<<txini | 1<<fifocon);
 			frameOUT.len = 0;

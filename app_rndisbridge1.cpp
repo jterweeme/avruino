@@ -1,15 +1,13 @@
-#include <string.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
-
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
 #include <util/delay.h>
-#include "bogota.h"
 #include "busby.h"
-#include "enc28j60.h"
+#include "w5100.h"
+#include "misc.h"
+#include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 
 static constexpr uint8_t
     CDC_CSCP_CDCClass = 0x02,
@@ -284,12 +282,24 @@ typedef struct
     uint32_t InformationBufferOffset;
 } __attribute__ ((packed)) RNDIS_Query_Complete_t;
 
-Busby *Busby::instance;
+//Busby *Busby::instance;
+
+#define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 1)
+#define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
+#define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 3)
+#define CDC_TXRX_EPSIZE                64
+#define CDC_NOTIFICATION_EPSIZE        8
+
+
 
 class RNDIS : public USB
 {
 private:
-    Enc28J60Network _eth;
+    Endpoint _inpoint;
+    Endpoint _outpoint;
+    Endpoint _notif;
+    W5100Class _w5100;
+    //Enc28J60Network _eth;
 public:
     RNDIS();
     void customCtrl();
@@ -306,20 +316,17 @@ public:
                              void* ResponseData, uint16_t* ResponseSize);
 };
 
-RNDIS::RNDIS()
+RNDIS::RNDIS() :
+    _inpoint(CDC_TX_EPADDR, CDC_TXRX_EPSIZE, EP_TYPE_BULK, 1),
+    _outpoint(CDC_RX_EPADDR, CDC_TXRX_EPSIZE, EP_TYPE_BULK, 1),
+    _notif(CDC_NOTIFICATION_EPADDR, CDC_NOTIFICATION_EPSIZE, EP_TYPE_INTERRUPT, 1)
 {
-    uint8_t mac[6] = {1,1,1,1,1,1};
-    _eth.init(mac);
-    USB_OTGPAD_Off();
-
-    if ((USB_Options & USB_OPT_REG_DISABLED) == 0)
-        UHWCON |= 1<<UVREGE;
-    else
-        UHWCON &= ~(1<<UVREGE);
-
-    if ((USB_Options & USB_OPT_MANUAL_PLL) == 0)
-        PLLFRQ = 1<<PDIV2;
-
+    uint8_t mac[6] = {0,1,2,3,4,5};
+    _w5100.init();
+    _w5100.setMACAddress(mac);
+    *p_usbcon &= ~(1<<otgpade);
+    *p_uhwcon |= 1<<uvrege;
+    *p_pllfrq |= 1<<pdiv2;
     USBCON &= ~(1<<VBUSTE);
     UDIEN = 0;
     USBINT = 0;
@@ -334,7 +341,8 @@ RNDIS::RNDIS()
     USB_Device_CurrentlySelfPowered = false;
     UDCON &= ~(1<<LSM);
     USBCON |= 1<<VBUSTE;
-    Endpoint_ConfigureEndpoint(0, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
+    configureEndpoint(_control);
+    //Endpoint_ConfigureEndpoint(0, EP_TYPE_CONTROL, USB_Device_ControlEndpointSize, 1);
     UDINT &= ~(1<<SUSPI);
     UDIEN |= 1<<SUSPE;
     UDIEN |= 1<<EORSTE;
@@ -353,11 +361,7 @@ static constexpr uint16_t
     ETHERTYPE_IPV4             = 0x0800,
     ETHERTYPE_ARP              = 0x0806,
     ETHERTYPE_RARP             = 0x8035,
-    ETHERTYPE_APPLETALK        = 0x809b,
-    ETHERTYPE_APPLETALKARP     = 0x80f3,
     ETHERTYPE_IEEE8021Q        = 0x8100,
-    ETHERTYPE_NOVELLIPX        = 0x8137,
-    ETHERTYPE_NOVELL           = 0x8138,
     ETHERTYPE_IPV6             = 0x86DD,
     ETHERTYPE_COBRANET         = 0x8819,
     ETHERTYPE_PROVIDERBRIDGING = 0x88a8,
@@ -389,6 +393,7 @@ static const char PROGMEM AdapterVendorDescription[] = "LUFA RNDIS Adapter";
 static uint8_t CurrRNDISState = RNDIS_Uninitialized;
 static uint32_t CurrPacketFilter = 0;
 
+#if 0
 typedef struct
 {
     struct
@@ -410,21 +415,9 @@ typedef struct
         uint32_t CurrPacketFilter;
     } State;
 } USB_ClassInfo_RNDIS_Device_t;
+#endif
 
 #define RNDIS_DEVICE_MIN_MESSAGE_BUFFER_LENGTH  sizeof(AdapterSupportedOIDList) + sizeof(RNDIS_Query_Complete_t)
-
-#define CDC_TX_EPADDR                  (ENDPOINT_DIR_IN  | 1)
-#define CDC_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
-#define CDC_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN  | 3)
-#define CDC_TXRX_EPSIZE                64
-#define CDC_NOTIFICATION_EPSIZE        8
-
-void EVENT_USB_Device_ConfigurationChanged(void)
-{
-	Endpoint_ConfigureEndpoint(CDC_TX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1);
-	Endpoint_ConfigureEndpoint(CDC_RX_EPADDR, EP_TYPE_BULK, CDC_TXRX_EPSIZE, 1);
-	Endpoint_ConfigureEndpoint(CDC_NOTIFICATION_EPADDR, EP_TYPE_INTERRUPT, CDC_NOTIFICATION_EPSIZE, 1);
-}
 
 static const uint32_t PROGMEM AdapterSupportedOIDList[]  =
 {
@@ -682,7 +675,7 @@ void RNDIS::customCtrl()
         {
             UEINTX &= ~(1<<RXSTPI);
             readControlStreamLE(RNDISMessageBuffer, _ctrlReq.wLength);
-            Endpoint_ClearIN();
+            *p_ueintx &= ~(1<<txini | 1<<fifocon);
             ProcessRNDISControlMessage();
         }
 
@@ -699,7 +692,7 @@ void RNDIS::customCtrl()
 
             UEINTX &= ~(1<<RXSTPI);
             write_Control_Stream_LE(RNDISMessageBuffer, MessageHeader->MessageLength);
-            Endpoint_ClearOUT();
+            *p_ueintx &= ~(1<<rxouti | 1<<fifocon);
             MessageHeader->MessageLength = 0;
         }
         break;
@@ -707,7 +700,7 @@ void RNDIS::customCtrl()
 }
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue, const uint16_t wIndex,
-       const void** const DescriptorAddress) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
+       const void** const DescriptorAddress);
 
 uint16_t RNDIS::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const descAddress)
 {
@@ -716,7 +709,9 @@ uint16_t RNDIS::getDesc(uint16_t wValue, uint16_t wIndex, const void ** const de
 
 void RNDIS::configure()
 {
-    EVENT_USB_Device_ConfigurationChanged();
+    configureEndpoint(_inpoint);
+    configureEndpoint(_outpoint);
+    configureEndpoint(_notif);
 }
 
 typedef struct
@@ -954,7 +949,7 @@ uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
 
 void RNDIS::rndisTask()
 {
-	Endpoint_SelectEndpoint(CDC_NOTIFICATION_EPADDR);
+	selectEndpoint(CDC_NOTIFICATION_EPADDR);
 
 	if ((UEINTX & 1<<TXINI) && ResponseReady)
 	{
@@ -968,16 +963,16 @@ void RNDIS::rndisTask()
         };
 
 		writeStream2(&Notification, sizeof(Notification), NULL);
-		Endpoint_ClearIN();
+        *p_ueintx &= ~(1<<txini | 1<<fifocon);
 		ResponseReady = false;
 	}
 
-	if ((CurrRNDISState == RNDIS_Data_Initialized) && !(MessageHeader->MessageLength))
+	if ((CurrRNDISState == RNDIS_Data_Initialized) && !MessageHeader->MessageLength)
 	{
 		RNDIS_Packet_Message_t RNDISPacketHeader;
-		Endpoint_SelectEndpoint(CDC_RX_EPADDR);
+		selectEndpoint(CDC_RX_EPADDR);
 
-		if (Endpoint_IsOUTReceived() && !(frameIN.FrameLength))
+		if ((*p_ueintx & 1<<rxouti) && !frameIN.FrameLength)
 		{
 			readStream(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 
@@ -1020,11 +1015,11 @@ void RNDIS::rndisTask()
 #endif
 		}
 
-		Endpoint_SelectEndpoint(CDC_TX_EPADDR);
+		selectEndpoint(CDC_TX_EPADDR);
 
 		if ((UEINTX & 1<<TXINI) && frameOUT.FrameLength)
 		{
-			memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
+			my_memset(&RNDISPacketHeader, 0, sizeof(RNDIS_Packet_Message_t));
 			RNDISPacketHeader.MessageType = REMOTE_NDIS_PACKET_MSG;
 
 			RNDISPacketHeader.MessageLength = (sizeof(RNDIS_Packet_Message_t) +
@@ -1036,7 +1031,7 @@ void RNDIS::rndisTask()
 			RNDISPacketHeader.DataLength = frameOUT.FrameLength;
 			writeStream2(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
 			writeStream2(frameOUT.FrameData, RNDISPacketHeader.DataLength, NULL);
-			Endpoint_ClearIN();
+			*p_ueintx &= ~(1<<txini | 1<<fifocon);
 			frameOUT.FrameLength = 0;
 		}
 	}
@@ -1047,7 +1042,7 @@ void RNDIS::usbTask()
     if (state == DEVICE_STATE_UNATTACHED)
         return;
 
-    uint8_t PrevEndpoint = Endpoint_GetCurrentEndpoint();
+    uint8_t PrevEndpoint = getCurrentEndpoint();
     selectEndpoint(0);
 
     if (UEINTX & 1<<RXSTPI)

@@ -3,7 +3,6 @@ this is a comment
 I love comments
 */
 
-#include "w5100server.h"
 #include "w5100client.h"
 #include "w5100udp.h"
 #include "dhcp.h"

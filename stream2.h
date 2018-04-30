@@ -34,12 +34,14 @@ public:
     virtual int read() = 0;
     virtual int peek() = 0;
     virtual void flush() = 0;
+#if 0
     Stream() {_timeout=1000;}
     void setTimeout(unsigned long timeout);  // sets o wait for stream daulcond
     bool find(char *target);   // reads data from the stream until the tinfound
     bool find(char *target, size_t length);   // reads et string of giveis found
     size_t readBytes( char *buffer, size_t length); // read chars from sinto
     size_t readBytesUntil( char terminator, char *buffer, size_t length);
+#endif
 };
 #endif
 

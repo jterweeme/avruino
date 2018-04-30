@@ -9,7 +9,9 @@ private:
     EthernetClass * const _eth;
     uint8_t _sock;
     static uint16_t _srcport;
-    uint16_t send(SOCKET s, const uint8_t *buf, uint16_t len);
+    uint16_t send(uint8_t socket, const uint8_t *buf, uint16_t len);
+    uint8_t connect(SOCKET s, uint8_t * addr, uint16_t port);
+    void disconnect(SOCKET s);
 public:
     EthernetClient(EthernetClass * const eth) : _eth(eth), _sock(MAX_SOCK_NUM) { }
     EthernetClient(EthernetClass * const eth, uint8_t sock) : _eth(eth), _sock(sock) { }
@@ -24,6 +26,21 @@ public:
     void stop();
     uint8_t connected();
     operator bool();
+};
+
+class EthernetServer
+{
+private:
+    EthernetClass * const _eth;
+    uint16_t _port;
+    void accept();
+    uint8_t listen(uint8_t socket);
+public:
+    EthernetServer(EthernetClass * const eth, uint16_t port);
+    EthernetClient available();
+    virtual void begin();
+    virtual size_t write(uint8_t);
+    virtual size_t write(const uint8_t *buf, size_t size);
 };
 #endif
 
