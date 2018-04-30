@@ -3,13 +3,13 @@ Webserver op w5100, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
 #include "w5100udp.h"
-#include "w5100client.h"
+#include "w5100tcp.h"
 #include "dhcp.h"
 #include "webserver.h"
 #include "fatty.h"
 #include "board.h"
 
-W5100Class *g_w5100;
+//W5100Class *g_w5100;
 ostream *gout;
 
 int main()
@@ -27,7 +27,7 @@ int main()
     cout << "Initialize Ethernet...\r\n";
     cout.flush();
     W5100Class w5100;
-    g_w5100 = &w5100;
+    //g_w5100 = &w5100;
     w5100.init();
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     w5100.setMACAddress(mac);

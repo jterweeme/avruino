@@ -1,6 +1,6 @@
 #ifndef _ETHERNET_H_
 #define _ETHERNET_H_
-#include "w5100.h"
+#include "w5100hw.h"
 #include "eth.h"
 
 class EthernetClass : public Ethernet

@@ -114,34 +114,29 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
-app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o \
-    uart.o pinport.o stream.o w5100server.o dhcp.o \
-    w5100udp.o w5100client.o w5100.o misc.o eth.o webtest1.o $(USBOPT)
+app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
+    w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
 
 app_telnet1.elf: app_telnet1.o arp.o uip_server.o uart.o uip_client.o pinport.o \
-    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
-    misc.o stream.o eth.o
+    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o misc.o stream.o eth.o
 
 app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
-    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o \
-    misc.o stream.o fatty.o zd2card.o eth.o
+    uip.o dhcp.o uip_udp.o enc28j60.o mempool.o misc.o stream.o fatty.o zd2card.o eth.o
 
 app_websdfat1.elf: app_websdfat1.o arp.o uip_server.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
-app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o \
-    w5100server.o dhcp.o w5100udp.o w5100client.o w5100.o  \
-    zd2card.o fatty.o misc.o eth.o webserver.o
+app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o dhcp.o w5100udp.o \
+    w5100tcp.o w5100hw.o zd2card.o fatty.o misc.o eth.o webserver.o
 
-app_chatserver1.elf: app_chatserver1.o w5100server.o w5100ip.o w5100client.o \
-    w5100.o w5100udp.o dhcp.o misc.o pinport.o eth.o \
-    stream.o uart.o
+app_chatserver1.elf: app_chatserver1.o w5100ip.o w5100tcp.o \
+    w5100hw.o w5100udp.o dhcp.o misc.o pinport.o eth.o stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o
 
-app_webclient2.elf: app_webclient2.o w5100client.o w5100ip.o w5100.o w5100udp.o \
+app_webclient2.elf: app_webclient2.o w5100tcp.o w5100ip.o w5100hw.o w5100udp.o \
     dhcp.o dns.o misc.o pinport.o eth.o stream.o uart.o
 
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
@@ -174,7 +169,7 @@ app_ringtone1.elf: app_ringtone1.o pinport.o uart.o $(BSP)
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
 app_rndisping1.elf: app_rndisping1.o busby.o
-app_rndisbridge1.elf: app_rndisbridge1.o busby.o w5100.o mempool.o
+app_rndisbridge1.elf: app_rndisbridge1.o busby.o w5100hw.o mempool.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_sdmbr1.elf: app_sdmbr1.o zd2card.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_segment1.elf: app_segment1.o
@@ -210,14 +205,14 @@ app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h 
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
-    misc.h storage.h pinport.h types.h w5100ip.h w5100.h eth.h mempool.h client.h \
-    udp.h w5100udp.h w5100client.h uart.h dhcp.h
+    misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h mempool.h client.h \
+    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
 
 app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
-    w5100client.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
-    stream.h types.h w5100udp.h udp.h stream2.h w5100.h \
+    w5100tcp.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
+    stream.h types.h w5100udp.h udp.h stream2.h w5100hw.h \
     w5100ip.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
     storage.h pinport.h
 
@@ -292,10 +287,9 @@ usbkb.o: usbkb.cpp usbkb.h misc.h usbhid.h
 usbsd.o: usbsd.cpp usbsd.h busby.h
 vga.o: vga.cpp vga.h misc.h storage.h pinport.h types.h
 vgax.o: vgax.cpp vgax.h
-w5100.o: w5100.cpp w5100.h
-w5100client.o: w5100client.cpp w5100client.h
-w5100ip.o: w5100ip.cpp w5100ip.h w5100.h eth.h
-w5100server.o: w5100server.cpp w5100client.h
+w5100hw.o: w5100hw.cpp w5100hw.h
+w5100tcp.o: w5100tcp.cpp w5100tcp.h
+w5100ip.o: w5100ip.cpp w5100ip.h w5100hw.h eth.h
 w5100udp.o: w5100udp.cpp w5100udp.h
 webserver.o: webserver.cpp webserver.h
 webtest1.o: webtest1.cpp webtest1.h

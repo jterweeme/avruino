@@ -1,4 +1,4 @@
-#include "w5100client.h"
+#include "w5100tcp.h"
 #include "w5100udp.h"
 #include "dhcp.h"
 #include "stream.h"

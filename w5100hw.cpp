@@ -13,7 +13,7 @@
 
 #include <util/delay.h>
 #include "board.h"
-#include "w5100.h"
+#include "w5100hw.h"
 
 
 #define SPI_CLOCK_DIV4 0x00

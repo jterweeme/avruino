@@ -3,20 +3,21 @@ this is a comment
 I love comments
 */
 
-#include "w5100client.h"
+#include "w5100tcp.h"
 #include "w5100udp.h"
 #include "dhcp.h"
 #include "board.h"
 #include "stream.h"
 #include "webtest1.h"
 
-static W5100Class w5100;
-static EthernetClass eth(&w5100);
-W5100Class *g_w5100 = &w5100;
+
+//W5100Class *g_w5100 = &w5100;
 ostream *gout;
 
 int main()
 {
+    W5100Class w5100;
+    EthernetClass eth(&w5100);
     zei();
 #if defined (__AVR_ATmega32U4__)
     CDC cdc;

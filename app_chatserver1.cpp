@@ -18,13 +18,13 @@
  
  */
 
-#include "w5100client.h"
+#include "w5100tcp.h"
 #include "w5100udp.h"
 #include "dhcp.h"
 #include "board.h"
 #include "stream.h"
 
-W5100Class *g_w5100;
+//W5100Class *g_w5100;
 ostream *gout;
 
 int main()
@@ -37,7 +37,7 @@ int main()
     gout = &cout;
 
     W5100Class w5100;
-    g_w5100 = &w5100;
+    //g_w5100 = &w5100;
     EthernetClass eth(&w5100);
 
     cout << "Initialize Ethernet...\r\n";

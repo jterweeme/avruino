@@ -4,7 +4,7 @@
 
 #include <util/delay.h>
 #include "busby.h"
-#include "w5100.h"
+#include "w5100hw.h"
 #include "misc.h"
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
