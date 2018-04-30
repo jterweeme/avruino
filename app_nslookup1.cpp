@@ -1,5 +1,5 @@
-#include "uip_client.h"
-#include "uip_udp.h"
+#include "enc28j60tcp.h"
+#include "enc28j60udp.h"
 #include "stream.h"
 #include "dhcp.h"
 #include "dns.h"

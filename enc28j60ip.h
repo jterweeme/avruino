@@ -8,7 +8,7 @@
 #define UIP_BIG_ENDIAN     1234
 #endif
 
-#include "enc28j60.h"
+#include "enc28j60hw.h"
 #include "eth.h"
 
 typedef void * uip_tcp_appstate_t;

@@ -1,6 +1,6 @@
 #ifndef _UIPUDP_H_
 #define _UIPUDP_H_
-#include "uip.h"
+#include "enc28j60ip.h"
 #include "udp.h"
 
 static const uint16_t UIP_UDP_MAXDATALEN = 1500;

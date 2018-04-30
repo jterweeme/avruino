@@ -1,4 +1,3 @@
-#include "uip.h"
 #include <string.h>
 #include "arp.h"
 

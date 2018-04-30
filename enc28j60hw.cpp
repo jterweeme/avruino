@@ -3,7 +3,7 @@
 #endif
 
 #include <util/delay.h>
-#include "enc28j60.h"
+#include "enc28j60hw.h"
 #include "board.h"
 
 static constexpr uint8_t

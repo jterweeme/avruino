@@ -3,8 +3,8 @@ Mega eth CS: D53/SS
 Uno eth CS: D10/SS
 */
 
-#include "uip_client.h"
-#include "uip_udp.h"
+#include "enc28j60tcp.h"
+#include "enc28j60udp.h"
 #include "board.h"
 #include "dhcp.h"
 #include "webtest1.h"

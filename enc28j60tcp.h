@@ -1,7 +1,7 @@
 #ifndef _UIPCLIENT_H_
 #define _UIPCLIENT_H_
 #include "client.h"
-#include "uip.h"
+#include "enc28j60ip.h"
 
 class UIPClient : public Client
 {

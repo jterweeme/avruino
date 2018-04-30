@@ -1,4 +1,4 @@
-#include "uip_client.h"
+#include "enc28j60tcp.h"
 
 static constexpr uint32_t htonl(uint32_t x)
 {
