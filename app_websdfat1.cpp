@@ -5,7 +5,7 @@ Mega SD CS: D9
 Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 */
 
-#include "uip_server.h"
+#include "uip_client.h"
 #include "uip_udp.h"
 #include "dhcp.h"
 #include "fatty.h"

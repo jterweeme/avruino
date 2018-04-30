@@ -57,7 +57,8 @@ int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
         if (_uip_udp_conn)
         {
             _uip_udp_conn->rport = htons(port);
-            uip_ipaddr_copy(_uip_udp_conn->ripaddr, &ripaddr);
+            _uip_udp_conn->ripaddr[0] = ripaddr[0];
+            _uip_udp_conn->ripaddr[1] = ripaddr[1];
         }
         else
         {

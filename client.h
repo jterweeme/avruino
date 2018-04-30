@@ -1,8 +1,8 @@
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
-#include "stream2.h"
+#include "misc.h"
 
-class Client : public Stream
+class Client //: public Stream
 {
 public:
     virtual int connect(uint32_t ip, uint16_t port) { return 0; }

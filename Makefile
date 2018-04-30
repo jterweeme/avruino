@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -41,11 +41,11 @@ USBOPT = $(USBO)
 POOL1 = nee
 POOL2 = ja
 POOL3 = nee
-else ifeq ($(BOARD), twaalf)
+else ifeq ($(BOARD), teensy20pp)
 PART = usb1286
 MMCU = at90usb1286
-BSP = twaalf.o misc.o
-BOARDREF = TWAALF
+BSP = teensy20pp.o misc.o
+BOARDREF = TEENSY20PP
 POOL1 = nee
 POOL2 = nee
 POOL3 = nee
@@ -67,7 +67,7 @@ TARGETS = app_aditbox.elf app_capsense2.elf app_sdmbr1.elf app_sdls1.elf \
     app_lcdtest2.elf app_infrared1.elf app_lcdtest3.elf  \
     app_dfkeyb1.elf app_ringtone1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_blink3.elf app_megaboot4.hex app_webclient2.elf \
-    app_websdfat1.elf app_websdfat2.elf app_bbs1.elf \
+    app_websdfat1.elf app_websdfat2.elf app_bbs1.elf app_sound1.elf \
     app_optiboot1.hex app_heliosboot1.hex app_telnet1.elf \
 
 ifeq ($(POOL1), ja)
@@ -85,12 +85,12 @@ TARGETS += app_groen1.elf app_usbtest1.elf app_usbsd2.elf \
 endif
 
 ifeq ($(POOL3), ja)
-TARGETS += app_sound1.elf app_webtest1enc28.elf app_webtest1w5100.elf app_nslookup1.elf \
+TARGETS += app_webtest1enc28.elf app_webtest1w5100.elf app_nslookup1.elf \
     app_ps2kb2.elf
 endif
 
 %.o: %.cpp
-	avr-g++ -Os -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
+	avr-g++ -Os -Wall -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
 
 %.elf: %.o
 	avr-g++ -mmcu=$(MMCU) -o $@ $^
@@ -110,20 +110,20 @@ app_heliosboot1.hex: app_heliosboot1.asm
 app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 
-app_webtest1enc28.elf: app_webtest1enc28.o arp.o uip_server.o \
+app_webtest1enc28.elf: app_webtest1enc28.o arp.o \
     uart.o uip_client.o pinport.o stream.o misc.o webtest1.o \
     uip.o dhcp.o eth.o uip_udp.o enc28j60.o mempool.o
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
     w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
 
-app_telnet1.elf: app_telnet1.o arp.o uip_server.o uart.o uip_client.o pinport.o \
+app_telnet1.elf: app_telnet1.o arp.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o misc.o stream.o eth.o
 
-app_bbs1.elf: app_bbs1.o arp.o dns.o uip_server.o uart.o uip_client.o pinport.o \
+app_bbs1.elf: app_bbs1.o arp.o dns.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o misc.o stream.o fatty.o zd2card.o eth.o
 
-app_websdfat1.elf: app_websdfat1.o arp.o uip_server.o uip_client.o \
+app_websdfat1.elf: app_websdfat1.o arp.o uip_client.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
@@ -133,7 +133,7 @@ app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o dhcp.o w5
 app_chatserver1.elf: app_chatserver1.o w5100ip.o w5100tcp.o \
     w5100hw.o w5100udp.o dhcp.o misc.o pinport.o eth.o stream.o uart.o
 
-app_nslookup1.elf: app_nslookup1.o dns.o arp.o uip_server.o uart.o uip_client.o pinport.o \
+app_nslookup1.elf: app_nslookup1.o dns.o arp.o uart.o uip_client.o pinport.o \
     uip.o dhcp.o uip_udp.o enc28j60.o mempool.o stream.o misc.o eth.o
 
 app_webclient2.elf: app_webclient2.o w5100tcp.o w5100ip.o w5100hw.o w5100udp.o \
@@ -195,26 +195,26 @@ app_vga2.elf: app_vga2.o vga.o
 app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
     stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
-app_bbs1.o: app_bbs1.cpp uip_server.h stream.h dhcp.h uip_udp.h uip.h \
+app_bbs1.o: app_bbs1.cpp stream.h dhcp.h uip_udp.h uip.h \
     enc28j60.h mempool.h misc.h types.h
 
-app_webtest1enc28.o: app_webtest1enc28.cpp uip_server.h misc.h board.h stream.h dhcp.h \
+app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h \
     uip.h uip_udp.h enc28j60.h mempool.h types.h webtest1.h uart.h \
     uno.h mega.h leonardo.h storage.h pinport.h uip_client.h uip.h \
     eth.h cdc.h busby.h
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
-    cdc.h busby.h board.h mega.h uno.h leonardo.h stream2.h \
+    cdc.h busby.h board.h mega.h uno.h leonardo.h \
     misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h mempool.h client.h \
     udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
 
-app_websdfat1.o: app_websdfat1.cpp fatty.h uip_server.h
+app_websdfat1.o: app_websdfat1.cpp fatty.h webserver.h dhcp.h \
+    uip_udp.h uip_client.h board.h
 
 app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
     w5100tcp.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
-    stream.h types.h w5100udp.h udp.h stream2.h w5100hw.h \
-    w5100ip.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h \
-    storage.h pinport.h
+    stream.h types.h w5100udp.h udp.h w5100hw.h \
+    w5100ip.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
@@ -246,7 +246,7 @@ app_sdls1.o: app_sdls1.cpp zd2card.h fatty.h stream.h
 app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp helios.h misc.h
 app_sound1.o: app_sound1.cpp
-app_telnet1.o: app_telnet1.cpp uip_server.h
+app_telnet1.o: app_telnet1.cpp
 app_test1.o: app_test1.cpp
 app_test2.o: app_test2.cpp
 app_ts1.o: app_ts1.cpp
@@ -280,7 +280,7 @@ misc.o: misc.cpp misc.h types.h storage.h pinport.h
 pinport.o: pinport.cpp pinport.h types.h
 stream.o: stream.cpp stream.h
 tft.o: tft.cpp tft.h board.h
-twaalf.o: twaalf.cpp twaalf.h
+teensy20pp.o: teensy20pp.cpp teensy20pp.h
 uart.o: uart.cpp uart.h types.h misc.h storage.h pinport.h
 uno.o: uno.cpp uno.h misc.h types.h storage.h pinport.h
 usbkb.o: usbkb.cpp usbkb.h misc.h usbhid.h
@@ -298,7 +298,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

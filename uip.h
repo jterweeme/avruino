@@ -77,8 +77,8 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_URGDATA      0
 #define UIP_FIXEDADDR    0
 
-typedef uint16_t uip_ip4addr_t[2];
-typedef uip_ip4addr_t uip_ipaddr_t;
+//typedef uint16_t uip_ip4addr_t[2];
+typedef uint16_t uip_ipaddr_t[2];
 void uip_init(void);
 void uip_setipid(uint16_t id);
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
@@ -90,10 +90,18 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 #define uip_udp_remove(conn) (conn)->lport = 0
 #define uip_udp_bind(conn, port) (conn)->lport = port
 
+#if 0
+static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
+{
+    ((uint16_t *)dst)[0] = ((uint16_t *)src)[0];
+    ((uint16_t *)dst)[1] = ((uint16_t *)src)[1];
+}
+#else
 #define uip_ipaddr_copy(dest, src) do { \
                      ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
                      ((uint16_t *)dest)[1] = ((uint16_t *)src)[1]; \
                   } while(0)
+#endif
 
 #define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
 				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
@@ -231,8 +239,6 @@ static constexpr uint8_t
     UIPETHERNET_SENDPACKET = 2,
     UIPETHERNET_BUFFERREAD = 4;
 
-#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
 typedef struct
 {
     memaddress out_pos;
@@ -282,19 +288,14 @@ public:
     void tick();
     static UIPEthernetClass *instance;
     UIPEthernetClass() { instance = this; }
-    uint32_t localIP();
-    uint32_t subnetMask();
-    uint32_t gatewayIP();
-    uint32_t dnsServerIP();
+    uint32_t localIP() { return (uint32_t)uip_hostaddr[0] | (uint32_t)uip_hostaddr[1] << 16; }
+    uint32_t subnetMask() { return (uint32_t)uip_netmask[0] | (uint32_t)uip_netmask[1] << 16; }
+    uint32_t gatewayIP() { return (uint32_t)uip_draddr[0] | (uint32_t)uip_draddr[1] << 16; }
+    uint32_t dnsServerIP() { return _dnsServerAddress; }
     void tick2();
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);
 };
-
-#define UIP_SOCKET_DATALEN UIP_TCP_MSS
-#ifndef UIP_SOCKET_NUMPACKETS
-#define UIP_SOCKET_NUMPACKETS 5
-#endif
 
 static constexpr uint8_t
     UIP_CLIENT_CONNECTED = 0x10,

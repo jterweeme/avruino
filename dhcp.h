@@ -125,6 +125,11 @@ typedef struct _RIP_MSG_FIXED
 	uint8_t  chaddr[6];
 }RIP_MSG_FIXED;
 
+static inline uint32_t my_toint32(uint8_t *buf)
+{
+    return *((uint32_t *)buf);
+}
+
 class UDP;
 
 class DhcpClass
@@ -154,11 +159,11 @@ private:
     uint8_t parseDHCPResponse(uint32_t responseTimeout, uint32_t &transactionId);
 public:
     DhcpClass(UDP *udp) : _dhcpUdpSocket(udp) { }
-    uint32_t localIp() { return *((uint32_t *)&_dhcpLocalIp); }
-    uint32_t subnetMask2() { return *((uint32_t *)&_dhcpSubnetMask); }
-    uint32_t gateway() { return *((uint32_t *)&_dhcpGatewayIp); }
-    uint32_t dhcpServerIp() { return *((uint32_t *)&_dhcpDhcpServerIp); }
-    uint32_t dnsServer() { return *((uint32_t *)&_dhcpDnsServerIp); }
+    uint32_t localIp() { return my_toint32(_dhcpLocalIp); }
+    uint32_t subnetMask2() { return my_toint32(_dhcpSubnetMask); }
+    uint32_t gateway() { return my_toint32(_dhcpGatewayIp); }
+    uint32_t dhcpServerIp() { return my_toint32(_dhcpDhcpServerIp); }
+    uint32_t dnsServer() { return my_toint32(_dhcpDnsServerIp); } 
     int beginWithDHCP(uint8_t *, uint32_t timeout = 60000, uint32_t responseTimeout = 4000);
     //int checkLease();
 };

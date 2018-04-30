@@ -33,32 +33,6 @@ void UIPEthernetClass::_flushBlocks(memhandle* block)
     }
 }
 
-uint32_t UIPEthernetClass::localIP()
-{
-    uip_ipaddr_t a;
-    uip_ipaddr_copy(a, uip_hostaddr);
-    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
-}
-
-uint32_t UIPEthernetClass::subnetMask()
-{
-    uip_ipaddr_t a;
-    uip_ipaddr_copy(a, uip_netmask);
-    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
-}
-
-uint32_t UIPEthernetClass::gatewayIP()
-{
-    uip_ipaddr_t a;
-    uip_ipaddr_copy(a, uip_draddr);
-    return (uint32_t)a[0] | (uint32_t)a[1] << 16;
-}
-
-uint32_t UIPEthernetClass::dnsServerIP()
-{
-    return _dnsServerAddress;
-}
-
 #define uip_restart()         do { uip_flags |= UIP_NEWDATA; \
                                    uip_conn->tcpstateflags &= ~UIP_STOPPED; \
                               } while(0)
@@ -364,6 +338,8 @@ uint16_t UIPEthernetClass::ipchksum()
     uint16_t sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
     return sum == 0 ? 0xffff : htons(sum);
 }
+
+#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
 {
@@ -1639,6 +1615,8 @@ uip_userdata_t *UIPEthernetClass::_allocateData()
     }
     return NULL;
 }
+
+#define UIP_SOCKET_DATALEN UIP_TCP_MSS
 
 size_t UIPEthernetClass::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
 {
