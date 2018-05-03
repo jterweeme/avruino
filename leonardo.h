@@ -119,14 +119,16 @@ static constexpr uint8_t
     twsr = 0xb9,
     twar = 0xba,
     ucsr1a = 0xc8,
-        mpcm1 = 0, u2x1 = 1, upe1 = 2, dor1 = 3, fe1 = 4, udre1 = 5, txc1 = 6, rxc1 = 7,
+        mpcm1 = 0, u2x1 = 1, upe1 = 2, dor1 = 3,
+        fe1 = 4, udre1 = 5, txc1 = 6, rxc1 = 7,
     ucsr1b = 0xc9,
         txb81 = 0, rxb81 = 1, ucsz12 = 2, txen1 = 3,
         rxen1 = 4, udrie1 = 5, txcie1 = 6, rxcie1 = 7,
     ucsr1c = 0xca,
-    ubrr1 = 0xcc,
-    ubrr1l = 0xcc,
-    ubrr1h = 0xcd,
+        ucpol1 = 0, ucsz10 = 1, ucsz11 = 2, usbs1 = 3,
+        upm10 = 4, upm11 = 5, umsel10 = 6, umsel11 = 7,
+    ucsr1d = 0xcb, rtsen = 0, ctsen = 1,
+    ubrr1 = 0xcc, ubrr1l = 0xcc, ubrr1h = 0xcd,
     udr1 = 0xce,
     uhwcon = 0xd7, uvrege = 0,
     usbcon = 0xd8, vbuste = 0, otgpade = 4, frzclk = 5, usbe = 7,
@@ -137,9 +139,7 @@ static constexpr uint8_t
     udien = 0xe2, suspe = 0, sofe = 2, eorste = 3, wakeupe = 4, eorshe = 5, uprsme = 6,
     udaddr = 0xe3,
         adden = 7,
-    udfnum = 0xe4,
-    udfnuml = 0xe4,
-    udfnumh = 0xe5,
+    udfnum = 0xe4, udfnuml = 0xe4, udfnumh = 0xe5,
     udmfn = 0xe6,
     ueintx = 0xe8,
         txini = 0, stalledi = 1, rxouti = 2, rxstpi = 3,
@@ -162,32 +162,46 @@ static constexpr uint8_t
     ucsr9b = ucsr1b,
         txb89 = 0, rxb89 = 1, ucsz92 = 2, txen9 = 3,
         rxen9 = 4, udrie9 = 5, txcie9 = 6, rxcie9 = 7,
-    ubrr9 = ubrr1,
+    ucsr9c = ucsr1c,
+        ucpol9 = 0, ucsz90 = 1, ucsz91 = 2, usbs9 = 3,
+        upm90 = 4, upm91 = 5, umsel90 = 6, umsel91 = 7,
+    ubrr9 = ubrr1, ubrr9l = ubrr1l, ubrr9h = ubrr1h,
     udr9 = udr1,
 
-    ocr1a_port_base = portb_base,
-    ocr1a_ddr = ocr1a_port_base + 1,
-    ocr1a_port = ocr1a_port_base + 2,
+    ocr0a_base = portb_base,
+    ocr0a_bit = pb7,
+    ocr0b_base = portd_base,
+    ocr0b_ddr = ocr0b_base + 1,
+    ocr0b_bit = pd0,
+    ocr1a_base = portb_base,
+    ocr1a_in = ocr1a_base + 0,
+    ocr1a_ddr = ocr1a_base + 1,
+    ocr1a_port = ocr1a_base + 2,
     ocr1a_bit = pb5,
-    ocr1b_port_base = portb_base,
-    ocr1b_ddr = ocr1b_port_base + 1,
-    ocr1b_port = ocr1b_port_base + 2,
+    ocr1b_base = portb_base,
+    ocr1b_in = ocr1b_base + 0,
+    ocr1b_ddr = ocr1b_base + 1,
+    ocr1b_port = ocr1b_base + 2,
     ocr1b_bit = pb6,
 
     int0_port_base = portd_base,
+    int0_in = int0_port_base + 0,
     int0_ddr = int0_port_base + 1,
     int0_port = int0_port_base + 2,
     int0_bit = pd0,
 
     ss_port_base = portb_base,
+    ss_in = ss_port_base + 0,
     ss_ddr = ss_port_base + 1,
     ss_port = ss_port_base + 2,
     ss_bit = pb0,
     sck_port_base = portb_base,
+    sck_in = sck_port_base + 0,
     sck_ddr = sck_port_base + 1,
     sck_port = sck_port_base + 2,
     sck_bit = pb1,
     mosi_port_base = portb_base,
+    mosi_in = mosi_port_base + 0,
     mosi_ddr = mosi_port_base + 1,
     mosi_port = mosi_port_base + 2,
     mosi_bit = pb2,
@@ -342,6 +356,8 @@ static volatile uint8_t
     * const p_twar = (volatile uint8_t * const)twar,
     * const p_ucsr1a = (volatile uint8_t * const)ucsr1a,
     * const p_ucsr1b = (volatile uint8_t * const)ucsr1b,
+    * const p_ubrr1l = (volatile uint8_t * const)ubrr1l,
+    * const p_ubrr1h = (volatile uint8_t * const)ubrr1h,
     * const p_udr1 = (volatile uint8_t * const)udr1,
     * const p_uhwcon = (volatile uint8_t * const)uhwcon,
     * const p_usbcon = (volatile uint8_t * const)usbcon,
@@ -366,7 +382,17 @@ static volatile uint8_t
 
     * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
     * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
+    * const p_ucsr9c = (volatile uint8_t * const)ucsr9c,
+    * const p_ubrr9l = (volatile uint8_t * const)ubrr9l,
     * const p_udr9 = (volatile uint8_t * const)udr9,
+
+    * const p_ocr0b_ddr = (volatile uint8_t * const)ocr0b_ddr,
+    * const p_ocr1a_in = (volatile uint8_t * const)ocr1a_in,
+    * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
+    * const p_ocr1a_port = (volatile uint8_t * const)ocr1a_port,
+    * const p_ocr1b_in = (volatile uint8_t * const)ocr1b_in,
+    * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
+    * const p_ocr1b_port = (volatile uint8_t * const)ocr1b_port,
 
     * const p_int0_ddr = (volatile uint8_t * const)int0_ddr,
     * const p_int0_port = (volatile uint8_t * const)int0_port,
@@ -442,6 +468,10 @@ static volatile uint8_t
     * const p_pinA5_port = (volatile uint8_t * const)pinA5_port;
 
 static volatile uint16_t
+    * const p_icr1 = (volatile uint16_t * const)icr1,
+    * const p_ocr1a = (volatile uint16_t * const)ocr1a,
+    * const p_ocr1b = (volatile uint16_t * const)ocr1b,
+    * const p_ocr1c = (volatile uint16_t * const)ocr1c,
     * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
     * const p_ubrr9 = (volatile uint16_t * const)ubrr9,
     * const p_udfnum = (volatile uint16_t * const)udfnum;
@@ -503,9 +533,12 @@ struct Board
 #define USB_COM __vector_11()
 #define TIMER1_CAPT __vector_16()
 #define TIMER1_COMPA __vector_17()
+#define TIMER1_OVF __vector_20()
 #define TIMER0_COMPA __vector_21()
 #define TIMER0_COMPB __vector_22()
 #define TIMER0_OVF __vector_23()
+#define USART1_RX __vector_25()
+#define USART_RX USART1_RX
 #endif
 
 

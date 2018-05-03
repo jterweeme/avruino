@@ -1,20 +1,29 @@
 /*
-Loop on standard UART using polling method
+Loop and convert case on standard UART using polling method
 */
 
 #include "board.h"
 #include "uart.h"
+#include "misc.h"
+
+static inline char convertCase(char c)
+{
+    if (my_isupper(c))
+        return c + 32;
+
+    if (my_islower(c))
+        return c - 32;
+
+    return c;
+}
 
 int main()
 {
     DefaultUart uart;
-    *p_ucsr9a |= 1<<u2x9;
-    *p_ubrr9 = 16;
     uart.enableRead();
-    uart.puts("Testbericht\r\n");
 
     while (true)
-        uart.myPutc(uart.readByte());
+        uart.myPutc(convertCase(uart.readByte()));
 
     return 0;
 }

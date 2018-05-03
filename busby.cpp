@@ -455,20 +455,6 @@ void USB::com()
     selectEndpoint(prevSelectedEndp);
 }
 
-#if 0
-extern "C" void __vector_11() __attribute__ ((signal, used, externally_visible));
-void __vector_11()
-{
-    USB::instance->com();
-}
-
-extern "C" void __vector_10() __attribute__ ((signal, used, externally_visible));
-void __vector_10()
-{
-    USB::instance->gen();
-}
-#endif
-
 void USB::gen()
 {   
     if (*p_udint & 1<<sofi && *p_udien & 1<<sofe)

@@ -1,8 +1,8 @@
 #include "vga.h"
-#include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/sleep.h>
+#include "sleepy.h"
 #include <stdio.h>
+#include "board.h"
 
 VGA::VGA()
 {
@@ -10,33 +10,33 @@ VGA::VGA()
     for (int i = 0; i < 30; i++)
         ::sprintf(charBuffer[i], "Line %03i - hello!", i);
 
-    sei();
-    TIMSK0 = 0;
-    OCR0A = 0;
-    OCR0B = 0;
-    DDRB |= (1<<2);
-    TCCR1A = 0;
-    TCCR1B = 0;
-    TCCR1A |= (1<<WGM10) | (1<<WGM11) | (1<<COM1B1);
-    TCCR1B |= (1<<WGM12) | (1<<WGM13) | 5;
-    OCR1A = 259;
-    OCR1B = 0;
-    TIFR1 = (1<<TOV1);
-    TIMSK1 = (1<<TOIE1);
-    DDRD |= (1<<3);
-    TCCR2A = 0;
-    TCCR2B = 0;
-    TCCR2A |= (1<<WGM20) | (1<<WGM21) | (1<<COM2B1);
-    TCCR2B |= (1<<WGM22) | 2;
-    OCR2A = 63;
-    OCR2B = 7;
-    TIFR2 = (1<<TOV2);
-    TIMSK2 = (1<<TOIE2);
-    UBRR0 = 0;
-    DDRD |= (1<<4);
-    UCSR0B = 0;
-    UCSR0C = 1<<UMSEL00 | 1<<UMSEL01 | 1<<UCPOL0;   // 1<<UCPHA0
-    set_sleep_mode (SLEEP_MODE_IDLE);
+    zei();
+    *p_timsk0 = 0;
+    *p_ocr0a = 0;
+    *p_ocr0b = 0;
+    *p_ddrb |= (1<<2);
+    *p_tccr1a = 0;
+    *p_tccr1b = 0;
+    *p_tccr1a |= 1<<wgm10 | 1<<wgm11 | 1<<com1b1;
+    *p_tccr1b |= 1<<wgm12 | 1<<wgm13 | 5;
+    *p_ocr1a = 259;
+    *p_ocr1b = 0;
+    *p_tifr1 = 1<<tov1;
+    *p_timsk1 = 1<<toie1;
+    *p_ddrd |= 1<<3;
+    *p_tccr2a = 0;
+    *p_tccr2b = 0;
+    *p_tccr2a |= 1<<wgm20 | 1<<wgm21 | 1<<com2b1;
+    *p_tccr2b |= 1<<wgm22 | 2;
+    *p_ocr2a = 63;
+    *p_ocr2b = 7;
+    *p_tifr2 = 1<<tov2;
+    *p_timsk2 = 1<<toie2;
+    *p_ubrr9 = 0;
+    *p_ddrd |= (1<<4);
+    *p_ucsr9b = 0;
+    *p_ucsr9c = 1<<umsel90 | 1<<umsel91 | 1<<ucpol9;   // 1<<UCPHA0
+    set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
 void VGA::interrupt()
@@ -44,16 +44,6 @@ void VGA::interrupt()
     vLine = 0;
     messageLine = 0;
     backPorchLinesToGo = 35;
-}
-
-ISR(TIMER1_OVF_vect)
-{
-    VGA::getInstance()->interrupt();
-}
-
-
-ISR(TIMER2_OVF_vect)
-{
 }
 
 VGA *VGA::instance;
@@ -72,15 +62,15 @@ void VGA::scanLine()
     const register uint8_t *linePtr = &screen_font[(vLine>>1) & 0x07][0];
     char *messagePtr = &(charBuffer[messageLine][0]);
     uint8_t i = 20;
-    UCSR0B = _BV (TXEN0);
+    *p_ucsr9b = 1<<txen9;
 
     while (i--)
-        UDR0 = pgm_read_byte(linePtr + (*messagePtr++));
+        *p_udr9 = pgm_read_byte(linePtr + (*messagePtr++));
 
-    while (!(UCSR0A & _BV(TXC0))) {
+    while ((*p_ucsr9a & 1<<txc9) == 0) {
     }
 
-    UCSR0B = 0;
+    *p_ucsr9b = 0;
     vLine++;
 
     if ((vLine & 0xF) == 0)

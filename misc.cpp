@@ -5,7 +5,7 @@
 #include "board.h"
 #include "misc.h"
 #include <stdarg.h>
-#include "analog.h"
+//#include "analog.h"
 #include "uart.h"
 
 static inline void _delay_loop_1(uint8_t __count) __attribute__((always_inline));
@@ -166,25 +166,6 @@ void string::append(const string &s)
     my_strcpy(this->s + size(), s.c_str());
 }
 
-AnalogBase::AnalogBase(uint8_t *base)
-  :
-    base(base),
-    adcl(base),
-    adch(base + 1),
-    adcsra(base + 2),
-    adcsrb(base + 3),
-    admux(base + 4)
-{
-}
-
-Analog::Analog() : AnalogBase((uint8_t *)0x78)
-{
-    *admux = 0x00 | (1<<BREFS0);
-    *adcsra = (1<<BADPS1) | (1<<BADPS0) | (1<<BADEN) | (1<<BADATE);
-    *adcsrb &= (1<<BADTS2) | (1<<BADTS1) | (1<<BADTS0);
-    *adcsra |= (1<<BADSC);
-}
-
 DS1302::DS1302(Pin *clk, Pin *dat, Pin *rst) : clk(clk), dat(dat), rst(rst)
 {
     clk->direction(OUTPUT);
@@ -284,18 +265,6 @@ void DS1302::stop()
     rst->clear();
     _delay_us(4);
 }
-
-uint8_t DFKeyPad::poll()
-{
-    unsigned x = adc.read();
-    if (x < 100) return RIGHT;
-    if (x < 250) return UP;
-    if (x < 400) return DOWN;
-    if (x < 550) return LEFT;
-    if (x < 800) return SELECT;
-    return 0;
-}
-
 
 
 

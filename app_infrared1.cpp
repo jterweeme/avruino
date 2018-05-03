@@ -1,6 +1,3 @@
-#include <avr/interrupt.h>
-#include "misc.h"
-
 #ifndef F_CPU
 #define F_CPU 16000000
 #endif
@@ -8,6 +5,8 @@
 #include <util/delay.h>
 #include "infrared.h"
 #include "stream.h"
+#include <avr/interrupt.h>
+#include "misc.h"
 
 int main()
 {

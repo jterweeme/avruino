@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include "uart.h"
 #include <avr/io.h>
+#include "stream.h"
 
 static constexpr uint8_t SAMPLES = 2;
 
-static void getPoint(Analog2 &analog, DefaultUart &serial)
+static void getPoint(Analog2 &analog, ostream &serial)
 {
     int samples[SAMPLES];
     uint8_t valid = 1;
@@ -60,18 +61,18 @@ static void getPoint(Analog2 &analog, DefaultUart &serial)
 
     char buf[100];
     snprintf(buf, 100, "%u %u %u\r\n", x, y, z);
-    serial.write(buf);
+    serial << buf;
 }
 
 int main()
 {
     DefaultUart s;
-    //s.init();
+    UartStream cout(&s);
     Analog2 a;
     a.init();
 
     while (true)
-        getPoint(a, s);
+        getPoint(a, cout);
 
     return 0;
 }

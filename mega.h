@@ -158,9 +158,19 @@ static constexpr uint8_t
     ubrr9h = ubrr0h,
     udr9 = udr0,
 
-    ocr1a_port_base = portb_base,
-    ocr1a_ddr = ocr1a_port_base + 1,
-    ocr1a_port = ocr1a_port_base + 2,
+    ocr0a_base = portb_base,
+    ocr0a_in = ocr0a_base + 0,
+    ocr0a_ddr = ocr0a_base + 1,
+    ocr0a_port = ocr0a_base + 2,
+    ocr0a_bit = pb7,
+    ocr0b_base = portg_base,
+    ocr0b_in = ocr0b_base + 0,
+    ocr0b_ddr = ocr0b_base + 1,
+    ocr0b_bit = pg5,
+    ocr1a_base = portb_base,
+    ocr1a_in = ocr1a_base + 0,
+    ocr1a_ddr = ocr1a_base + 1,
+    ocr1a_port = ocr1a_base + 2,
     ocr1a_bit = pb5,
     ocr1b_port_base = portb_base,
     ocr1b_ddr = ocr1b_port_base + 1,
@@ -329,6 +339,7 @@ static volatile uint8_t
     * const p_ddrf = (volatile uint8_t * const)ddrf,
     * const p_portf = (volatile uint8_t * const)portf,
     * const p_portg = (volatile uint8_t * const)portg,
+    * const p_tifr0 = (volatile uint8_t * const)tifr0,
     * const p_tifr1 = (volatile uint8_t * const)tifr1,
     * const p_tifr2 = (volatile uint8_t * const)tifr2,
     * const p_tifr3 = (volatile uint8_t * const)tifr3,
@@ -393,6 +404,7 @@ static volatile uint8_t
     * const p_ubrr9h = (volatile uint8_t * const)ubrr9h,
     * const p_udr9 = (volatile uint8_t * const)udr9,
 
+    * const p_ocr0b_ddr = (volatile uint8_t * const)ocr0b_ddr,
     * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
     * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
     * const p_ocr2b_ddr = (volatile uint8_t * const)ocr2b_ddr,
@@ -557,7 +569,8 @@ struct Board
 #define TIMER0_COMPA __vector_21()
 #define TIMER0_COMPB __vector_22()
 #define TIMER0_OVF __vector_23()
-#define USART_RX __vector_25()
+#define USART0_RX __vector_25()
+#define USART_RX USART0_RX
 #define TIMER1_OVF __vector_20()
 #define TIMER2_OVF __vector_15()
 

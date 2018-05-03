@@ -6,19 +6,19 @@ HSYNC: OCR2B
 VSYNC: OCR1B
 
 Uno:
-RGB: D1
-HSync: D3
-VSync: D10
+RGB: TX0/#1
+HSync: #3
+VSync: #10
 
 Mega:
-RGB: D1
-HSync: D9
-VSync: D12
+RGB: #1
+HSync: #9
+VSync: #12
 */
 
 #include <avr/interrupt.h>
 #include "pgmspees.h"
-#include <avr/sleep.h>
+#include "sleepy.h"
 #include <stdio.h>
 #include "board.h"
 
@@ -203,7 +203,7 @@ Display::Display()
     for (int i = 0; i < 30; i++)
         ::sprintf(message[i], "Line %03i - hello!", i);
 
-    sei();
+    zei();
     *p_timsk0 = 0;
     *p_ocr0a = 0;
     *p_ocr0b = 0;
@@ -221,10 +221,10 @@ Display::Display()
     *p_ocr2b = 7;
     *p_tifr2 = 1<<tov2;
     *p_timsk2 = 1<<toie2;
-    *p_ubrr0 = 0;
+    *p_ubrr9 = 0;
     //*p_ddrd |= 1<<4;
-    *p_ucsr0b = 0; 
-    *p_ucsr0c = 1<<umsel00 | 1<<umsel01 | 1<<ucpol0; // 1<<ucpha0?
+    *p_ucsr9b = 0; 
+    *p_ucsr9c = 1<<umsel90 | 1<<umsel91 | 1<<ucpol9; // 1<<ucpha0?
     set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
@@ -253,15 +253,15 @@ void Display::scanLine()
     const register uint8_t *linePtr = &screen_font[vLine>>1 & 0x07][0];
     char *messagePtr = &(message[messageLine][0]);
     uint8_t i = 20;
-    *p_ucsr0b = 1<<txen0;
+    *p_ucsr9b = 1<<txen9;
 
     while (i--)
-        *p_udr0 = pgm_read_byte(linePtr + (*messagePtr++));
+        *p_udr9 = pgm_read_byte(linePtr + (*messagePtr++));
 
-    while ((*p_ucsr0a & 1<<txc0) == 0)
+    while ((*p_ucsr9a & 1<<txc9) == 0)
         ;
   
-    *p_ucsr0b = 0;
+    *p_ucsr9b = 0;
     vLine++;  
   
     if ((vLine & 0xF) == 0)

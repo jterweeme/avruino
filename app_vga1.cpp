@@ -1,19 +1,30 @@
 /*
 Uno:
-RGB: D1/TX0
-HSync: D3/OCR2B
-VSync: D10/OCR1B
+RGB:   TX0/#1
+HSync: OCR0B/#5
+VSync: OCR1B/#10
 
 Mega:
-RGB: D1/TX0
-HSync: D9
-VSync: D12
+RGB:   TX0/#1
+HSync: OCR0B
+VSync: OCR1B/#10
+
+Leonardo:
+RGB:   TX1/#1
+HSync: OCR0B/PD0/SCL
+VSync: OCR1B/#10
+
+Teensy20pp:
+RGB:   TX1/PD3
+HSync: OCR0B
+VSync: OCR1A/PB5
 */
 
 #include "pgmspees.h"
 #include "sleepy.h"
 #include "board.h"
 #include "misc.h"
+#include <avr/io.h>
 
 static const uint8_t screen_font[8][256] PROGMEM = 
 {
@@ -169,7 +180,7 @@ public:
     Display();
     void scanLine();
     void interrupt();
-    char message[30][20];
+    char message[1][20];
 private:
     volatile int messageLine;
     volatile int vLine;
@@ -181,30 +192,36 @@ Display display;
 Display::Display()
 {
     for (int i = 0; i < 30; i++)
-        my_strcpy(message[i], "Line xxx - hello!");
+        my_strcpy(message[0], "Line xxx - hello!");
 
     zei();
-    *p_timsk0 = 0;
-    *p_ocr0a = 0;
-    *p_ocr0b = 0;
     *p_ocr1b_ddr |= 1<<ocr1b_bit;
     *p_tccr1a = 1<<wgm10 | 1<<wgm11 | 1<<com1b1;  
     *p_tccr1b = 1<<wgm12 | 1<<wgm13 | 5;
     *p_ocr1a = 259;
     *p_ocr1b = 0;
+#if defined (__AVR_ATmega8__)
+    *p_tifr = 1<<tov1;
+    *p_timsk = 1<<toie1;
+#else
     *p_tifr1 = 1<<tov1;
     *p_timsk1 = 1<<toie1;
-    *p_ocr2b_ddr |= 1<<ocr2b_bit;
-    *p_tccr2a = 1<<wgm20 | 1<<wgm21 | 1<<com2b1;
-    *p_tccr2b = 1<<wgm22 | 2;
-    *p_ocr2a = 63;
-    *p_ocr2b = 7;
-    *p_tifr2 = 1<<tov2;
-    *p_timsk2 = 1<<toie2;
-    *p_ubrr0 = 0;
-    //*p_ddrd |= 1<<4;
-    *p_ucsr0b = 0; 
-    *p_ucsr0c = 1<<umsel00 | 1<<umsel01 | 1<<ucpol0; // 1<<ucpha0?
+#endif
+    *p_ocr0b_ddr |= 1<<ocr0b_bit;
+    *p_tccr0a = 1<<wgm00 | 1<<wgm01 | 1<<com0b1;
+    *p_tccr0b = 1<<wgm02 | 2;
+    *p_ocr0a = 63;
+    *p_ocr0b = 7;
+#if defined (__AVR_ATmega8__)
+    *p_tifr = 1<<tov0;
+    *p_timsk = 1<<toie0;
+#else
+    *p_tifr0 = 1<<tov0;
+    *p_timsk0 = 1<<toie0;
+#endif
+    *p_ubrr9 = 0;
+    *p_ucsr9b = 0; 
+    *p_ucsr9c = 1<<umsel90 | 1<<umsel91 | 1<<ucpol9; // 1<<ucpha0?
     set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
@@ -229,19 +246,20 @@ void Display::scanLine()
     const register uint8_t *linePtr = &screen_font[vLine>>1 & 0x07][0];
     char *messagePtr = &(message[messageLine][0]);
     uint8_t i = 20;
-    *p_ucsr0b = 1<<txen0;
+    *p_ucsr9b = 1<<txen9;
 
     while (i--)
-        *p_udr0 = pgm_read_byte(linePtr + *messagePtr++);
+        *p_udr9 = pgm_read_byte(linePtr + *messagePtr++);
 
-    while ((*p_ucsr0a & 1<<txc0) == 0)
+    while ((*p_ucsr9a & 1<<txc9) == 0)
         ;
   
-    *p_ucsr0b = 0;
+    *p_ucsr9b = 0;
     vLine++;  
-  
+#if 0
     if ((vLine & 0xF) == 0)
         messageLine++;
+#endif
 }
 
 int main()
@@ -255,16 +273,15 @@ int main()
     return 0;
 }
 
+extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
+void TIMER0_OVF
+{
+}
+
 extern "C" void TIMER1_OVF __attribute__ ((signal, used, externally_visible));
 void TIMER1_OVF
 {
     display.interrupt();
 }
-
-extern "C" void TIMER2_OVF __attribute__ ((signal, used, externally_visible));
-void TIMER2_OVF
-{
-}
-
 
 

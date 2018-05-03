@@ -7,7 +7,7 @@ prints Lunar Lander 1976 on 1602LCD (from DFK Keyboard)
 #endif
 
 #include "board.h"
-#include "uart.h"
+#include "lcd.h"
 #include <util/delay.h>
 
 class App : public Board

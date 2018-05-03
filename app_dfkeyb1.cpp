@@ -2,6 +2,7 @@
 #include "board.h"
 #include "analog.h"
 #include "stream.h"
+#include "lcd.h"
 
 class App : public Board
 {

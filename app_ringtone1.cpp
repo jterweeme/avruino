@@ -1,35 +1,18 @@
 /*
-Plays an RTTTL ringtone on Arduino Uno Pin 11 using timer1 with interrupt
-
-CS12 CS11 CS10
-000 No clock source
-001 No prescaling
-010 clk/8
-011 clk/64
-100 clk/256
-101 clk/1024
-110 ext t1 falling
-111 ext t1 rising
+Uno: OC1A/#9
+Ocho: OC1A/#9
 */
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
 
-#include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "board.h"
 #include <util/delay.h>
 #include "misc.h"
 
-Pin *g_buzz;
-
-ISR(TIMER1_COMPA_vect)
-{
-    g_buzz->toggle();
-}
-
-const uint16_t notes[] PROGMEM =
+static const uint16_t notes[] PROGMEM =
 {
     0, 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494, 523, 554,
     587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047, 1109, 1175, 1245,
@@ -38,7 +21,7 @@ const uint16_t notes[] PROGMEM =
     2*2489, 2*2637, 2*2794, 2*2960, 2*3136, 2*3322, 2*3520, 2*3729, 2*3951, 0
 };
 
-void delay(uint16_t n)
+static void delay(uint16_t n)
 {
     for (uint16_t i = 0; i < n; i++)
         _delay_ms(1);
@@ -50,37 +33,32 @@ private:
     inline char read_byte(const char *p, bool pgm) { return pgm ? pgm_read_byte(p) : *p; }
     void _play(const char *p, uint8_t octave_offset, bool pgm);
     void _tone(uint16_t freq);
-    void _noTone() const;
+    void _noTone() const { *p_ocr1a = 0; }
     uint8_t _noten(char c) const;
 public:
     void play_P(const char *p, uint8_t octave_offset = 0) { _play(p, octave_offset, true); }
     void play(const char *p, uint8_t octave_offset = 0) { _play(p, octave_offset, false); }
 };
 
-void Rtttl::_noTone() const
-{
-    TIMSK1 &= ~(1<<OCIE1A);
-    g_buzz->clear();
-}
+static constexpr uint8_t CLK1 = 1, CLK8 = 2, CLK64 = 3, CLK256 = 4, CLK1024 = 5;
 
 void Rtttl::_tone(uint16_t frequency)
 {
     uint8_t prescalarbits = 0b001;
-    TCCR1A = 0;
-    TCCR1B = 1<<WGM12 | 1<<CS10;    // clk1
-    g_buzz->direction(OUTPUT);
+    *p_ocr1a_ddr |= 1<<ocr1a_bit;
+    *p_tccr1a = 1<<com1a0;
+    *p_tccr1b = 1<<wgm12 | CLK1;
     uint32_t ocr = F_CPU / (frequency<<1) - 1;
-    prescalarbits = 1<<CS10;    // clk/1
+    prescalarbits = CLK1;
 
     if (ocr > 0xffff)
     {
         ocr = F_CPU / (frequency<<8) - 1;
-        prescalarbits = 1<<CS10 | 1<<CS11;  // clk/64
+        prescalarbits = CLK64;
     }
 
-    TCCR1B = (TCCR1B & 0b11111000) | prescalarbits;
-    OCR1A = ocr;
-    TIMSK1 |= 1<<OCIE1A;
+    *p_tccr1b = (*p_tccr1b & 0xf8) | prescalarbits;
+    *p_ocr1a = ocr;
 }
 
 uint8_t Rtttl::_noten(char c) const
@@ -197,6 +175,7 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
     }
 }
 
+#if 0
 const char indiana[] PROGMEM =
     "Indiana:d=4,o=5,b=250:e,8p,8f,8g,8p,1c6,8p.,d,8p,8e,1f,p.,g,8p,8a,8b,8p,"
     "1f6,p,a,8p,8b,2c6,2d6,2e6,e,8p,8f,8g,8p,1c6,p,d6,8p,8e6,1f.6,g,8p,8g,e.6,"
@@ -235,12 +214,14 @@ const char bobbouwer[] PROGMEM =
     "16d,16p,8p,d6,16g,16p,8c6,b,g,16c,16p,8p,16d,16p,8p,16g,16p,8p,16g,16p,8p,"
     "g6,16g,16p,8e6,d6,b,16c,16p,8p,16c,16p,8p,16d,16p,8p,16d,16p,8p,d6,16g,16p,"
     "8c6,b,g,16c,16p,8p,16d,16p,8p,16g";
+#endif
 
 const char godfather[] PROGMEM =
     "Godfather:d=4,o=5,b=160:8g,8c6,8d#6,8d6,8c6,8d#6,8c6,8d6,c6,8g#,8a#,2g,8p,"
     "8g,8c6,8d#6,8d6,8c6,8d#6,8c6,8d6,c6,8g,8f#,2f,8p,8f,8g#,8b,2d6,8p,8f,8g#,"
     "8b,2c6,8p,8c,8d#,8a#,8g#,g,8a#,8g#,8g#,8g,8g,8b4,2c";
 
+#if 0
 const char final_countdown[] PROGMEM =
     "Final Countdown:d=16,o=5,b=125:b,a,4b,4e,4p,8p,c6,b,8c6,8b,4a,4p,8p,c6,b,"
     "4c6,4e,4p,8p,a,g,8a,8g,8f#,8a,4g.,f#,g,4a.,g,a,8b,8a,8g,8f#,4e,4c6,2b.,b,c6,b,a,1b";
@@ -265,12 +246,11 @@ const char rule_brittania[] PROGMEM =
 const char anthem[] PROGMEM =
     "USA National Anthem:d=8,o=5,b=120:e.,d,4c,4e,4g,4c6.,p,e6.,d6,4c6,"
     "4e,4f#,4g.,p,4g,4e6.,d6,4c6,2b,a,4b,c6.,16p,4c6,4g,4e,32p,4c";
+#endif
 
 int main()
 {
-    sei();
-    Board board;
-    g_buzz = &board.pin11;
+    zei();
     Rtttl player;
     player.play_P(godfather, 0);
     return 0;

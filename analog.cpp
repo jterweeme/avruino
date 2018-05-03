@@ -119,6 +119,25 @@ TSPoint TouchScreen::getPoint()
     return TSPoint(x, y, z);
 }
 
+AnalogBase::AnalogBase(uint8_t *base)
+  :
+    base(base),
+    adcl(base),
+    adch(base + 1),
+    adcsra(base + 2),
+    adcsrb(base + 3),
+    admux(base + 4)
+{
+}
+
+Analog::Analog() : AnalogBase((uint8_t *)0x78)
+{
+    *admux = 0x00 | (1<<BREFS0);
+    *adcsra = (1<<BADPS1) | (1<<BADPS0) | (1<<BADEN) | (1<<BADATE);
+    *adcsrb &= (1<<BADTS2) | (1<<BADTS1) | (1<<BADTS0);
+    *adcsra |= (1<<BADSC);
+}
+
 void Analog2::init()
 {
     *p_admux = 1<<refs0;
@@ -135,6 +154,17 @@ uint16_t Analog2::read(uint8_t input)
         ;
 
     return *p_adcl | (uint16_t)*p_adch << 8;
+}
+
+uint8_t DFKeyPad::poll()
+{   
+    unsigned x = adc.read();
+    if (x < 100) return RIGHT;
+    if (x < 250) return UP;
+    if (x < 400) return DOWN;
+    if (x < 550) return LEFT;
+    if (x < 800) return SELECT;
+    return 0;
 }
 
 

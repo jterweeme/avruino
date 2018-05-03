@@ -5,6 +5,7 @@ github.com/dagon666
 
 PCSpeaker, UNO: OC1A/D9/PB1
 PCSpeaker, MEGA: OC1A/D11/PB5
+PCSpeaker, LEONARDO: OC1A/D9/PB5
 */
 
 #include "types.h"

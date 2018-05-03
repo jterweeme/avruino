@@ -4,6 +4,8 @@
 
 #if defined (__AVR_ATmega32U4__)
 #include "cdc.h"
+#elif defined (__AVR_ATmega16U2__)
+#include "cdc.h"
 #endif
 
 class ostream
