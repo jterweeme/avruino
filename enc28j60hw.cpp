@@ -6,6 +6,159 @@
 #include "enc28j60hw.h"
 #include "board.h"
 
+static constexpr uint16_t MAX_FRAMELEN = 1500; // (note: max ethernet frame length would be 1518
+static const uint8_t POOLOFFSET = 1;
+
+#define UIP_RECEIVEBUFFERHANDLE 0xff
+
+struct memblock MemoryPool::blocks[MEMPOOL_NUM_MEMBLOCKS+1];
+
+static inline void *myMemset(void *s, int c, size_t n)
+{
+    uint8_t *p = (uint8_t *)s;
+
+    while (n--)
+        *p++ = (uint8_t)c;
+
+    return s;
+}
+
+void MemoryPool::init()
+{
+    myMemset(&blocks[0], 0, sizeof(blocks));
+    blocks[POOLSTART].begin = MEMPOOL_STARTADDRESS;
+    blocks[POOLSTART].size = 0;
+    blocks[POOLSTART].nextblock = NOBLOCK;
+}
+
+memhandle MemoryPool::allocBlock(memaddress size)
+{
+    memblock* best = 0;
+    memhandle cur = POOLSTART;
+    memblock* block = &blocks[POOLSTART];
+    memaddress bestsize = MEMPOOL_SIZE + 1;
+
+    do
+    {
+        memhandle next = block->nextblock;
+
+        memaddress freesize = (next == NOBLOCK ?
+            blocks[POOLSTART].begin + MEMPOOL_SIZE :
+            blocks[next].begin) - block->begin - block->size;
+
+        if (freesize == size)
+        {
+            best = &blocks[cur];
+            goto found;
+        }
+
+        if (freesize > size && freesize < bestsize)
+        {
+            bestsize = freesize;
+            best = &blocks[cur];
+        }
+
+        if (next == NOBLOCK)
+        {
+            if (best)
+                goto found;
+            else
+                goto collect;
+        }
+        block = &blocks[next];
+        cur = next;
+    }
+    while (true);
+collect:
+    {
+      cur = POOLSTART;
+      block = &blocks[POOLSTART];
+      memhandle next;
+      while ((next = block->nextblock) != NOBLOCK)
+        {
+          memaddress dest = block->begin + block->size;
+          memblock* nextblock = &blocks[next];
+          memaddress* src = &nextblock->begin;
+          if (dest != *src)
+            {
+              *src = dest;
+            }
+          block = nextblock;
+        }
+      if (blocks[POOLSTART].begin + MEMPOOL_SIZE - block->begin - block->size >= size)
+        best = block;
+      else
+        goto notfound;
+    }
+found:
+    {
+      block = &blocks[POOLOFFSET];
+      for (cur = POOLOFFSET; cur < MEMPOOL_NUM_MEMBLOCKS + POOLOFFSET; cur++)
+        {
+          if (block->size)
+            {
+              block++;
+              continue;
+            }
+          memaddress address = best->begin + best->size;
+          block->begin = address;
+          block->size = size;
+          block->nextblock = best->nextblock;
+          best->nextblock = cur;
+          return cur;
+        }
+    }
+
+notfound:
+    return NOBLOCK;
+}
+
+
+void MemoryPool::freeBlock(memhandle handle)
+{
+    if (handle == NOBLOCK)
+        return;
+
+    memblock *b = &blocks[POOLSTART];
+
+    do
+    {
+      memhandle next = b->nextblock;
+      if (next == handle)
+        {
+          memblock *f = &blocks[next];
+          b->nextblock = f->nextblock;
+          f->size = 0;
+          f->nextblock = NOBLOCK;
+          return;
+        }
+      if (next == NOBLOCK)
+        return;
+      b = &blocks[next];
+    }
+  while (true);
+}
+
+void MemoryPool::resizeBlock(memhandle handle, memaddress position)
+{
+    memblock * block = &blocks[handle];
+    block->begin += position;
+    block->size -= position;
+}
+
+void MemoryPool::resizeBlock(memhandle handle, memaddress position, memaddress size)
+{
+    memblock *block = &blocks[handle];
+    block->begin += position;
+    block->size = size;
+}
+
+memaddress MemoryPool::blockSize(memhandle handle)
+{
+    return blocks[handle].size;
+}
+
+
 static constexpr uint8_t
 #if defined (__AVR_ATmega32U4__)
     cs_port_base = pin10_base,

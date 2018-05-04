@@ -316,8 +316,6 @@ uint16_t UIPEthernetClass::ipchksum()
     return sum == 0 ? 0xffff : htons(sum);
 }
 
-#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
 uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
 {
     uint16_t sum;
@@ -340,7 +338,7 @@ uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
         upper_layer_memlen = UIP_UDPH_LEN;
         break;
     default:
-        upper_layer_memlen = (BUF->tcpoffset >> 4) << 2;
+        upper_layer_memlen = (((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])->tcpoffset>>4)<<2;
         break;
     }
     sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN], upper_layer_memlen);
@@ -362,15 +360,21 @@ static constexpr uint8_t
     TCP_OPT_END = 0, TCP_OPT_NOOP = 1, TCP_OPT_MSS = 2,
     TCP_OPT_MSS_LEN = 4;
 
+struct uip_icmpip_hdr
+{
+    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
+    uint16_t ipchksum;
+    uint16_t srcipaddr[2], destipaddr[2];
+    uint8_t type, icode;
+    uint16_t icmpchksum;
+    uint16_t id, seqno;
+};
+
 void uip_add32(uint8_t *op32, uint16_t op16);
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 static const uip_ipaddr_t all_zeroes_addr = {0x0000,0x0000};
 struct uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
-
-#ifndef UIP_CONF_EXTERNAL_BUFFER
 uint8_t uip_buf[UIP_BUFSIZE + 2];
-#endif
-
 void *uip_appdata;
 void *uip_sappdata;
 uint16_t uip_len;
@@ -388,29 +392,10 @@ static uint16_t lastport;  /* Keeps track of the last port used for a new connec
 uint8_t uip_acc32[4];
 static uint8_t c, opt;
 static uint16_t tmp16;
-
-struct uip_icmpip_hdr
-{
-    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
-    uint16_t ipchksum;
-    uint16_t srcipaddr[2], destipaddr[2];
-    uint8_t type, icode;
-    uint16_t icmpchksum;
-    uint16_t id, seqno;
-};
-
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define FBUF ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
 #define ICMPBUF ((struct uip_icmpip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-#if UIP_LOGGING == 1
-#include <stdio.h>
-void uip_log(char *msg);
-#define UIP_LOG(m) uip_log(m)
-#else
-#define UIP_LOG(m)
-#endif
 
 void uip_add32(uint8_t *op32, uint16_t op16)
 {
@@ -419,7 +404,7 @@ void uip_add32(uint8_t *op32, uint16_t op16)
     uip_acc32[1] = op32[1];
     uip_acc32[0] = op32[0];
   
-    if(uip_acc32[2] < (op16 >> 8))
+    if (uip_acc32[2] < (op16 >> 8))
     {
         ++uip_acc32[1];
 
@@ -428,7 +413,7 @@ void uip_add32(uint8_t *op32, uint16_t op16)
     }
   
   
-    if(uip_acc32[3] < (op16 & 0xff))
+    if (uip_acc32[3] < (op16 & 0xff))
     {
         ++uip_acc32[2];
 
@@ -598,7 +583,7 @@ static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
                   } while(0)
 #endif
 
-
+#define UIP_LOG(m)
 
 void UIPEthernetClass::uip_process(uint8_t flag)
 {
@@ -613,8 +598,7 @@ void UIPEthernetClass::uip_process(uint8_t flag)
      particular connection. */
     if (flag == UIP_POLL_REQUEST)
     {
-        if ((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED &&
-            !uip_outstanding(uip_connr))
+        if ((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED && !((uip_connr)->len))
         {
             uip_flags = UIP_POLL;
             uipclient_appcall();
@@ -750,74 +734,39 @@ void UIPEthernetClass::uip_process(uint8_t flag)
         goto drop;
     }
 
-#if !UIP_CONF_IPV6
-    if((BUF->ipoffset[0] & 0x3f) != 0 || BUF->ipoffset[1] != 0)
-    {
+    if ((BUF->ipoffset[0] & 0x3f) != 0 || BUF->ipoffset[1] != 0)
         goto drop;
-    }
-#endif
 
-  if(uip_ipaddr_cmp(uip_hostaddr, all_zeroes_addr)) {
-    /* If we are configured to use ping IP address configuration and
-       hasn't been assigned an IP address yet, we accept all ICMP
-       packets. */
-#if UIP_PINGADDRCONF && !UIP_CONF_IPV6
-    if(BUF->proto == UIP_PROTO_ICMP) {
-      UIP_LOG("ip: possible ping config packet received.");
-      goto icmp_input;
-    } else {
-      UIP_LOG("ip: packet dropped since no address assigned.");
-      goto drop;
-    }
-#endif /* UIP_PINGADDRCONF */
-
-  } else {
-    /* If IP broadcast support is configured, we check for a broadcast
-       UDP packet, which may be destined to us. */
-#if UIP_BROADCAST
-    if (BUF->proto == UIP_PROTO_UDP &&
-       uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr))
+    if(uip_ipaddr_cmp(uip_hostaddr, all_zeroes_addr))
     {
-        goto udp_input;
+        /* If we are configured to use ping IP address configuration and
+        hasn't been assigned an IP address yet, we accept all ICMP
+        packets. */
     }
-#endif /* UIP_BROADCAST */
+    else
+    {
+        /* If IP broadcast support is configured, we check for a broadcast
+        UDP packet, which may be destined to us. */
+        if (BUF->proto == UIP_PROTO_UDP && uip_ipaddr_cmp(BUF->destipaddr, all_ones_addr))
+            goto udp_input;
     
-    /* Check if the packet is destined for our IP address. */
-#if !UIP_CONF_IPV6
-    if (!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr))
-    {
-        goto drop;
+        // Check if the packet is destined for our IP address.
+        if (!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr))
+            goto drop;
     }
-#else
-    /* For IPv6, packet reception is a little trickier as we need to
-       make sure that we listen to certain multicast addresses (all
-       hosts multicast address, and the solicited-node multicast
-       address) as well. However, we will cheat here and accept all
-       multicast packets that are sent to the ff02::/16 addresses. */
-    if(!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr) &&
-       BUF->destipaddr[0] != HTONS(0xff02))
-    {
-        goto drop;
-    }
-#endif /* UIP_CONF_IPV6 */
-  }
 
-  if(BUF->proto == UIP_PROTO_TCP) {
-    goto tcp_input;
-  }
+    if (BUF->proto == UIP_PROTO_TCP)
+        goto tcp_input;
 
-  if(BUF->proto == UIP_PROTO_UDP) {
-    goto udp_input;
-  }
+    if (BUF->proto == UIP_PROTO_UDP)
+        goto udp_input;
 
-    if(BUF->proto != UIP_PROTO_ICMP) { /* We only allow ICMP packets from here. */
+    if (BUF->proto != UIP_PROTO_ICMP)
+    { /* We only allow ICMP packets from here. */
         UIP_LOG("ip: neither tcp nor icmp.");
         goto drop;
     }
 
-#if UIP_PINGADDRCONF
-icmp_input:
-#endif
   /* ICMP echo (i.e., ping) processing. This is simple, we only change
      the ICMP type from ECHO to ECHO_REPLY and adjust the ICMP
      checksum before we return the packet. */
@@ -825,18 +774,11 @@ icmp_input:
     goto drop;
   }
 
-  /* If we are configured to use ping IP address assignment, we use
+    /* If we are configured to use ping IP address assignment, we use
      the destination IP address of this ping packet and assign it to
      ourself. */
-#if UIP_PINGADDRCONF
-    if((uip_hostaddr[0] | uip_hostaddr[1]) == 0)
-    {
-        uip_hostaddr[0] = BUF->destipaddr[0];
-        uip_hostaddr[1] = BUF->destipaddr[1];
-    }
-#endif
 
-  ICMPBUF->type = ICMP_ECHO_REPLY;
+    ICMPBUF->type = ICMP_ECHO_REPLY;
 
     if (ICMPBUF->icmpchksum >= HTONS(0xffff - (ICMP_ECHO << 8)))
     {
@@ -851,22 +793,22 @@ icmp_input:
     uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
     goto send;
 
-#if UIP_UDP
     // UDP input processing.
 udp_input:
-  /* UDP processing is really just a hack. We don't do anything to the
+    /* UDP processing is really just a hack. We don't do anything to the
      UDP/IP headers, but let the UDP application do all the hard
      work. If the application sets uip_slen, it has a packet to
      send. */
-#if UIP_UDP_CHECKSUMS
     uip_len = uip_len - UIP_IPUDPH_LEN;
     uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
 
-    if (UDPBUF->udpchksum != 0 && upper_layer_chksum(UIP_PROTO_UDP) != 0xffff)
+#define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+    if (((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->udpchksum != 0 &&
+        upper_layer_chksum(UIP_PROTO_UDP) != 0xffff)
+    {
         goto drop;
-#else
-    uip_len = uip_len - UIP_IPUDPH_LEN;
-#endif
+    }
 
     /* Demultiplex this UDP packet between the UDP "connections". */
     for(uip_udp_conn = &uip_udp_conns[0]; uip_udp_conn < &uip_udp_conns[UIP_UDP_CONNS];
@@ -882,9 +824,9 @@ udp_input:
             goto udp_found;
         }
     }
-  UIP_LOG("udp: no matching connection found");
-  goto drop;
-  
+
+    UIP_LOG("udp: no matching connection found");
+    goto drop;
 udp_found:
     uip_conn = NULL;
     uip_flags = UIP_NEWDATA;
@@ -907,23 +849,18 @@ udp_send:
     uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
     uip_ipaddr_copy(BUF->destipaddr, uip_udp_conn->ripaddr);
     uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
-#if UIP_UDP_CHECKSUMS
     /* Calculate UDP checksum. */
     UDPBUF->udpchksum = ~(upper_layer_chksum(UIP_PROTO_UDP));
 
-    if(UDPBUF->udpchksum == 0)
+    if (UDPBUF->udpchksum == 0)
         UDPBUF->udpchksum = 0xffff;
-#endif /* UIP_UDP_CHECKSUMS */
-  
-  goto ip_send_nolen;
-#endif /* UIP_UDP */
-  
+
+    goto ip_send_nolen;
 tcp_input:
-  /* Start of TCP input header processing code. */
+    // Start of TCP input header processing code.
   
-  if (upper_layer_chksum(UIP_PROTO_TCP) != 0xffff) { 
-    goto drop;
-  }
+    if (upper_layer_chksum(UIP_PROTO_TCP) != 0xffff)
+        goto drop;
   
   /* Demultiplex this segment. */
   /* First check any active connections. */
@@ -1574,15 +1511,10 @@ uip_userdata_t *UIPEthernetClass::_allocateData()
     return NULL;
 }
 
-#define UIP_SOCKET_DATALEN UIP_TCP_MSS
-
 size_t UIPEthernetClass::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
 {
     int remain = size;
     uint16_t written;
-#if UIP_ATTEMPTS_ON_WRITE > 0
-    uint16_t attempts = UIP_ATTEMPTS_ON_WRITE;
-#endif
 repeat:
     UIPEthernetClass::instance->tick();
 
@@ -1593,21 +1525,15 @@ repeat:
         if (u->packets_out[p] == NOBLOCK)
         {
 newpacket:
-            u->packets_out[p] = _nw.allocBlock(UIP_SOCKET_DATALEN);
+            u->packets_out[p] = _nw.allocBlock(UIP_TCP_MSS);
             if (u->packets_out[p] == NOBLOCK)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-                if ((--attempts)>0)
-#endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
-                    goto repeat;
-#endif
+                goto repeat;
                 goto ready;
             }
             u->out_pos = 0;
         }
-        written = Enc28J60Network::instance->writePacket(u->packets_out[p],
-            u->out_pos,(uint8_t*)buf+size-remain,remain);
+        written = _nw.writePacket(u->packets_out[p], u->out_pos,(uint8_t*)buf+size-remain,remain);
 
       remain -= written;
       u->out_pos+=written;
@@ -1615,12 +1541,7 @@ newpacket:
         {
           if (p == UIP_SOCKET_NUMPACKETS-1)
             {
-#if UIP_ATTEMPTS_ON_WRITE > 0
-              if ((--attempts)>0)
-#endif
-#if UIP_ATTEMPTS_ON_WRITE != 0
                 goto repeat;
-#endif
               goto ready;
             }
           p++;

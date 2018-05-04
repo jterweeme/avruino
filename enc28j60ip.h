@@ -1,76 +1,9 @@
 #ifndef _UIP_H_
 #define _UIP_H_
-
-#ifndef UIP_LITTLE_ENDIAN
-#define UIP_LITTLE_ENDIAN  3412
-#endif
-#ifndef UIP_BIG_ENDIAN
-#define UIP_BIG_ENDIAN     1234
-#endif
-
 #include "enc28j60hw.h"
 #include "eth.h"
 
-typedef void * uip_tcp_appstate_t;
 typedef void * uip_udp_appstate_t;
-static constexpr uint8_t UIP_ARPHDRSIZE = 42;
-
-#ifndef UIP_CONF_MAX_LISTENPORTS
-#define UIP_LISTENPORTS 20
-#else
-#define UIP_LISTENPORTS UIP_CONF_MAX_LISTENPORTS
-#endif
-
-#ifndef UIP_CONF_TCP_MSS
-#define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
-#else
-#define UIP_TCP_MSS UIP_CONF_TCP_MSS
-#endif
-
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_RECEIVE_WINDOW UIP_TCP_MSS
-#else
-#define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
-#endif
-
-#define UIP_TIME_WAIT_TIMEOUT 120
-
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_BUFSIZE     400
-#else
-#define UIP_BUFSIZE UIP_CONF_BUFFER_SIZE
-#endif
-
-#define UIP_CONF_STATISTICS 0
-#ifndef UIP_CONF_STATISTICS
-#define UIP_STATISTICS  0
-#else
-#define UIP_STATISTICS UIP_CONF_STATISTICS
-#endif
-
-#ifndef UIP_CONF_LOGGING
-#define UIP_LOGGING     0
-#else
-#define UIP_LOGGING     UIP_CONF_LOGGING
-#endif
-
-#if UIP_UDP && UIP_CONF_BROADCAST
-#define UIP_BROADCAST UIP_CONF_BROADCAST
-#else
-#define UIP_BROADCAST 0
-#endif
-
-#ifdef UIP_CONF_LLH_LEN
-#define UIP_LLH_LEN UIP_CONF_LLH_LEN
-#else
-#define UIP_LLH_LEN     14
-#endif
-
-#ifdef UIP_CONF_BYTE_ORDER
-#define UIP_BYTE_ORDER     UIP_CONF_BYTE_ORDER
-#else
-#define UIP_BYTE_ORDER     UIP_LITTLE_ENDIAN
-#endif
 
 struct uip_udp_conn
 {
@@ -81,6 +14,9 @@ struct uip_udp_conn
     uip_udp_appstate_t appstate;
 };
 
+typedef void * uip_tcp_appstate_t;
+static constexpr uint8_t UIP_ARPHDRSIZE = 42;
+#define UIP_BUFSIZE 98
 typedef uint16_t uip_ipaddr_t[2];
 void uip_init(void);
 void uip_setipid(uint16_t id);
@@ -89,30 +25,7 @@ void uip_listen(uint16_t port);
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
 void uip_send(const void *data, int len);
 struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
-
-#define uip_udp_remove(conn) (conn)->lport = 0
-#define uip_udp_bind(conn, port) (conn)->lport = port
-
-#define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
-				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
-
-#ifndef HTONS
-#if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
-#define HTONS(n) (n)
-#else
-#define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
-#endif
-#else
-#error "HTONS already defined!"
-#endif
-
-#ifndef htons
 uint16_t htons(uint16_t val);
-#endif
-#ifndef ntohs
-#define ntohs htons
-#endif
-
 extern void *uip_appdata;
 extern uint16_t uip_len;
 
@@ -136,8 +49,6 @@ struct uip_conn {
 
 extern struct uip_conn *uip_conn;
 extern struct uip_conn uip_conns[UIP_CONNS];
-
-
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 extern uint8_t uip_flags;
@@ -196,13 +107,6 @@ struct uip_udpip_hdr
     uint16_t srcipaddr[2], destipaddr[2];
     uint16_t srcport, destport, udplen, udpchksum;
 };
-
-#define UIP_IPH_LEN    20
-#define UIP_UDPH_LEN    8
-#define UIP_TCPH_LEN   20
-#define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)
-#define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)
-#define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
 
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 struct uip_eth_addr { uint8_t addr[6]; };
@@ -271,14 +175,35 @@ static constexpr uint8_t
 
 static const uint8_t UIP_CLIENT_SOCKETS = (uint8_t)(~UIP_CLIENT_STATEFLAGS);
 
-typedef uint8_t uip_socket_ptr;
-
 struct uip_userdata_closed_t
 {
     uint8_t state;
     memhandle packets_in[UIP_SOCKET_NUMPACKETS];
     uint16_t lport;        /**< The local TCP port, in network byte order. */
 };
+
+#define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
+				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
+
+typedef uint8_t uip_socket_ptr;
+#define UIP_IPH_LEN    20
+#define UIP_UDPH_LEN    8
+#define UIP_TCPH_LEN   20
+#define UIP_LLH_LEN     14
+#define UIP_TIME_WAIT_TIMEOUT 120
+#define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
+#define ntohs htons
+#define UIP_TCP_MSS UIP_CONF_TCP_MSS
+#define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)
+#define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
+#define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)
+#define uip_udp_remove(conn) (conn)->lport = 0
+#define uip_udp_bind(conn, port) (conn)->lport = port
+#define UIP_BROADCAST UIP_CONF_BROADCAST
+#define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
+static constexpr uint8_t UIP_LISTENPORTS = 4;
+#define UIP_LITTLE_ENDIAN  3412
+#define UIP_BIG_ENDIAN     1234
 #endif
 
 

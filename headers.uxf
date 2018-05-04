@@ -168,17 +168,6 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>720</x>
-      <y>650</y>
-      <w>100</w>
-      <h>30</h>
-    </coordinates>
-    <panel_attributes>mempool.h</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
       <x>940</x>
       <y>0</y>
       <w>90</w>
@@ -190,13 +179,13 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>810</x>
+      <x>650</x>
       <y>640</y>
-      <w>150</w>
-      <h>50</h>
+      <w>310</w>
+      <h>70</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>130.0;10.0;10.0;30.0</additional_attributes>
+    <additional_attributes>290.0;10.0;10.0;50.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -714,17 +703,6 @@
     </coordinates>
     <panel_attributes>enc28j60hw.h</panel_attributes>
     <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>650</x>
-      <y>660</y>
-      <w>90</w>
-      <h>50</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>70.0;10.0;10.0;30.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>

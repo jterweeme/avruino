@@ -125,22 +125,20 @@ app_heliosboot1.hex: app_heliosboot1.asm
 app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 
-app_webtest1enc28.elf: app_webtest1enc28.o arp.o \
-    uart.o enc28j60tcp.o stream.o webtest1.o \
-    enc28j60ip.o dhcp.o eth.o enc28j60udp.o enc28j60hw.o mempool.o
+app_webtest1enc28.elf: app_webtest1enc28.o arp.o uart.o enc28j60tcp.o stream.o webtest1.o \
+    enc28j60ip.o dhcp.o eth.o enc28j60udp.o enc28j60hw.o
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
     w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
 
 app_telnet1.elf: app_telnet1.o arp.o uart.o enc28j60tcp.o pinport.o \
-    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o mempool.o misc.o stream.o eth.o
+    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o misc.o stream.o eth.o
 
-app_bbs1.elf: app_bbs1.o arp.o dns.o uart.o enc28j60tcp.o pinport.o \
-    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o mempool.o misc.o \
-    stream.o fatty.o zd2card.o eth.o
+app_bbs1.elf: app_bbs1.o arp.o dns.o uart.o enc28j60tcp.o pinport.o enc28j60ip.o dhcp.o \
+    enc28j60udp.o enc28j60hw.o misc.o stream.o fatty.o zd2card.o eth.o
 
 app_websdfat1.elf: app_websdfat1.o arp.o enc28j60tcp.o \
-    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o mempool.o eth.o \
+    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o eth.o \
     zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
 app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o dhcp.o w5100udp.o \
@@ -150,7 +148,7 @@ app_chatserver1.elf: app_chatserver1.o w5100ip.o w5100tcp.o \
     w5100hw.o w5100udp.o dhcp.o misc.o pinport.o eth.o stream.o uart.o
 
 app_nslookup1.elf: app_nslookup1.o dns.o arp.o uart.o enc28j60tcp.o \
-    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o mempool.o stream.o eth.o
+    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o stream.o eth.o
 
 app_webclient2.elf: app_webclient2.o w5100tcp.o w5100ip.o w5100hw.o w5100udp.o \
     dhcp.o dns.o eth.o stream.o uart.o
@@ -185,7 +183,7 @@ app_ringtone1.elf: app_ringtone1.o pinport.o uart.o misc.o
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
 app_rndisping1.elf: app_rndisping1.o busby.o
-app_rndisbridge1.elf: app_rndisbridge1.o busby.o w5100hw.o mempool.o
+app_rndisbridge1.elf: app_rndisbridge1.o busby.o w5100hw.o
 app_servoknob1.elf: app_servoknob1.o
 app_sdls1.elf: app_sdls1.o fatty.o zd2card.o pinport.o uart.o stream.o misc.o $(USBOPT)
 app_sdmbr1.elf: app_sdmbr1.o zd2card.o pinport.o uart.o stream.o misc.o $(USBOPT)
@@ -213,16 +211,16 @@ app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
     stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_bbs1.o: app_bbs1.cpp stream.h dhcp.h enc28j60udp.h enc28j60ip.h \
-    enc28j60hw.h mempool.h misc.h types.h
+    enc28j60hw.h misc.h types.h
 
 app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h \
-    enc28j60ip.h enc28j60udp.h enc28j60hw.h mempool.h types.h webtest1.h uart.h \
+    enc28j60ip.h enc28j60udp.h enc28j60hw.h types.h webtest1.h uart.h \
     uno.h mega.h leonardo.h storage.h pinport.h enc28j60tcp.h \
     eth.h cdc.h busby.h
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h \
-    misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h mempool.h client.h \
+    misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h client.h \
     udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
 
 app_websdfat1.o: app_websdfat1.cpp fatty.h webserver.h dhcp.h types.h storage.h \
@@ -232,7 +230,7 @@ app_websdfat1.o: app_websdfat1.cpp fatty.h webserver.h dhcp.h types.h storage.h 
 app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
     w5100tcp.h fatty.h zd2card.h board.h uno.h mega.h leonardo.h misc.h \
     stream.h types.h w5100udp.h udp.h w5100hw.h \
-    w5100ip.h eth.h mempool.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h
+    w5100ip.h eth.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h
 
 app_telnet1.o: app_telnet1.cpp enc28j60tcp.h enc28j60udp.h stream.h misc.h dhcp.h board.h \
     uno.h leonardo.h mega.h teensy20pp.h pinport.h types.h
@@ -301,7 +299,6 @@ infrared.o: infrared.cpp infrared.h types.h
 keyboard.o: keyboard.cpp keyboard.h board.h uno.h leonardo.h mega.h pinport.h types.h
 lcd.o: lcd.cpp lcd.h
 mega.o: mega.cpp misc.h types.h storage.h pinport.h
-mempool.o: mempool.cpp mempool.h types.h
 md5sum.o: md5sum.cpp md5sum.cpp stream.h uart.h types.h
 misc.o: misc.cpp misc.h types.h storage.h pinport.h
 pinport.o: pinport.cpp pinport.h types.h
