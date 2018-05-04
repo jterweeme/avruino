@@ -81,25 +81,25 @@ memhandle Enc28J60Network::receivePacket()
         nextPacketPtr |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
         len = readOp(ENC28J60_READ_BUF_MEM, 0);
         len |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
-      len -= 4; //remove the CRC count
-      // read the receive status (see datasheet page 43)
-      rxstat = readOp(ENC28J60_READ_BUF_MEM, 0);
-      //rxstat |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
-      writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
-      // check CRC and symbol errors (see datasheet page 44, table 7-3):
-      // The ERXFCON.CRCEN is set by default. Normally we should not
-      // need to check this.
-      if ((rxstat & 0x80) != 0)
+        len -= 4; //remove the CRC count
+        // read the receive status (see datasheet page 43)
+        rxstat = readOp(ENC28J60_READ_BUF_MEM, 0);
+        //rxstat |= readOp(ENC28J60_READ_BUF_MEM, 0) << 8;
+        writeOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
+        // check CRC and symbol errors (see datasheet page 44, table 7-3):
+        // The ERXFCON.CRCEN is set by default. Normally we should not
+        // need to check this.
+        if ((rxstat & 0x80) != 0)
         {
-          receivePkt.begin = readPtr;
-          receivePkt.size = len;
-          return UIP_RECEIVEBUFFERHANDLE;
+            receivePkt.begin = readPtr;
+            receivePkt.size = len;
+            return UIP_RECEIVEBUFFERHANDLE;
         }
-      // Move the RX read pointer to the start of the next received packet
-      // This frees the memory we just read out
-      setERXRDPT();
+        // Move the RX read pointer to the start of the next received packet
+        // This frees the memory we just read out
+        setERXRDPT();
     }
-  return (NOBLOCK);
+    return (NOBLOCK);
 }
 
 void Enc28J60Network::setERXRDPT()
@@ -221,23 +221,19 @@ void
 Enc28J60Network::copyPacket(memhandle dest_pkt, memaddress dest_pos,
     memhandle src_pkt, memaddress src_pos, uint16_t len)
 {
-  memblock *dest = &blocks[dest_pkt];
-  memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
-  memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
+    memblock *dest = &blocks[dest_pkt];
+    memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
 
-  //enc28J60_mempool_block_move_callback(dest->begin+dest_pos,start,len);
+    memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin +
+        src_pos > RXSTOP_INIT ? src->begin +
+        src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
+
+    //enc28J60_mempool_block_move_callback(dest->begin+dest_pos,start,len);
     move_cb(dest->begin + dest_pos, start, len);
-  // Move the RX read pointer to the start of the next received packet
-  // This frees the memory we just read out
-  setERXRDPT();
+    // Move the RX read pointer to the start of the next received packet
+    // This frees the memory we just read out
+    setERXRDPT();
 }
-
-#if 0
-void enc28J60_mempool_block_move_callback(memaddress dest, memaddress src, memaddress len)
-{
-    Enc28J60Network::instance->move_cb(dest, src, len);
-}
-#endif
 
 void Enc28J60Network::move_cb(memaddress dest, memaddress src, memaddress len)
 {
@@ -382,14 +378,14 @@ void Enc28J60Network::writeBuffer(uint16_t len, uint8_t* data)
 
 void Enc28J60Network::setBank(uint8_t address)
 {
-  // set the bank (if needed)
-  if((address & BANK_MASK) != bank)
-  {
-    // set the bank
-    writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, (ECON1_BSEL1|ECON1_BSEL0));
-    writeOp(ENC28J60_BIT_FIELD_SET, ECON1, (address & BANK_MASK)>>5);
-    bank = (address & BANK_MASK);
-  }
+    // set the bank (if needed)
+    if((address & BANK_MASK) != bank)
+    {
+        // set the bank
+        writeOp(ENC28J60_BIT_FIELD_CLR, ECON1, (ECON1_BSEL1|ECON1_BSEL0));
+        writeOp(ENC28J60_BIT_FIELD_SET, ECON1, (address & BANK_MASK)>>5);
+        bank = (address & BANK_MASK);
+    }
 }
 
 uint8_t Enc28J60Network::readReg(uint8_t address)

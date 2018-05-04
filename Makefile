@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = ocho
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -105,7 +105,7 @@ TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnet1.elf \
 endif
 
 %.o: %.cpp
-	avr-g++ -Os -Wall -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
+	avr-g++ -Os -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
 
 %.elf: %.o
 	avr-g++ -mmcu=$(MMCU) -o $@ $^

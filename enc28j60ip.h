@@ -33,7 +33,6 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
 #endif
 
-
 #define UIP_TIME_WAIT_TIMEOUT 120
 
 #ifndef UIP_CONF_BUFFER_SIZE
@@ -57,9 +56,9 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 
 #if UIP_UDP && UIP_CONF_BROADCAST
 #define UIP_BROADCAST UIP_CONF_BROADCAST
-#else /* UIP_CONF_BROADCAST */
+#else
 #define UIP_BROADCAST 0
-#endif /* UIP_CONF_BROADCAST */
+#endif
 
 #ifdef UIP_CONF_LLH_LEN
 #define UIP_LLH_LEN UIP_CONF_LLH_LEN
@@ -67,17 +66,21 @@ static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_LLH_LEN     14
 #endif
 
-
 #ifdef UIP_CONF_BYTE_ORDER
 #define UIP_BYTE_ORDER     UIP_CONF_BYTE_ORDER
 #else
 #define UIP_BYTE_ORDER     UIP_LITTLE_ENDIAN
 #endif
 
-#define UIP_URGDATA      0
-#define UIP_FIXEDADDR    0
+struct uip_udp_conn
+{
+    uint16_t ripaddr[2];   /**< The IP address of the remote peer. */
+    uint16_t lport;        /**< The local port number in network byte order. */
+    uint16_t rport;        /**< The remote port number in network byte order. */
+    uint8_t  ttl;          /**< Default time-to-live. */
+    uip_udp_appstate_t appstate;
+};
 
-//typedef uint16_t uip_ip4addr_t[2];
 typedef uint16_t uip_ipaddr_t[2];
 void uip_init(void);
 void uip_setipid(uint16_t id);
@@ -90,32 +93,18 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 #define uip_udp_remove(conn) (conn)->lport = 0
 #define uip_udp_bind(conn, port) (conn)->lport = port
 
-#if 0
-static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
-{
-    ((uint16_t *)dst)[0] = ((uint16_t *)src)[0];
-    ((uint16_t *)dst)[1] = ((uint16_t *)src)[1];
-}
-#else
-#define uip_ipaddr_copy(dest, src) do { \
-                     ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
-                     ((uint16_t *)dest)[1] = ((uint16_t *)src)[1]; \
-                  } while(0)
-#endif
-
 #define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
 				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
 
 #ifndef HTONS
-#   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
-#      define HTONS(n) (n)
-#   else /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
-#      define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
-#   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
+#if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
+#define HTONS(n) (n)
+#else
+#define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
+#endif
 #else
 #error "HTONS already defined!"
-#endif /* HTONS */
-
+#endif
 
 #ifndef htons
 uint16_t htons(uint16_t val);
@@ -125,16 +114,7 @@ uint16_t htons(uint16_t val);
 #endif
 
 extern void *uip_appdata;
-
-#if UIP_URGDATA > 0
-extern void *uip_urgdata;
-#endif
-
 extern uint16_t uip_len;
-
-#if UIP_URGDATA > 0
-extern uint16_t uip_urglen, uip_surglen;
-#endif
 
 struct uip_conn {
     uip_ipaddr_t ripaddr;   /**< The IP address of the remote host. */
@@ -156,15 +136,6 @@ struct uip_conn {
 
 extern struct uip_conn *uip_conn;
 extern struct uip_conn uip_conns[UIP_CONNS];
-
-struct uip_udp_conn {
-  uip_ipaddr_t ripaddr;   /**< The IP address of the remote peer. */
-  uint16_t lport;        /**< The local port number in network byte order. */
-  uint16_t rport;        /**< The remote port number in network byte order. */
-  uint8_t  ttl;          /**< Default time-to-live. */
-
-  uip_udp_appstate_t appstate;
-};
 
 
 extern struct uip_udp_conn *uip_udp_conn;
@@ -197,7 +168,14 @@ static constexpr uint8_t
     UIP_CLOSE   = 16,
     UIP_ABORT   = 32,
     UIP_CONNECTED = 64,
-    UIP_TIMEDOUT = 128;
+    UIP_TIMEDOUT = 128,
+    UIPETHERNET_FREEPACKET = 1,
+    UIPETHERNET_SENDPACKET = 2,
+    UIPETHERNET_BUFFERREAD = 4,
+    UIP_CLIENT_CONNECTED = 0x10,
+    UIP_CLIENT_CLOSE = 0x20,
+    UIP_CLIENT_REMOTECLOSED = 0x40,
+    UIP_CLIENT_RESTART = 0x80;
 
 struct uip_tcpip_hdr
 {
@@ -226,18 +204,8 @@ struct uip_udpip_hdr
 #define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)
 #define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
 
-#if UIP_FIXEDADDR
-extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
-#else
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
-#endif
-
 struct uip_eth_addr { uint8_t addr[6]; };
-
-static constexpr uint8_t
-    UIPETHERNET_FREEPACKET = 1,
-    UIPETHERNET_SENDPACKET = 2,
-    UIPETHERNET_BUFFERREAD = 4;
 
 typedef struct
 {
@@ -296,12 +264,6 @@ public:
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);
 };
-
-static constexpr uint8_t
-    UIP_CLIENT_CONNECTED = 0x10,
-    UIP_CLIENT_CLOSE = 0x20,
-    UIP_CLIENT_REMOTECLOSED = 0x40,
-    UIP_CLIENT_RESTART = 0x80;
 
 static constexpr uint8_t
     UIP_CLIENT_STATEFLAGS = UIP_CLIENT_CONNECTED | UIP_CLIENT_CLOSE |

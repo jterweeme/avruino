@@ -39,11 +39,6 @@ UIPUDP::UIPUDP(UIPEthernetClass *eth) : _eth(eth)
     my_memset(&appdata, 0, sizeof(appdata));
 }
 
-#define uip_ip_addr(addr, ip) do { \
-                     ((uint16_t *)(addr))[0] = HTONS(((ip[0]) << 8) | (ip[1])); \
-                     ((uint16_t *)(addr))[1] = HTONS(((ip[2]) << 8) | (ip[3])); \
-                  } while(0)
-
 int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
 {
     _eth->tick();
@@ -62,7 +57,7 @@ int UIPUDP::beginPacket(uint32_t ip, uint16_t port)
         }
         else
         {
-            _uip_udp_conn = uip_udp_new(&ripaddr,htons(port));
+            _uip_udp_conn = uip_udp_new(&ripaddr, htons(port));
 
             if (_uip_udp_conn)
                 _uip_udp_conn->appstate = &appdata;
@@ -210,7 +205,8 @@ void UIPEthernetClass::uipudp_appcall()
             if (data->packet_next == NOBLOCK)
             {
                 uip_udp_conn->rport = UDPBUF->srcport;
-                uip_ipaddr_copy(uip_udp_conn->ripaddr,UDPBUF->srcipaddr);
+                ((uint16_t *)uip_udp_conn->ripaddr)[0] = ((uint16_t *)UDPBUF->srcipaddr)[0];
+                ((uint16_t *)uip_udp_conn->ripaddr)[1] = ((uint16_t *)UDPBUF->srcipaddr)[1];
                 data->packet_next = _nw.allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
                   //if we are unable to allocate memory the packet is dropped.
                     // udp doesn't guarantee packet delivery
