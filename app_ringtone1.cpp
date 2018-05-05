@@ -7,9 +7,8 @@ Ocho: OC1A/#9
 #define F_CPU 16000000UL
 #endif
 
-#include <avr/pgmspace.h>
+#include "pgmspees.h"
 #include "board.h"
-#include <util/delay.h>
 #include "misc.h"
 
 static const uint16_t notes[] PROGMEM =
@@ -21,10 +20,20 @@ static const uint16_t notes[] PROGMEM =
     2*2489, 2*2637, 2*2794, 2*2960, 2*3136, 2*3322, 2*3520, 2*3729, 2*3951, 0
 };
 
+static void delay2(uint16_t count)
+{
+    __asm__ volatile (
+        "1: sbiw %0,1" "\n\t"
+        "brne 1b"
+        : "=w" (count)
+        : "0" (count)
+    );
+}
+
 static void delay(uint16_t n)
 {
     for (uint16_t i = 0; i < n; i++)
-        _delay_ms(1);
+        delay2(4096);   // ~1ms @16MHz
 }
 
 class Rtttl
@@ -175,7 +184,6 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
     }
 }
 
-#if 0
 const char indiana[] PROGMEM =
     "Indiana:d=4,o=5,b=250:e,8p,8f,8g,8p,1c6,8p.,d,8p,8e,1f,p.,g,8p,8a,8b,8p,"
     "1f6,p,a,8p,8b,2c6,2d6,2e6,e,8p,8f,8g,8p,1c6,p,d6,8p,8e6,1f.6,g,8p,8g,e.6,"
@@ -214,14 +222,12 @@ const char bobbouwer[] PROGMEM =
     "16d,16p,8p,d6,16g,16p,8c6,b,g,16c,16p,8p,16d,16p,8p,16g,16p,8p,16g,16p,8p,"
     "g6,16g,16p,8e6,d6,b,16c,16p,8p,16c,16p,8p,16d,16p,8p,16d,16p,8p,d6,16g,16p,"
     "8c6,b,g,16c,16p,8p,16d,16p,8p,16g";
-#endif
 
 const char godfather[] PROGMEM =
     "Godfather:d=4,o=5,b=160:8g,8c6,8d#6,8d6,8c6,8d#6,8c6,8d6,c6,8g#,8a#,2g,8p,"
     "8g,8c6,8d#6,8d6,8c6,8d#6,8c6,8d6,c6,8g,8f#,2f,8p,8f,8g#,8b,2d6,8p,8f,8g#,"
     "8b,2c6,8p,8c,8d#,8a#,8g#,g,8a#,8g#,8g#,8g,8g,8b4,2c";
 
-#if 0
 const char final_countdown[] PROGMEM =
     "Final Countdown:d=16,o=5,b=125:b,a,4b,4e,4p,8p,c6,b,8c6,8b,4a,4p,8p,c6,b,"
     "4c6,4e,4p,8p,a,g,8a,8g,8f#,8a,4g.,f#,g,4a.,g,a,8b,8a,8g,8f#,4e,4c6,2b.,b,c6,b,a,1b";
@@ -246,7 +252,35 @@ const char rule_brittania[] PROGMEM =
 const char anthem[] PROGMEM =
     "USA National Anthem:d=8,o=5,b=120:e.,d,4c,4e,4g,4c6.,p,e6.,d6,4c6,"
     "4e,4f#,4g.,p,4g,4e6.,d6,4c6,2b,a,4b,c6.,16p,4c6,4g,4e,32p,4c";
-#endif
+
+const char mario[] PROGMEM =
+    "Super Mario - Main Theme:d=4,o=5,b=125:a,8f.,16c,16d,16f,16p,f,16d,"
+    "16c,16p,16f,16p,16f,16p,8c6,8a.,g,16c,a,8f.,16c,16d,16f,16p,f,16d,"
+    "16c,16p,16f,16p,16a#,16a,16g,2f,16p,8a.,8f.,8c,8a.,f,16g#,16f,16c,"
+    "16p,8g#.,2g,8a.,8f.,8c,8a.,f,16g#,16f,8c,2c6";
+
+const char mario2[] PROGMEM =
+    "Super Mario - Title Music:d=4,o=5,b=125:8d7,8d7,8d7,8d6,8d7,8d7,8d7,"
+    "8d6,2d#7,8d7,p,32p,8d6,8b6,8b6,8b6,8d6,8b6,8b6,8b6,8d6,8b6,8b6,8b6,"
+    "16b6,16c7,b6,8a6,8d6,8a6,8a6,8a6,8d6,8a6,8a6,8a6,8d6,8a6,8a6,8a6,"
+    "16a6,16b6,a6,8g6,8d6,8b6,8b6,8b6,8d6,8b6,8b6,8b6,8d6,8b6,8b6,8b6,"
+    "16a6,16b6,c7,e7,8d7,8d7,8d7,8d6,8c7,8c7,8c7,8f#6,2g6";
+
+const char missionimp[] PROGMEM =
+    "MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,"
+    "32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,"
+    "8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,"
+    "8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d";
+
+const char bond[] PROGMEM =
+    "Bond:d=4,o=5,b=80:32p,16c#6,32d#6,32d#6,16d#6,8d#6,16c#6,16c#6,16c#6,"
+    "16c#6,32e6,32e6,16e6,8e6,16d#6,16d#6,16d#6,16c#6,32d#6,32d#6,16d#6,8d#6,"
+    "16c#6,16c#6,16c#6,16c#6,32e6,32e6,16e6,8e6,16d#6,"
+    "16d6,16c#6,16c#7,c.7,16g#6,16f#6,g#.6";
+
+const char ateam[] PROGMEM =
+    "A-Team:d=8,o=5,b=125:4d#6,a#,2d#6,16p,g#,4a#,4d#.,p,16g,16a#,d#6,a#,"
+    "f6,2d#6,16p,c#.6,16c6,16a#,g#.,2a#";
 
 int main()
 {

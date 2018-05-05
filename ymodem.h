@@ -19,7 +19,6 @@ private:
     int _wcrxpn();
     int wcrx(ostream &os);
     void _procheader();
-    int16_t _read(uint32_t timeout);    // non blocking read
 public:
     YReceiver(istream *is, ostream *os) : _is(is), _os(os) { }
     void receive(Fatty &zd);

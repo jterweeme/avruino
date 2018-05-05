@@ -1,22 +1,11 @@
+#ifndef F_CPU
 #define F_CPU 16000000UL
+#endif
+
 #include "uno.h"
 #include "misc.h"
-#include <avr/interrupt.h>
 #include "timer.h"
 #include "uart.h"
-
-#if 0
-Uart::Uart() : UartBase(p_ubrr9, p_udr9, p_ucsr9a, p_ucsr9b)
-{
-    instance = this;
-}
-
-DefaultUart::DefaultUart()
-{
-    *brr = 103;
-    *ucsrb = (1<<MYTXEN0);
-}
-#endif
 
 Timer0::Timer0()
   :
@@ -24,8 +13,8 @@ Timer0::Timer0()
 {
     instance = this;
     *tifr = 0;
-    *tccrb |= (1<<CS02) | (1<<CS00);
-    *timsk |= (1<<TOIE0);
+    *tccrb |= 1<<cs02 | 1<<cs00;
+    *timsk |= 1<<toie0;
     asm volatile ("sei");
 }
 
@@ -35,8 +24,8 @@ Timer1::Timer1()
 {
     instance = this;
     *tifr = 0;
-    *tccrb |= (1<<CS12) | (1<<CS10);
-    *timsk |= (1<<TOIE1);
+    *tccrb |= 1<<cs12 | 1<<cs10;
+    *timsk |= 1<<toie1;
     asm volatile ("sei");
 }
 

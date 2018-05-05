@@ -1,10 +1,11 @@
 #include "ymodem.h"
 #include "fatty.h"
 #include <stdio.h>
-#include <string.h>
-#include "board.h"
+//#include "board.h"
 
+#ifdef DEBUG
 extern ostream *g_dout;
+#endif
 
 static constexpr uint8_t
     SOH = 0x01, STX = 0x02, EOT = 0x04, ACK = 0x06, NAK = 0x15, CAN = 0x18,
@@ -149,15 +150,6 @@ int YSender::send(istream &is, const char *fn, uint32_t filesize, uint16_t time,
 #endif
 
 #ifdef ENABLE_YRECEIVER
-int16_t YReceiver::_read(uint32_t timeout)
-{
-    for (uint32_t i = 0; i <= timeout; i++)
-        if (*p_ucsr9a & 1<<rxc9)
-            return *p_udr9;
-
-    return -1;  // timeout
-}
-
 template <class T> const T& min(const T& a, const T& b)
 {
     return !(b < a) ? a : b;
@@ -231,7 +223,7 @@ et_tu:
         {
             _os->put(ACK);
             _os->flush();
-            _read(0xffffffff);
+            _is->get(0xffffffff);
             goto et_tu;
         }
         return -1;
@@ -245,23 +237,23 @@ int YReceiver::_getsec()
 {
     for (uint8_t errors = 0; errors < 10; errors++)
     {
-        uint8_t firstch = _read(0xffffffff);
+        uint8_t firstch = _is->get(0xffffffff);
 
         if (firstch == SOH)
         {
-            uint8_t sectcurr = _read(0xffffffff);
-            uint8_t sectcurn = _read(0xffffffff);
+            uint8_t sectcurr = _is->get(0xffffffff);
+            uint8_t sectcurn = _is->get(0xffffffff);
 
             if (sectcurr + sectcurn == 0xff)
             {
                 for (uint8_t i = 0; i < 128; i++)
                 {
-                    uint8_t v = _read(0xffffffff);
+                    uint8_t v = _is->get(0xffffffff);
                     _secbuf[i] = v;
                 }
 
-                _read(0xffffffff);
-                _read(0xffffffff);
+                _is->get(0xffffffff);
+                _is->get(0xffffffff);
                 return sectcurr;
             }
         }
@@ -270,7 +262,7 @@ int YReceiver::_getsec()
             return -10;
         }
 
-        for (uint16_t cnt = 0; cnt < 1000 && _read(0xfffff) != -1; cnt++);
+        for (uint16_t cnt = 0; cnt < 1000 && _is->get(0xfffff) != -1; cnt++);
 
         if (_firstsec)
         {
@@ -290,8 +282,8 @@ int YReceiver::_getsec()
 
 void YReceiver::_procheader()
 {
-    strcpy(_fn, (char *)_secbuf);
-    char *nameend = (char *)_secbuf + 1 + strlen((char *)_secbuf);
+    my_strcpy(_fn, (char *)_secbuf);
+    char *nameend = (char *)_secbuf + 1 + my_strlen((char *)_secbuf);
     
     if (*nameend)
         sscanf(nameend, "%ld%lo%o", &_filesize, &_modtime, &_mode);

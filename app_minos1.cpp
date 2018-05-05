@@ -360,8 +360,6 @@ int App::run()
     Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
     DefaultUart s;
-    *p_ucsr9a |= 1<<u2x9;
-    *p_ubrr9 = 16;
     s.enableTransmit();
     s.enableRead();
     UartStream cout(&s);

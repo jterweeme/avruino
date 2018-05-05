@@ -42,6 +42,7 @@ protected:
 public:
     virtual int peek() { return 0; }
     virtual int get() { return 0; }
+    virtual int16_t get(uint32_t timeout) { return 0; }
     virtual void read(char *s, size_t n);
     virtual size_t gcount() { return _lastread; }
 };
@@ -75,6 +76,7 @@ private:
 public:
     UartIStream(UartBase *s) : _serial(s) { }
     int get() { return _serial->readByte(); }
+    int16_t get(uint32_t timeout) { return _serial->get(timeout); }
 };
 
 #if defined (__AVR_ATmega32U4__)

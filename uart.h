@@ -24,6 +24,7 @@ public:
     void inline enableRead() { *ucsrb |= RXEn; }
     void inline enableReadInterrupt() { *ucsrb |= rxcie; asm volatile ("sei"); }
     uint8_t readByte() { while ((*ucsra & MRXC) == 0); return *udr; }
+    int16_t get(uint32_t timeout);
 };
 
 class Uart : public UartBase
