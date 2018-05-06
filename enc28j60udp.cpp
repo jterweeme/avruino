@@ -144,7 +144,7 @@ int UIPUDP::read()
 
 // Read up to len bytes from the current packet and place them into buffer
 // Returns the number of bytes read, or 0 if none are available
-int UIPUDP::read(unsigned char* buffer, size_t len)
+int UIPUDP::read(uint8_t *buffer, size_t len)
 {
     _eth->tick();
 

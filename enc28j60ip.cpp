@@ -1,5 +1,5 @@
-#include <string.h>
 #include "arp.h"
+#include "misc.h"
 
 static uint32_t g_millis = 0;
 
@@ -19,7 +19,7 @@ void UIPEthernetClass::_flushBlocks(memhandle* block)
 {
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-        _nw.freeBlock(block[i]);
+        nw()->freeBlock(block[i]);
         block[i] = NOBLOCK;
     }
 }
@@ -47,11 +47,11 @@ void UIPEthernetClass::uipclient_appcall()
                 {
                     if (u->packets_in[i] == NOBLOCK)
                     {
-                        u->packets_in[i] = _nw.allocBlock(uip_len);
+                        u->packets_in[i] = nw()->allocBlock(uip_len);
 
                         if (u->packets_in[i] != NOBLOCK)
                         {
-                            _nw.copyPacket(u->packets_in[i], 0, in_packet,
+                            nw()->copyPacket(u->packets_in[i], 0, in_packet,
                                 ((uint8_t*)uip_appdata) - uip_buf,uip_len);
 
                             if (i == UIP_SOCKET_NUMPACKETS-1)
@@ -108,21 +108,21 @@ finish_newdata:
                     send_len = u->out_pos;
 
                     if (send_len > 0)
-                        _nw.resizeBlock(u->packets_out[0],0,send_len);
+                        nw()->resizeBlock(u->packets_out[0],0,send_len);
                 }
                 else
                 {
-                    send_len = _nw.blockSize(u->packets_out[0]);
+                    send_len = nw()->blockSize(u->packets_out[0]);
                 }
 
                 if (send_len > 0)
                 {
                     uip_hdrlen = ((uint8_t*)uip_appdata)-uip_buf;
-                    uip_packet = _nw.allocBlock(uip_hdrlen+send_len);
+                    uip_packet = nw()->allocBlock(uip_hdrlen+send_len);
 
                     if (uip_packet != NOBLOCK)
                     {
-                        _nw.copyPacket(uip_packet, uip_hdrlen,u->packets_out[0],0,send_len);
+                        nw()->copyPacket(uip_packet, uip_hdrlen,u->packets_out[0],0,send_len);
                         packetstate |= UIPETHERNET_SENDPACKET;
                     }
                 }
@@ -153,16 +153,16 @@ finish:
 void UIPEthernetClass::tick()
 {
     if (in_packet == NOBLOCK)
-        in_packet = _nw.receivePacket();
+        in_packet = nw()->receivePacket();
 
     if (in_packet != NOBLOCK)
     {
         packetstate = UIPETHERNET_FREEPACKET;
-        uip_len = _nw.blockSize(in_packet);
+        uip_len = nw()->blockSize(in_packet);
 
         if (uip_len > 0)
         {
-            _nw.readPacket(in_packet, 0, (uint8_t*)uip_buf,UIP_BUFSIZE);
+            nw()->readPacket(in_packet, 0, (uint8_t*)uip_buf,UIP_BUFSIZE);
 
             if (((struct uip_eth_hdr *)&uip_buf[0])->type == HTONS(UIP_ETHTYPE_IP))
             {
@@ -187,7 +187,7 @@ void UIPEthernetClass::tick()
 
         if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
         {
-            _nw.freePacket();
+            nw()->freePacket();
             in_packet = NOBLOCK;
         }
     }
@@ -236,23 +236,23 @@ bool UIPEthernetClass::network_send()
 {
     if (packetstate & UIPETHERNET_SENDPACKET)
     {
-        _nw.writePacket(uip_packet,0,uip_buf,uip_hdrlen);
+        nw()->writePacket(uip_packet,0,uip_buf,uip_hdrlen);
         packetstate &= ~ UIPETHERNET_SENDPACKET;
         goto sendandfree;
     }
 
-    uip_packet = _nw.allocBlock(uip_len);
+    uip_packet = nw()->allocBlock(uip_len);
 
     if (uip_packet != NOBLOCK)
     {
-        _nw.writePacket(uip_packet,0,uip_buf,uip_len);
+        nw()->writePacket(uip_packet,0,uip_buf,uip_len);
         goto sendandfree;
     }
 
     return false;
 sendandfree:
-    _nw.sendPacket(uip_packet);
-    _nw.freeBlock(uip_packet);
+    nw()->sendPacket(uip_packet);
+    nw()->freeBlock(uip_packet);
     uip_packet = NOBLOCK;
     return true;
 }
@@ -260,12 +260,12 @@ sendandfree:
 void UIPEthernetClass::init(const uint8_t* mac)
 {
     periodic_timer = millis() + UIP_PERIODIC_TIMER;
-    _nw.init((uint8_t*)mac);
+    nw()->init((uint8_t*)mac);
 
     for (uint8_t i = 0; i <= 5; i++)
         uip_ethaddr.addr[i] = mac[i];
 
-    uip_init();
+    _uip_init();
     uip_arp_init();
 }
 
@@ -345,7 +345,7 @@ uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
 
     if (upper_layer_memlen < upper_layer_len)
     {
-        sum = _nw.chksum(sum, uip_packet, UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
+        sum = nw()->chksum(sum, uip_packet, UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen,
             upper_layer_len - upper_layer_memlen);
     }
     return (sum == 0) ? 0xffff : htons(sum);
@@ -427,7 +427,7 @@ void uip_add32(uint8_t *op32, uint16_t op16)
     }
 }
 
-void uip_init(void)
+void UIPEthernetClass::_uip_init()
 {
     for (c = 0; c < UIP_LISTENPORTS; ++c)
         uip_listenports[c] = 0;
@@ -533,7 +533,7 @@ again:
 
     if (ripaddr == NULL)
     {
-        memset(conn->ripaddr, 0, sizeof(uip_ipaddr_t));
+        my_memset(conn->ripaddr, 0, sizeof(uip_ipaddr_t));
     }
     else
     {
@@ -1454,7 +1454,7 @@ void uip_send(const void *data, int len)
     uip_slen = len;
 
     if (len > 0 && data != uip_sappdata)
-        memcpy(uip_sappdata, (data), uip_slen);
+        my_memcpy(uip_sappdata, (data), uip_slen);
 }
 
 void UIPEthernetClass::_send(uip_udp_userdata_t *data)
@@ -1487,7 +1487,7 @@ uint8_t UIPEthernetClass::_currentBlock(memhandle* block)
 
 void UIPEthernetClass::_eatBlock(memhandle* block)
 {
-    _nw.freeBlock(block[0]);
+    nw()->freeBlock(block[0]);
 
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
         block[i] = block[i+1];
@@ -1504,7 +1504,7 @@ uip_userdata_t *UIPEthernetClass::_allocateData()
         if (!data->state)
         {
             data->state = sock | UIP_CLIENT_CONNECTED;
-            memset(&data->packets_in[0], 0, sizeof(uip_userdata_t) - sizeof(data->state));
+            my_memset(&data->packets_in[0], 0, sizeof(uip_userdata_t) - sizeof(data->state));
             return data;
         }
     }
@@ -1525,7 +1525,8 @@ repeat:
         if (u->packets_out[p] == NOBLOCK)
         {
 newpacket:
-            u->packets_out[p] = _nw.allocBlock(UIP_TCP_MSS);
+            u->packets_out[p] = nw()->allocBlock(UIP_TCP_MSS);
+
             if (u->packets_out[p] == NOBLOCK)
             {
                 goto repeat;
@@ -1533,7 +1534,9 @@ newpacket:
             }
             u->out_pos = 0;
         }
-        written = _nw.writePacket(u->packets_out[p], u->out_pos,(uint8_t*)buf+size-remain,remain);
+
+        written = nw()->writePacket(u->packets_out[p],
+            u->out_pos,(uint8_t*)buf+size-remain,remain);
 
       remain -= written;
       u->out_pos+=written;

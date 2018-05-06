@@ -18,7 +18,6 @@ typedef void * uip_tcp_appstate_t;
 static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_BUFSIZE 98
 typedef uint16_t uip_ipaddr_t[2];
-void uip_init(void);
 void uip_setipid(uint16_t id);
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
 void uip_listen(uint16_t port);
@@ -133,6 +132,7 @@ struct uip_userdata_t
 class UIPEthernetClass : public Ethernet
 {
 private:
+    void _uip_init();
     Enc28J60Network _nw;
     uint32_t periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
