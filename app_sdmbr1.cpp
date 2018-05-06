@@ -2,9 +2,7 @@
 makes a hexdump of the MBR of an SD card, so doesn't use the
 FAT code
 
-works
-
-ChipSelect = D9
+ChipSelect = #4
 */
 
 #include "zd2card.h"
@@ -43,7 +41,7 @@ int main()
 {
     zei();
     Board board;
-    Sd2Card sd(&board.pin9);
+    Sd2Card sd(&board.pin4);
     sd.init(SPI_FULL_SPEED);
     uint8_t buf[512];
     sd.readBlock(0, buf);

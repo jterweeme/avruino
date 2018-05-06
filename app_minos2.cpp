@@ -1,3 +1,6 @@
+#include "w5100tcp.h"
+#include "w5100udp.h"
+#include "dhcp.h"
 #include "fatty.h"
 #include <stdio.h>
 #include "md5sum.h"
@@ -19,6 +22,7 @@
 
 UartBase *g_uart1;
 UartStream *g_dout;
+ostream *gout;
 
 #if defined (__AVR_ATmega2560__)
 class Uart1 : public UartBase
@@ -361,8 +365,30 @@ int App::run()
     s.enableTransmit();
     s.enableRead();
     UartStream cout(&s);
+    gout = &cout;
     UartIStream cin(&s);
     zei();
+    
+    cout << "Initialize Ethernet\r\n";
+    cout.flush();
+    W5100Class w5100;
+    w5100.init();
+    uint8_t mac[6] = {0,1,2,3,4,5};
+    w5100.setMACAddress(mac);
+    w5100.setIPAddress(0);
+
+    cout << "Starting DHCP...\r\n";
+    EthernetClass eth(&w5100);
+    W5100UDP udp(&eth);
+    DhcpClass dhcp(&udp);
+    dhcp.beginWithDHCP(mac);
+    w5100.setIPAddress(dhcp.localIp());
+    w5100.setGatewayIp(dhcp.gateway());
+    w5100.setSubnetMask(dhcp.subnetMask2());
+    eth.addresses(cout);
+
+    EthernetServer server = EthernetServer(&eth, 23);
+    server.begin();
 #if defined (__AVR_ATmega2560__)
     UartBase uart1(p_ubrr1, p_udr1, p_ucsr1a, p_ucsr1b);
     uart1.enableTransmit();
@@ -372,6 +398,8 @@ int App::run()
     UartStream dout(&uart1);
     g_dout = &dout;
 #endif
+
+    cout << "Initializing SD card...\r\n";
     bool ret = zd.begin();
     
     if (!ret)
@@ -380,10 +408,25 @@ int App::run()
         return 0;
     }
 
+    cout << "SD Card initialized successful\r\n";
     cout << "$ ";
 
     while (true)
     {
+        EthernetClient client = server.available();
+
+        if (client)
+        {
+            while (client.connected())
+            {
+                if (client.available())
+                {
+                    client << "$ ";
+
+                    
+                }
+            }
+        }
         char c = cin.get();
         _buf.keystroke(c);
         cout.put(c);

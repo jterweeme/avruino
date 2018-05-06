@@ -3,8 +3,6 @@
 #include "udp.h"
 #include "w5100ip.h"
 
-#define UDP_TX_PACKET_MAX_SIZE 24
-
 class W5100UDP : public UDP
 {
 private:
@@ -20,21 +18,21 @@ private:
     uint16_t bufferData(SOCKET s, uint16_t offset, const uint8_t *buf, uint16_t len);
 public:
     W5100UDP(EthernetClass * const eth);
-    virtual uint8_t begin(uint16_t);	// initializeo sockets available to use
-    virtual void stop();  // Finish with the UDP socket
-    virtual int beginPacket(uint32_t ip, uint16_t port);
-    virtual int endPacket();
-    virtual size_t write(const uint8_t *buffer, size_t size);
-    virtual size_t write(uint8_t c) { return write(&c, 1); }
-    virtual int parsePacket();
-    virtual int available() { return _remaining; }
-    virtual int read();
-    virtual int read(uint8_t *buffer, size_t len);
-    virtual int read(char* buffer, size_t len) { return read((unsigned char*)buffer, len); };
-    virtual int peek();
-    virtual void flush() { while (_remaining) { read(); } }
-    virtual uint32_t remoteIP() { return _remoteIP; };
-    virtual uint16_t remotePort() { return _remotePort; };
+    uint8_t begin(uint16_t);	// initializeo sockets available to use
+    void stop();  // Finish with the UDP socket
+    int beginPacket(uint32_t ip, uint16_t port);
+    int endPacket();
+    size_t write(const uint8_t *buffer, size_t size);
+    size_t write(uint8_t c) { return write(&c, 1); }
+    int parsePacket();
+    int available() { return _remaining; }
+    int read();
+    int read(uint8_t *buffer, size_t len);
+    int read(char* buffer, size_t len) { return read((unsigned char*)buffer, len); };
+    int peek();
+    void flush() { while (_remaining) { read(); } }
+    uint32_t remoteIP() { return _remoteIP; };
+    uint16_t remotePort() { return _remotePort; };
 };
 #endif
 

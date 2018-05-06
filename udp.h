@@ -44,14 +44,11 @@ public:
     virtual int beginPacket(uint32_t ip, uint16_t port) { return 0; }
     virtual int endPacket() { return 0; }
     virtual size_t write(uint8_t) { return 0; }
-    //size_t write(const char *str);
     virtual size_t write(const uint8_t *buffer, size_t size);
     virtual int parsePacket() =0;
     virtual int available() =0;
     virtual int read() =0;
     virtual int read(uint8_t *buffer, size_t len) =0;
-    //virtual int read(char* buffer, size_t len) =0;
-   // virtual int peek() =0;
     virtual void flush() =0;	// Finish reading the current packet
     virtual uint32_t remoteIP() =0;
     virtual uint16_t remotePort() =0;

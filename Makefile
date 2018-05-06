@@ -100,7 +100,7 @@ endif
 ifeq ($(POOL4), ja)
 TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnet1.elf \
     app_chatserver1.elf app_websdfat2.elf app_bbs1.elf app_websdfat1.elf \
-    app_webtest1enc28.elf app_minos1.elf app_webclient2.elf app_sdls1.elf \
+    app_webtest1enc28.elf app_minos1.elf app_minos2.elf app_webclient2.elf app_sdls1.elf \
     app_infrared1.elf app_ps2kb2.elf app_sound1.elf app_vga1.elf
 endif
 
@@ -156,6 +156,10 @@ app_webclient2.elf: app_webclient2.o w5100tcp.o w5100ip.o w5100hw.o w5100udp.o \
 app_minos1.elf: app_minos1.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
     stream.o md5sum.o uart.o misc.o
 
+app_minos2.elf: app_minos2.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
+    stream.o md5sum.o uart.o misc.o w5100hw.o w5100ip.o dhcp.o w5100tcp.o \
+    w5100udp.o eth.o
+
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o pinport.o uart.o misc.o
 app_analog1.elf: app_analog1.o pinport.o uart.o stream.o misc.o
 app_blink1.elf: app_blink1.o
@@ -175,7 +179,7 @@ app_lcdtest3.elf: app_lcdtest3.o
 app_ledmatrix1.elf: app_ledmatrix1.o
 app_ledmatrix2.elf: app_ledmatrix2.o pinport.o $(BSP)
 app_pcf8563test2.elf: app_pcf8563test2.o i2c.o pinport.o uart.o misc.o stream.o $(USBOPT)
-app_pi1.elf: app_pi1.o pinport.o uart.o stream.o misc.o $(USBOPT)
+app_pi1.elf: app_pi1.o uart.o stream.o $(USBOPT)
 app_pirate1.elf: app_pirate1.o vgax.o
 app_pong1.elf: app_pong1.o
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o pinport.o uart.o stream.o misc.o $(USBOPT)
@@ -207,11 +211,14 @@ app_usbsound1.elf: app_usbsound1.o busby.o pinport.o uart.o misc.o
 app_vga1.elf: app_vga1.o
 app_vga2.elf: app_vga2.o vga.o
 
+app_bbs1.o: app_bbs1.cpp stream.h dhcp.h enc28j60udp.h enc28j60ip.h \
+    enc28j60hw.h misc.h types.h
+
 app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
     stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
-app_bbs1.o: app_bbs1.cpp stream.h dhcp.h enc28j60udp.h enc28j60ip.h \
-    enc28j60hw.h misc.h types.h
+app_minos2.o: app_minos2.cpp fatty.h misc.h stream.h types.h \
+    md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h \
     enc28j60ip.h enc28j60udp.h enc28j60hw.h types.h webtest1.h uart.h \
