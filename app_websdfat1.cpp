@@ -1,6 +1,6 @@
 /*
-Mega eth CS: D53
-Mega SD CS: D9
+Mega eth CS: #53
+Mega SD CS: #9
 
 Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 */
@@ -13,7 +13,7 @@ Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 #include "board.h"
 #include <avr/io.h>
 
-static UIPEthernetClass eth;
+static Enc28J60IP eth;
 static Fatty *g_zd;
 ostream *gout;
 

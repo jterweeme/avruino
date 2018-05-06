@@ -129,7 +129,7 @@ struct uip_userdata_t
     uint32_t timer;
 };
 
-class UIPEthernetClass : public Ethernet
+class Enc28J60IP : public Ethernet
 {
 private:
     void _uip_init();
@@ -158,8 +158,8 @@ public:
     void _flushBlocks(memhandle *blocks);
     uint32_t _dnsServerAddress;
     void tick();
-    static UIPEthernetClass *instance;
-    UIPEthernetClass() { instance = this; }
+    static Enc28J60IP *instance;
+    Enc28J60IP() { instance = this; }
     uint32_t localIP() { return (uint32_t)uip_hostaddr[0] | (uint32_t)uip_hostaddr[1] << 16; }
     uint32_t subnetMask() { return (uint32_t)uip_netmask[0] | (uint32_t)uip_netmask[1] << 16; }
     uint32_t gatewayIP() { return (uint32_t)uip_draddr[0] | (uint32_t)uip_draddr[1] << 16; }

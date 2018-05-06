@@ -1,6 +1,6 @@
 /*
-Mega eth CS: D53/SS
-Uno eth CS: D10/SS
+Mega eth CS: #53/SS
+Uno eth CS: #10/SS
 */
 
 #include "enc28j60tcp.h"
@@ -10,7 +10,7 @@ Uno eth CS: D10/SS
 #include "webtest1.h"
 #include "stream.h"
 
-static UIPEthernetClass eth;
+static Enc28J60IP eth;
 ostream *gout;
 
 int main()

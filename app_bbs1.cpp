@@ -4,7 +4,7 @@
 #include "fatty.h"
 #include "board.h"
 
-static UIPEthernetClass eth;
+static Enc28J60IP eth;
 ostream *gout;
 
 static constexpr uint8_t

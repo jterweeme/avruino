@@ -98,7 +98,7 @@ TARGETS += app_ts2.elf app_calc1.elf app_ds1302test1.elf \
 endif
 
 ifeq ($(POOL4), ja)
-TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnet1.elf \
+TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
     app_chatserver1.elf app_websdfat2.elf app_bbs1.elf app_websdfat1.elf \
     app_webtest1enc28.elf app_minos1.elf app_minos2.elf app_webclient2.elf app_sdls1.elf \
     app_infrared1.elf app_ps2kb2.elf app_sound1.elf app_vga1.elf
@@ -131,7 +131,7 @@ app_webtest1enc28.elf: app_webtest1enc28.o arp.o uart.o enc28j60tcp.o stream.o w
 app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
     w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
 
-app_telnet1.elf: app_telnet1.o arp.o uart.o enc28j60tcp.o pinport.o \
+app_telnetloop1.elf: app_telnetloop1.o arp.o uart.o enc28j60tcp.o pinport.o \
     enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o misc.o stream.o eth.o
 
 app_bbs1.elf: app_bbs1.o arp.o dns.o uart.o enc28j60tcp.o pinport.o enc28j60ip.o dhcp.o \
@@ -239,8 +239,8 @@ app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
     stream.h types.h w5100udp.h udp.h w5100hw.h \
     w5100ip.h eth.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h
 
-app_telnet1.o: app_telnet1.cpp enc28j60tcp.h enc28j60udp.h stream.h misc.h dhcp.h board.h \
-    uno.h leonardo.h mega.h teensy20pp.h pinport.h types.h
+app_telnetloop1.o: app_telnetloop1.cpp enc28j60tcp.h enc28j60udp.h stream.h misc.h \
+    dhcp.h board.h uno.h leonardo.h mega.h teensy20pp.h pinport.h types.h
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h

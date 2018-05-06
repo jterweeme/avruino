@@ -5,7 +5,7 @@
 #include "misc.h"
 #include "board.h"
 
-static UIPEthernetClass eth;
+static Enc28J60IP eth;
 ostream *gout;
 
 static inline char convertCase(char c)
@@ -21,7 +21,6 @@ static inline char convertCase(char c)
 
 int main()
 {
-    UIPServer server = UIPServer(&eth, 23);
     *p_tccr0b = cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
     zei();
@@ -42,8 +41,12 @@ int main()
     DhcpClass dhcp(&udp);
     dhcp.beginWithDHCP(mac);
     eth.configure(dhcp.localIp(), dhcp.dnsServer(), dhcp.gateway(), dhcp.subnetMask2());
+    eth.addresses(cout);
+    cout << "\r\n";
 
+    UIPServer server = UIPServer(&eth, 23);
     server.begin();
+    cout << "Telnet server started\r\n";
 
     while (true)
     {

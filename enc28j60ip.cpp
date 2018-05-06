@@ -8,14 +8,14 @@ uint32_t millis()
     return g_millis;
 }
 
-UIPEthernetClass *UIPEthernetClass::instance;
+Enc28J60IP *Enc28J60IP::instance;
 
-void UIPEthernetClass::tick2()
+void Enc28J60IP::tick2()
 {
     g_millis++;
 }
 
-void UIPEthernetClass::_flushBlocks(memhandle* block)
+void Enc28J60IP::_flushBlocks(memhandle* block)
 {
     for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
@@ -24,7 +24,7 @@ void UIPEthernetClass::_flushBlocks(memhandle* block)
     }
 }
 
-void UIPEthernetClass::uipclient_appcall()
+void Enc28J60IP::uipclient_appcall()
 {
     uint16_t send_len = 0;
     uip_userdata_t *u = (uip_userdata_t*)uip_conn->appstate;
@@ -150,7 +150,7 @@ finish:
     uip_len = send_len;
 }
 
-void UIPEthernetClass::tick()
+void Enc28J60IP::tick()
 {
     if (in_packet == NOBLOCK)
         in_packet = nw()->receivePacket();
@@ -232,7 +232,7 @@ void UIPEthernetClass::tick()
     }
 }
 
-bool UIPEthernetClass::network_send()
+bool Enc28J60IP::network_send()
 {
     if (packetstate & UIPETHERNET_SENDPACKET)
     {
@@ -257,7 +257,7 @@ sendandfree:
     return true;
 }
 
-void UIPEthernetClass::init(const uint8_t* mac)
+void Enc28J60IP::init(const uint8_t* mac)
 {
     periodic_timer = millis() + UIP_PERIODIC_TIMER;
     nw()->init((uint8_t*)mac);
@@ -269,7 +269,7 @@ void UIPEthernetClass::init(const uint8_t* mac)
     uip_arp_init();
 }
 
-void UIPEthernetClass::configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_t subnet)
+void Enc28J60IP::configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_t subnet)
 {
     uip_hostaddr[0] = (uint16_t)(ip & 0xffff);
     uip_hostaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
@@ -280,7 +280,7 @@ void UIPEthernetClass::configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_
     _dnsServerAddress = dns;
 }
 
-uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
+uint16_t Enc28J60IP::chksum(uint16_t sum, const uint8_t *data, uint16_t len)
 {
     uint16_t t;
     const uint8_t *dataptr;
@@ -310,13 +310,13 @@ uint16_t UIPEthernetClass::chksum(uint16_t sum, const uint8_t *data, uint16_t le
   return sum;
 }
 
-uint16_t UIPEthernetClass::ipchksum()
+uint16_t Enc28J60IP::ipchksum()
 {
     uint16_t sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
     return sum == 0 ? 0xffff : htons(sum);
 }
 
-uint16_t UIPEthernetClass::upper_layer_chksum(uint8_t proto)
+uint16_t Enc28J60IP::upper_layer_chksum(uint8_t proto)
 {
     uint16_t sum;
 
@@ -427,7 +427,7 @@ void uip_add32(uint8_t *op32, uint16_t op16)
     }
 }
 
-void UIPEthernetClass::_uip_init()
+void Enc28J60IP::_uip_init()
 {
     for (c = 0; c < UIP_LISTENPORTS; ++c)
         uip_listenports[c] = 0;
@@ -585,7 +585,7 @@ static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
 
 #define UIP_LOG(m)
 
-void UIPEthernetClass::uip_process(uint8_t flag)
+void Enc28J60IP::uip_process(uint8_t flag)
 {
     register struct uip_conn *uip_connr = uip_conn;
 
@@ -1457,7 +1457,7 @@ void uip_send(const void *data, int len)
         my_memcpy(uip_sappdata, (data), uip_slen);
 }
 
-void UIPEthernetClass::_send(uip_udp_userdata_t *data)
+void Enc28J60IP::_send(uip_udp_userdata_t *data)
 {
     uip_arp_out();
 
@@ -1476,7 +1476,7 @@ void UIPEthernetClass::_send(uip_udp_userdata_t *data)
     network_send();
 }
 
-uint8_t UIPEthernetClass::_currentBlock(memhandle* block)
+uint8_t Enc28J60IP::_currentBlock(memhandle* block)
 {
     for (uint8_t i = 1; i < UIP_SOCKET_NUMPACKETS; i++)
         if (block[i] == NOBLOCK)
@@ -1485,7 +1485,7 @@ uint8_t UIPEthernetClass::_currentBlock(memhandle* block)
     return UIP_SOCKET_NUMPACKETS-1;
 }
 
-void UIPEthernetClass::_eatBlock(memhandle* block)
+void Enc28J60IP::_eatBlock(memhandle* block)
 {
     nw()->freeBlock(block[0]);
 
@@ -1495,11 +1495,11 @@ void UIPEthernetClass::_eatBlock(memhandle* block)
     block[UIP_SOCKET_NUMPACKETS-1] = NOBLOCK;
 }
 
-uip_userdata_t *UIPEthernetClass::_allocateData()
+uip_userdata_t *Enc28J60IP::_allocateData()
 {
     for (uint8_t sock = 0; sock < UIP_CONNS; sock++)
     {
-        uip_userdata_t* data = &UIPEthernetClass::all_data[sock];
+        uip_userdata_t* data = &Enc28J60IP::all_data[sock];
 
         if (!data->state)
         {
@@ -1511,12 +1511,12 @@ uip_userdata_t *UIPEthernetClass::_allocateData()
     return NULL;
 }
 
-size_t UIPEthernetClass::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
+size_t Enc28J60IP::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
 {
     int remain = size;
     uint16_t written;
 repeat:
-    UIPEthernetClass::instance->tick();
+    Enc28J60IP::instance->tick();
 
     if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
     {

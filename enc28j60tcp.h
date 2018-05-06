@@ -6,11 +6,11 @@
 class UIPClient : public Client
 {
 private:
-    UIPEthernetClass * const _eth;
+    Enc28J60IP * const _eth;
 public:
-    UIPClient(UIPEthernetClass * const eth);
+    UIPClient(Enc28J60IP * const eth);
     UIPClient(struct uip_conn *_conn);
-    UIPClient(UIPEthernetClass * const eth, uip_userdata_t* conn_data);
+    UIPClient(Enc28J60IP * const eth, uip_userdata_t* conn_data);
     int connect(uint32_t ip, uint16_t port);
     int read(uint8_t *buf, size_t size);
     void stop();
@@ -36,10 +36,10 @@ private:
 class UIPServer
 {
 private:
-    UIPEthernetClass * const _eth;
+    Enc28J60IP * const _eth;
     const uint16_t _port;
 public:
-    UIPServer(UIPEthernetClass * const eth, uint16_t port) : _eth(eth), _port(htons(port)) { }
+    UIPServer(Enc28J60IP * const eth, uint16_t port) : _eth(eth), _port(htons(port)) { }
     UIPClient available();
     void begin();
     size_t write(uint8_t c) { return write(&c, 1); }

@@ -34,7 +34,7 @@ void UIPUDP::stop()
     }
 }
 
-UIPUDP::UIPUDP(UIPEthernetClass *eth) : _eth(eth)
+UIPUDP::UIPUDP(Enc28J60IP *eth) : _eth(eth)
 {
     my_memset(&appdata, 0, sizeof(appdata));
 }
@@ -196,7 +196,8 @@ uint32_t UIPUDP::remoteIP()
     return _uip_udp_conn ? *((uint32_t *)_uip_udp_conn->ripaddr) : 0;
 }
 
-void UIPEthernetClass::uipudp_appcall()
+// moet verplaatst worden!
+void Enc28J60IP::uipudp_appcall()
 {
     if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
     {

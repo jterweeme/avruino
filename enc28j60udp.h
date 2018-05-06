@@ -12,9 +12,9 @@ class UIPUDP : public UDP
 private:
     struct uip_udp_conn *_uip_udp_conn = 0;
     uip_udp_userdata_t appdata;
-    UIPEthernetClass * const _eth;
+    Enc28J60IP * const _eth;
 public:
-    UIPUDP(UIPEthernetClass *eth);
+    UIPUDP(Enc28J60IP *eth);
     uint8_t begin(uint16_t);
     void stop();
     int beginPacket(uint32_t ip, uint16_t port);

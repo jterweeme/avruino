@@ -11,14 +11,14 @@ static constexpr uint32_t ntohl(uint32_t x) { return htonl(x); }
 
 extern uint32_t millis();
 
-uip_userdata_t UIPEthernetClass::all_data[UIP_CONNS];
+uip_userdata_t Enc28J60IP::all_data[UIP_CONNS];
 
 
 #define uip_stopped(conn)   ((conn)->tcpstateflags & UIP_STOPPED)
 
-UIPClient::UIPClient(UIPEthernetClass * const eth) : _eth(eth), data(NULL) { }
+UIPClient::UIPClient(Enc28J60IP * const eth) : _eth(eth), data(NULL) { }
 
-UIPClient::UIPClient(UIPEthernetClass * const eth, uip_userdata_t *conn_data) :
+UIPClient::UIPClient(Enc28J60IP * const eth, uip_userdata_t *conn_data) :
     _eth(eth), data(conn_data)
 {
 }
@@ -186,9 +186,8 @@ UIPClient UIPServer::available()
 {
     _eth->tick();
 
-    for (uip_userdata_t *data = &UIPEthernetClass::all_data[0];
-        data < &UIPEthernetClass::all_data[UIP_CONNS];
-        data++)
+    for (uip_userdata_t *data = &Enc28J60IP::all_data[0];
+        data < &Enc28J60IP::all_data[UIP_CONNS]; data++)
     {
         if (data->packets_in[0] != NOBLOCK && (((data->state & UIP_CLIENT_CONNECTED) &&
                 uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)
@@ -212,9 +211,8 @@ size_t UIPServer::write(const uint8_t *buf, size_t size)
 {
     size_t ret = 0;
 
-    for (uip_userdata_t* data = &UIPEthernetClass::all_data[0];
-        data < &UIPEthernetClass::all_data[UIP_CONNS];
-        data++ )
+    for (uip_userdata_t* data = &Enc28J60IP::all_data[0]; data < &Enc28J60IP::all_data[UIP_CONNS];
+        data++)
     {
         if ((data->state & UIP_CLIENT_CONNECTED) &&
             uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)
