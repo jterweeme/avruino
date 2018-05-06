@@ -13,7 +13,8 @@ Webserver op enc28j60, gebruikt index.html op FAT geformatteerd SD kaart
 #include "board.h"
 #include <avr/io.h>
 
-static Enc28J60IP eth;
+static Enc28J60Network nw;
+static Enc28J60IP eth(&nw);
 static Fatty *g_zd;
 ostream *gout;
 

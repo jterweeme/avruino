@@ -208,14 +208,14 @@ void Enc28J60IP::uipudp_appcall()
                 uip_udp_conn->rport = UDPBUF->srcport;
                 ((uint16_t *)uip_udp_conn->ripaddr)[0] = ((uint16_t *)UDPBUF->srcipaddr)[0];
                 ((uint16_t *)uip_udp_conn->ripaddr)[1] = ((uint16_t *)UDPBUF->srcipaddr)[1];
-                data->packet_next = _nw.allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
+                data->packet_next = _nw->allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
                   //if we are unable to allocate memory the packet is dropped.
                     // udp doesn't guarantee packet delivery
                 if (data->packet_next != NOBLOCK)
                 {
                     //discard Linklevel and IP and udp-header and any trailing bytes:
-                    _nw.copyPacket(data->packet_next, 0, in_packet, UIP_UDP_PHYH_LEN,
-                        _nw.blockSize(data->packet_next));
+                    _nw->copyPacket(data->packet_next, 0, in_packet, UIP_UDP_PHYH_LEN,
+                        _nw->blockSize(data->packet_next));
                 }
             }
         }

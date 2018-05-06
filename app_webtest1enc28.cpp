@@ -10,7 +10,8 @@ Uno eth CS: #10/SS
 #include "webtest1.h"
 #include "stream.h"
 
-static Enc28J60IP eth;
+static Enc28J60Network nw;
+static Enc28J60IP eth(&nw);
 ostream *gout;
 
 int main()

@@ -10,8 +10,6 @@ I love comments
 #include "stream.h"
 #include "webtest1.h"
 
-
-//W5100Class *g_w5100 = &w5100;
 ostream *gout;
 
 int main()

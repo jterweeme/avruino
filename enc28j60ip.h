@@ -133,7 +133,7 @@ class Enc28J60IP : public Ethernet
 {
 private:
     void _uip_init();
-    Enc28J60Network _nw;
+    Enc28J60Network *_nw;
     uint32_t periodic_timer;
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
     void uipclient_appcall();
@@ -143,7 +143,7 @@ public:
     uip_userdata_t *_allocateData();
     size_t _write(uip_userdata_t *u, const uint8_t *buf, size_t size);
     void _send(uip_udp_userdata_t *data);
-    Enc28J60Network *nw() { return &_nw; }
+    Enc28J60Network *nw() { return _nw; }
     void uip_process(uint8_t flag);
     void process(uint8_t flags) { uip_process(flags); }
     void init(const uint8_t* mac);
@@ -159,7 +159,7 @@ public:
     uint32_t _dnsServerAddress;
     void tick();
     static Enc28J60IP *instance;
-    Enc28J60IP() { instance = this; }
+    Enc28J60IP(Enc28J60Network *ntw) : _nw(ntw) { instance = this; }
     uint32_t localIP() { return (uint32_t)uip_hostaddr[0] | (uint32_t)uip_hostaddr[1] << 16; }
     uint32_t subnetMask() { return (uint32_t)uip_netmask[0] | (uint32_t)uip_netmask[1] << 16; }
     uint32_t gatewayIP() { return (uint32_t)uip_draddr[0] | (uint32_t)uip_draddr[1] << 16; }

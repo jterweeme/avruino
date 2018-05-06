@@ -5,7 +5,8 @@
 #include "misc.h"
 #include "board.h"
 
-static Enc28J60IP eth;
+static Enc28J60Network nw;
+static Enc28J60IP eth(&nw);
 ostream *gout;
 
 static inline char convertCase(char c)
