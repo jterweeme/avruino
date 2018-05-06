@@ -21,7 +21,7 @@ int main()
         klok.readTime();
         char buf[50];
         ::snprintf(buf, 50, "%u:%u:%u\r\n", klok.hour(), klok.min(), klok.sec());
-        cout.writeString(buf);
+        cout << buf;
         cout.flush();
         Utility::delay(0x4ffff);
     }

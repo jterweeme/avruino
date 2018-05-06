@@ -14,7 +14,6 @@ public:
     virtual void put(char c) { }
     virtual void write(const char *s, size_t n);
     virtual void operator<< (const char *s) { while (*s) put(*s++); }
-    virtual void writeString(const char *s) { while (*s) put(*s++); }
     virtual void flush() { }
 };
 
@@ -67,6 +66,7 @@ private:
 public:
     UartStream(UartBase *s) : _serial(s) { }
     void put(char c) { _serial->myPutc(c); }
+    void writeString(const char *s) { while (*s) put(*s++); } // deprecated
 };
 
 class UartIStream : public istream

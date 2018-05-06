@@ -1,7 +1,6 @@
 #include "webserver.h"
 #include "client.h"
 #include "fatty.h"
-#include <string.h>
 
 class Buffer
 {
@@ -18,7 +17,7 @@ Webserver::Webserver(Fatty *fs, ostream *serial) : _fs(fs), _serial(serial)
 {
 }
 
-void Webserver::_printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
+void Webserver::_printDirectory(Fyle dir, uint8_t numTabs, ostream &os) const
 {
     os << "<table>\r\n";
 
@@ -67,7 +66,7 @@ void Webserver::_printDirectory(Fyle dir, uint8_t numTabs, Client &os) const
     os << "</table>\r\n";
 }
 
-void Webserver::listing(Client &client) const
+void Webserver::_listing(ostream &client) const
 {
     client << "<!DOCTYPE html>\r\n";
     client << "<html>\r\n<head>\r\n<title>Listing</title>\r\n";
@@ -78,18 +77,18 @@ void Webserver::listing(Client &client) const
     client << "</body>\r\n</html>\r\n";
 }
 
-void Webserver::serveFile(Client &client, const char *fn)
+void Webserver::_serveFile(ostream &client, const char *fn)
 {
     FyleIfstream ifs(_fs);
     ifs.open(fn);
 
     for (int c2; (c2 = ifs.get()) != -1;)
-        client.write(c2);
+        client.put(c2);
 
     ifs.close();
 }
 
-void Webserver::contentType(Client &client, const char *ext)
+void Webserver::_contentType(ostream &client, const char *ext)
 {
     if (my_strncasecmp(ext, "htm", 3) == 0)
         client << "Content-Type: text/html\r\n";
@@ -111,7 +110,7 @@ void Webserver::contentType(Client &client, const char *ext)
         client << "Content-Type: text/html\r\n";
 }
 
-void Webserver::httpGet(Client &client, Buffer &buffer)
+void Webserver::_httpGet(ostream &client, Buffer &buffer)
 {
     char fn[100] = {0};
     char ext[10] = {0};
@@ -125,18 +124,18 @@ void Webserver::httpGet(Client &client, Buffer &buffer)
     }
     
     if (fn[0] == 0)
-        strncpy(fn, "index.htm", 100);
+        my_strncpy(fn, "index.htm", 100);
 
     char *dot = my_strchr(fn, '.');
     my_strncpy(ext, dot + 1, 3);
     client << "HTTP/1.1 200 OK\r\n";
-    contentType(client, ext);
+    _contentType(client, ext);
     client << "Connection: close\r\n\r\n";  // let op de dubbel nl
 
-    if (strncmp(fn, "listing", 7) == 0)
-        listing(client);
+    if (my_strncmp(fn, "listing", 7) == 0)
+        _listing(client);
     else
-        serveFile(client, fn);
+        _serveFile(client, fn);
 }
 
 void Webserver::_httpMkcol(Buffer &buffer)
@@ -157,7 +156,7 @@ void Webserver::_httpMkcol(Buffer &buffer)
     _serial->flush();
 }
 
-void Webserver::_httpDelete(Client &client, Buffer &buffer)
+void Webserver::_httpDelete(ostream &client, Buffer &buffer)
 {
     char fn[50];
 
@@ -195,15 +194,15 @@ void Webserver::dispatch(Client &client)
                     *_serial << "\r\n";
                     _serial->flush();
 
-                    if (strncmp("GET ", buffer.get(), 4) == 0)
-                        httpGet(client, buffer);
-                    else if (strncmp("PUT ", buffer.get(), 4) == 0)
+                    if (my_strncmp("GET ", buffer.get(), 4) == 0)
+                        _httpGet(client, buffer);
+                    else if (my_strncmp("PUT ", buffer.get(), 4) == 0)
                         client << "HTTP/1.1 200 OK\r\n\r\n";
-                    else if (strncmp("DELETE ", buffer.get(), 7) == 0)
+                    else if (my_strncmp("DELETE ", buffer.get(), 7) == 0)
                         _httpDelete(client, buffer);
-                    else if (strncmp("MKCOL ", buffer.get(), 6) == 0)
+                    else if (my_strncmp("MKCOL ", buffer.get(), 6) == 0)
                         _httpMkcol(buffer);
-                    else if (strncmp("POST ", buffer.get(), 5) == 0)
+                    else if (my_strncmp("POST ", buffer.get(), 5) == 0)
                         *_serial << "POST\r\n";
 
                     buffer.reset();

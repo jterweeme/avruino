@@ -21,18 +21,18 @@ static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
             break;
 
         for (uint8_t i = 0; i < numTabs; i++)
-            os.writeString("\t");
+            os.put('\t');
 
-        os.writeString(entry.name());
+        os << entry.name();
         
         if (entry.isDirectory())
         {
-            os.writeString("/");
+            os.put('/');
             printDirectory(entry, numTabs + 1, os);
         }
         else
         {
-            os.writeString("\t\t");
+            os << "\t\t";
             uint32_t size = entry.size();
             os.put(nibble(size >> 28 & 0xf));
             os.put(nibble(size >> 24 & 0xf));
@@ -42,7 +42,7 @@ static void printDirectory(Fyle dir, uint8_t numTabs, ostream &os)
             os.put(nibble(size >> 8 & 0xf));
             os.put(nibble(size >> 4 & 0xf));
             os.put(nibble(size & 0xf));
-            os.writeString("\r\n");
+            os << "\r\n";
         }
         entry.close();
     }
