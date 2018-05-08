@@ -19,9 +19,10 @@ public:
     int connect(uint32_t ip, uint16_t port);
     size_t write(const uint8_t *buf, size_t size);
     int available();
-    int read();
-    int read(uint8_t *buf, size_t size);
-    int peek();
+    int16_t get();
+    int16_t read();
+    int16_t read(uint8_t *buf, size_t size);
+    int16_t peek();
     void flush();
     void stop();
     uint8_t connected();

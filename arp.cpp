@@ -173,7 +173,7 @@ void uip_arp_arpin()
   
     switch(BUF->opcode)
     {
-    case HTONS(ARP_REQUEST):
+    case htons(ARP_REQUEST):
         // ARP request. If it asked for our address, we send out a reply.
         if (uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr))
         {
@@ -181,7 +181,7 @@ void uip_arp_arpin()
         	 table, since it is likely that we will do more communication
         	 with this host in the future. */
             uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
-            BUF->opcode = HTONS(2);
+            BUF->opcode = htons(2);
             memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
             memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
             memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
@@ -190,11 +190,11 @@ void uip_arp_arpin()
             BUF->dipaddr[1] = BUF->sipaddr[1];
             BUF->sipaddr[0] = uip_hostaddr[0];
             BUF->sipaddr[1] = uip_hostaddr[1];
-            BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+            BUF->ethhdr.type = htons(UIP_ETHTYPE_ARP);
             uip_len = sizeof(struct arp_hdr);
         }
         break;
-    case HTONS(ARP_REPLY):
+    case htons(ARP_REPLY):
         // ARP reply. We insert or update the ARP table if it was meant for us.
         if (uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr))
             uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
@@ -294,12 +294,12 @@ void uip_arp_out()
             ((uint16_t *)BUF->dipaddr)[1] = ((uint16_t *)ipaddr)[1];
             ((uint16_t *)BUF->sipaddr)[0] = ((uint16_t *)uip_hostaddr)[0];
             ((uint16_t *)BUF->sipaddr)[1] = ((uint16_t *)uip_hostaddr)[1];
-            BUF->opcode = HTONS(ARP_REQUEST); /* ARP request. */
-            BUF->hwtype = HTONS(ARP_HWTYPE_ETH);
-            BUF->protocol = HTONS(UIP_ETHTYPE_IP);
+            BUF->opcode = htons(ARP_REQUEST); /* ARP request. */
+            BUF->hwtype = htons(ARP_HWTYPE_ETH);
+            BUF->protocol = htons(UIP_ETHTYPE_IP);
             BUF->hwlen = 6;
             BUF->protolen = 4;
-            BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+            BUF->ethhdr.type = htons(UIP_ETHTYPE_ARP);
             uip_appdata = &uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN];
             uip_len = sizeof(struct arp_hdr);
             return;
@@ -310,7 +310,7 @@ void uip_arp_out()
     }
 
     memcpy(((struct ethip_hdr *)&uip_buf[0])->ethhdr.src.addr, uip_ethaddr.addr, 6);
-    ((struct ethip_hdr *)&uip_buf[0])->ethhdr.type = HTONS(UIP_ETHTYPE_IP);
+    ((struct ethip_hdr *)&uip_buf[0])->ethhdr.type = htons(UIP_ETHTYPE_IP);
     uip_len += sizeof(struct uip_eth_hdr);
 }
 

@@ -123,6 +123,22 @@ int EthernetClient::available()
     return _sock != MAX_SOCK_NUM ? _eth->nw()->getRXReceivedSize(_sock) : 0;
 }
 
+int16_t EthernetClient::get()
+{
+    uint8_t b;
+
+    if (_eth->recv(_sock, &b, 1) > 0)
+    {
+        // recv worked
+        return b;
+    }
+    else
+    {
+        // No data available
+        return -1;
+    }
+}
+
 int EthernetClient::read()
 {
     uint8_t b;

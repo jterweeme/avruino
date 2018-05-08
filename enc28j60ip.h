@@ -18,17 +18,16 @@ typedef void * uip_tcp_appstate_t;
 static constexpr uint8_t UIP_ARPHDRSIZE = 42;
 #define UIP_BUFSIZE 98
 typedef uint16_t uip_ipaddr_t[2];
-void uip_setipid(uint16_t id);
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
 void uip_listen(uint16_t port);
 struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
 void uip_send(const void *data, int len);
 struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
-uint16_t htons(uint16_t val);
 extern void *uip_appdata;
 extern uint16_t uip_len;
 
-struct uip_conn {
+struct uip_conn
+{
     uip_ipaddr_t ripaddr;   /**< The IP address of the remote host. */
     uint16_t lport;        /**< The local TCP port, in network byte order. */
     uint16_t rport;
@@ -186,24 +185,15 @@ struct uip_userdata_closed_t
 				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
 
 typedef uint8_t uip_socket_ptr;
-#define UIP_IPH_LEN    20
-#define UIP_UDPH_LEN    8
-#define UIP_TCPH_LEN   20
-#define UIP_LLH_LEN     14
-#define UIP_TIME_WAIT_TIMEOUT 120
-#define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
-#define ntohs htons
-#define UIP_TCP_MSS UIP_CONF_TCP_MSS
-#define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)
-#define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
-#define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)
-#define uip_udp_remove(conn) (conn)->lport = 0
-#define uip_udp_bind(conn, port) (conn)->lport = port
-#define UIP_BROADCAST UIP_CONF_BROADCAST
-#define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
+static constexpr uint8_t UIP_IPH_LEN = 20, UIP_UDPH_LEN = 8, UIP_TCPH_LEN = 20, UIP_LLH_LEN = 14;
+static constexpr uint16_t UIP_TCP_MSS = UIP_CONF_TCP_MSS;
+static constexpr uint16_t UIP_IPTCPH_LEN = UIP_TCPH_LEN + UIP_IPH_LEN;
+static constexpr uint16_t UIP_TCPIP_HLEN = UIP_IPTCPH_LEN;
+static constexpr uint16_t UIP_IPUDPH_LEN = UIP_UDPH_LEN + UIP_IPH_LEN;
 static constexpr uint8_t UIP_LISTENPORTS = 4;
-#define UIP_LITTLE_ENDIAN  3412
-#define UIP_BIG_ENDIAN     1234
+static constexpr uint16_t UIP_UDP_MAXDATALEN = 1500;
+static constexpr uint16_t UIP_UDP_PHYH_LEN = UIP_LLH_LEN + UIP_IPUDPH_LEN;
+static constexpr uint16_t UIP_UDP_MAXPACKETSIZE = UIP_UDP_MAXDATALEN + UIP_UDP_PHYH_LEN;
 #endif
 
 

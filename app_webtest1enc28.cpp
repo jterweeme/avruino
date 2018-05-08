@@ -10,8 +10,7 @@ Uno eth CS: #10/SS
 #include "webtest1.h"
 #include "stream.h"
 
-static Enc28J60Network nw;
-static Enc28J60IP eth(&nw);
+static Enc28J60IP *g_eth;
 ostream *gout;
 
 int main()
@@ -19,17 +18,18 @@ int main()
     // 16,000,000/16,000 = 1000
     // 16,000 / 256 = 62
 
+    zei();
     DefaultUart s;
-    *p_ucsr9a |= 1<<u2x9;
-    *p_ubrr9 = 16;
     UartStream cout(&s);
     gout = &cout;
-    *p_tccr0b = 1<<cs02; // | CS00;
-    *p_timsk0 |= 1<<toie0;
-    zei();
 
     cout << "Initialize Ethernet...\r\n";
     cout.flush();
+    Enc28J60Network nw;
+    Enc28J60IP eth(&nw);
+    g_eth = &eth;
+    *p_tccr0b = 1<<cs02; // | CS00;
+    *p_timsk0 |= 1<<toie0;
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     eth.init(mac);
 
@@ -59,7 +59,7 @@ int main()
 extern "C" void TIMER0_OVF __attribute__ ((signal, used, externally_visible));
 void TIMER0_OVF
 {
-    eth.tick2();
+    g_eth->tick2();
 }
 
 

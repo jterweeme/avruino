@@ -39,8 +39,8 @@ class istream
 protected:
     size_t _lastread = 0;
 public:
-    virtual int peek() { return 0; }
-    virtual int get() { return 0; }
+    virtual int16_t peek() { return 0; }
+    virtual int16_t get() { return 0; }
     virtual int16_t get(uint32_t timeout) { return 0; }
     virtual void read(char *s, size_t n);
     virtual size_t gcount() { return _lastread; }
@@ -49,7 +49,7 @@ public:
 class ifstream : public istream
 {
 public:
-    virtual int get() { return 0; }
+    virtual int16_t get() { return 0; }
 };
 
 class ofstream : public ostream

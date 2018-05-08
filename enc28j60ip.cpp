@@ -164,7 +164,7 @@ void Enc28J60IP::tick()
         {
             nw()->readPacket(in_packet, 0, (uint8_t*)uip_buf,UIP_BUFSIZE);
 
-            if (((struct uip_eth_hdr *)&uip_buf[0])->type == HTONS(UIP_ETHTYPE_IP))
+            if (((struct uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_IP))
             {
                 uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
                 uip_arp_ipin();
@@ -176,7 +176,7 @@ void Enc28J60IP::tick()
                     network_send();
                 }
             }
-            else if (((struct uip_eth_hdr *)&uip_buf[0])->type == HTONS(UIP_ETHTYPE_ARP))
+            else if (((struct uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_ARP))
             {
                 uip_arp_arpin();
 
@@ -528,7 +528,7 @@ again:
     if(conn == 0)
         return 0;
   
-    conn->lport = HTONS(lastport);
+    conn->lport = htons(lastport);
     conn->rport = rport;
 
     if (ripaddr == NULL)
@@ -584,6 +584,9 @@ static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
 #endif
 
 #define UIP_LOG(m)
+#define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
+
+static constexpr uint8_t UIP_TIME_WAIT_TIMEOUT = 120;
 
 void Enc28J60IP::uip_process(uint8_t flag)
 {
@@ -780,13 +783,13 @@ void Enc28J60IP::uip_process(uint8_t flag)
 
     ICMPBUF->type = ICMP_ECHO_REPLY;
 
-    if (ICMPBUF->icmpchksum >= HTONS(0xffff - (ICMP_ECHO << 8)))
+    if (ICMPBUF->icmpchksum >= htons(0xffff - (ICMP_ECHO << 8)))
     {
-        ICMPBUF->icmpchksum += HTONS(ICMP_ECHO << 8) + 1;
+        ICMPBUF->icmpchksum += htons(ICMP_ECHO << 8) + 1;
     }
     else
     {
-        ICMPBUF->icmpchksum += HTONS(ICMP_ECHO << 8);
+        ICMPBUF->icmpchksum += htons(ICMP_ECHO << 8);
     }
 
     uip_ipaddr_copy(BUF->destipaddr, BUF->srcipaddr);
@@ -842,7 +845,7 @@ udp_send:
     BUF->len[1] = (uip_len & 0xff);
     BUF->ttl = uip_udp_conn->ttl;
     BUF->proto = UIP_PROTO_UDP;
-    UDPBUF->udplen = HTONS(uip_slen + UIP_UDPH_LEN);
+    UDPBUF->udplen = htons(uip_slen + UIP_UDPH_LEN);
     UDPBUF->udpchksum = 0;
     BUF->srcport  = uip_udp_conn->lport;
     BUF->destport = uip_udp_conn->rport;
@@ -1444,11 +1447,6 @@ drop:
     return;
 }
 
-uint16_t htons(uint16_t val)
-{
-    return HTONS(val);
-}
-
 void uip_send(const void *data, int len)
 {
     uip_slen = len;
@@ -1559,6 +1557,37 @@ ready:
   return -1;
 }
 
+void Enc28J60IP::uipudp_appcall()
+{
+    if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
+    {
+        if (uip_flags & UIP_NEWDATA)
+        {
+            if (data->packet_next == NOBLOCK)
+            {
+                uip_udp_conn->rport = UDPBUF->srcport;
+                ((uint16_t *)uip_udp_conn->ripaddr)[0] = ((uint16_t *)UDPBUF->srcipaddr)[0];
+                ((uint16_t *)uip_udp_conn->ripaddr)[1] = ((uint16_t *)UDPBUF->srcipaddr)[1];
+                data->packet_next = _nw->allocBlock(htons(UDPBUF->udplen)-UIP_UDPH_LEN);
+                  //if we are unable to allocate memory the packet is dropped.
+                    // udp doesn't guarantee packet delivery
+                if (data->packet_next != NOBLOCK)
+                {
+                    //discard Linklevel and IP and udp-header and any trailing bytes:
+                    _nw->copyPacket(data->packet_next, 0, in_packet, UIP_UDP_PHYH_LEN,
+                        _nw->blockSize(data->packet_next));
+                }
+            }
+        }
+
+        if ((uip_flags & UIP_POLL) && data->send)
+        {
+            uip_packet = data->packet_out;
+            uip_hdrlen = UIP_UDP_PHYH_LEN;
+            uip_send((char *)uip_appdata, data->out_pos - (UIP_UDP_PHYH_LEN));
+        }
+    }
+}
 
 
 

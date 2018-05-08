@@ -214,10 +214,10 @@ app_vga2.elf: app_vga2.o vga.o
 app_bbs1.o: app_bbs1.cpp stream.h dhcp.h enc28j60udp.h enc28j60ip.h \
     enc28j60hw.h misc.h types.h
 
-app_minos1.o: app_minos1.cpp fatty.h misc.h types.h \
+app_minos1.o: app_minos1.cpp fatty.h fatty_util.h misc.h types.h \
     stream.h md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
-app_minos2.o: app_minos2.cpp fatty.h misc.h stream.h types.h \
+app_minos2.o: app_minos2.cpp fatty.h fatty_util.h misc.h stream.h types.h \
     md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
 app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h \

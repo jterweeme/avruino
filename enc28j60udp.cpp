@@ -1,9 +1,6 @@
 #include "enc28j60udp.h"
 #include "misc.h"
 
-#define UDPBUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define uip_poll()       (uip_flags & UIP_POLL)
-
 uint8_t UIPUDP::begin(uint16_t port)
 {
     if (!_uip_udp_conn)
@@ -11,7 +8,7 @@ uint8_t UIPUDP::begin(uint16_t port)
 
     if (_uip_udp_conn)
     {
-        uip_udp_bind(_uip_udp_conn,htons(port));
+        _uip_udp_conn->lport = htons(port);
         _uip_udp_conn->appstate = &appdata;
         return 1;
     }
@@ -24,7 +21,7 @@ void UIPUDP::stop()
 {
     if (_uip_udp_conn)
     {
-        uip_udp_remove(_uip_udp_conn);
+        _uip_udp_conn->lport = 0;
         _uip_udp_conn->appstate = NULL;
         _uip_udp_conn=NULL;
         _eth->nw()->freeBlock(appdata.packet_in);
@@ -197,6 +194,7 @@ uint32_t UIPUDP::remoteIP()
 }
 
 // moet verplaatst worden!
+#if 0
 void Enc28J60IP::uipudp_appcall()
 {
     if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
@@ -220,7 +218,7 @@ void Enc28J60IP::uipudp_appcall()
             }
         }
 
-        if (uip_poll() && data->send)
+        if ((uip_flags & UIP_POLL) && data->send)
         {
             uip_packet = data->packet_out;
             uip_hdrlen = UIP_UDP_PHYH_LEN;
@@ -228,6 +226,6 @@ void Enc28J60IP::uipudp_appcall()
         }
     }
 }
-
+#endif
 
 

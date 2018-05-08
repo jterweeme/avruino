@@ -1,12 +1,5 @@
 #include "enc28j60tcp.h"
 
-static constexpr uint32_t htonl(uint32_t x)
-{
-    return (x<<24 & 0xff000000) | (x<<8 & 0xff0000) | (x>>8 & 0xff00) | (x>>24 & 0xff);
-}
-
-static constexpr uint32_t ntohl(uint32_t x) { return htonl(x); }
-
 #define UIP_TCP_PHYH_LEN UIP_LLH_LEN+UIP_IPTCPH_LEN
 
 extern uint32_t millis();
@@ -152,7 +145,17 @@ int UIPClient::read(uint8_t *buf, size_t size)
   return -1;
 }
 
-int UIPClient::read()
+int16_t UIPClient::get()
+{
+    uint8_t c;
+
+    if (read(&c, 1) < 0)
+        return -1;
+
+    return c;
+}
+
+int16_t UIPClient::read()
 {
     uint8_t c;
 

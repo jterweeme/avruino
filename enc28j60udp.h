@@ -3,10 +3,6 @@
 #include "enc28j60ip.h"
 #include "udp.h"
 
-static const uint16_t UIP_UDP_MAXDATALEN = 1500;
-#define UIP_UDP_PHYH_LEN UIP_LLH_LEN+UIP_IPUDPH_LEN
-#define UIP_UDP_MAXPACKETSIZE UIP_UDP_MAXDATALEN+UIP_UDP_PHYH_LEN
-
 class UIPUDP : public UDP
 {
 private:
@@ -30,7 +26,7 @@ public:
     int peek();
     void flush();	// Finish reading the current packet
     uint32_t remoteIP();
-    uint16_t remotePort() { return _uip_udp_conn ? ntohs(_uip_udp_conn->rport) : 0; }
+    uint16_t remotePort() { return _uip_udp_conn ? htons(_uip_udp_conn->rport) : 0; }
 };
 #endif
 

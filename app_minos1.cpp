@@ -1,4 +1,4 @@
-#include "fatty.h"
+#include "fatty_util.h"
 #include <stdio.h>
 #include "md5sum.h"
 #include "xmodem.h"
@@ -71,110 +71,13 @@ bool Buffer::comp(const char *s)
 {
     size_t len = my_strlen(s);
     
-    for (size_t i = 0; i < len; i++)
-        if (buf[i] != s[i])
-            return false;
+    if (my_strncmp(buf, s, len) != 0)
+        return false;
 
     if (buf[len] != 0x0a && buf[len] != 0x0d && buf[len] != ' ')    // separators
         return false;
 
     return true;
-}
-
-static void printDirectory(Fyle dir, int numTabs, ostream &os)
-{
-    while (true)
-    {
-        Fyle entry = dir.openNextFile();
-
-        if (!entry)
-            break;
-        
-        for (uint8_t i = 0; i < numTabs; i++)
-            os << "\t";
-
-        if (entry.isDirectory())
-            os.put('[');
-
-        os << entry.name();
-
-        if (entry.isDirectory())
-            os << "]\r\n";
-
-        if (entry.isDirectory())
-        {
-#if 0
-            os.put('/');
-            printDirectory(entry, numTabs + 1, os);
-#endif
-        }
-        else
-        {
-            for (uint8_t i = my_strlen(entry.name()); i < 15; i++)
-                os.put(' ');
-
-            //os << "\t\t";
-            uint32_t size = entry.size();
-            hex32(size, os);
-            os << "\r\n";
-        }
-        entry.close();
-    }
-}
-
-static void cat(istream &is, ostream &os)
-{
-    for (int c; (c = is.get()) != -1;)
-    {
-        if (c == 0x0a)
-            os.put(0x0d);
-
-        os.put(c);
-    }
-}
-
-static void od(istream &is, ostream &os)
-{
-    bool available = true;
-    uint8_t buf[16];
-    uint8_t cnt = 0;
-    
-    while (available)
-    {
-        for (uint8_t i = 0; i < 16; i++)
-        {
-            int c = is.get();
-
-            if (c == -1)
-            {
-                available = false;
-                cnt = i;
-                break;
-            }
-
-            buf[i] = c;
-            cnt = 16;
-        }
-    
-        for (uint8_t i = 0; i < cnt; i++)
-        {
-            os.put(nibble(buf[i] >> 4 & 0xf));
-            os.put(nibble(buf[i] & 0xf));
-            os.put(' ');
-        }
-
-        os << " >";
-
-        for (uint8_t i = 0; i < cnt; i++)
-        {
-            if (my_isprint(buf[i]))
-                os.put(buf[i]);
-            else
-                os.put('.');
-        }
-
-        os << "<\r\n";
-    }
 }
 
 class App
@@ -197,6 +100,7 @@ private:
 #ifdef MD5SUM
     void _md5sum(Fatty &zd, ostream &os);
 #endif
+    void _more(Fatty &zd, istream &is, ostream &os);
     void _rm(Fatty &zd, ostream &os);
     void _od(Fatty &zd, ostream &os);
     void _mkdir(Fatty &zd);
@@ -352,6 +256,24 @@ void App::_md5sum(Fatty &zd, ostream &os)
 }
 #endif
 
+void App::_more(Fatty &zd, istream &is, ostream &os)
+{
+    char fn[50] = {0};
+    _buf.token2(fn);
+
+    if (zd.exists(fn))
+    {
+        FyleIfstream ifs;
+        ifs.open(fn);
+        more(is, ifs, os);
+        ifs.close();
+    }
+    else
+    {
+        os << "File does not exists\r\n";
+    }
+}
+
 int App::run()
 {
     Board b;
@@ -372,6 +294,7 @@ int App::run()
     UartStream dout(&uart1);
     g_dout = &dout;
 #endif
+    cout << "Initializing SD card...\r\n";
     bool ret = zd.begin();
     
     if (!ret)
@@ -380,6 +303,7 @@ int App::run()
         return 0;
     }
 
+    cout << "SD Card initialized\r\n";
     cout << "$ ";
 
     while (true)
@@ -402,6 +326,9 @@ int App::run()
 
             if (_buf.comp("cat"))
                 _cat(zd, cout);
+
+            if (_buf.comp("more"))
+                _more(zd, cin, cout);
 
             if (_buf.comp("od"))
                 _od(zd, cout);

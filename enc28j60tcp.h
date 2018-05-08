@@ -11,8 +11,7 @@ public:
     UIPClient(Enc28J60IP * const eth);
     UIPClient(struct uip_conn *_conn);
     UIPClient(Enc28J60IP * const eth, uip_userdata_t* conn_data);
-    int connect(uint32_t ip, uint16_t port);
-    int read(uint8_t *buf, size_t size);
+    int16_t connect(uint32_t ip, uint16_t port);
     void stop();
     uint8_t connected();
     operator bool();
@@ -24,9 +23,11 @@ public:
     size_t write(uint8_t c) { return _eth->_write(data, &c, 1); }
     size_t write(const uint8_t *buf, size_t size) { return _eth->_write(data, buf, size); }
     size_t write(const char *buf) { return write((const uint8_t *)buf, my_strlen(buf)); }
-    int available();
-    int read();
-    int peek();
+    int16_t available();
+    int16_t get();
+    int16_t read();
+    int16_t read(uint8_t *buf, size_t size);
+    int16_t peek();
     void flush();
 private:
     uip_userdata_t *data;
