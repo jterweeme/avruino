@@ -125,21 +125,20 @@ app_heliosboot1.hex: app_heliosboot1.asm
 app_megaboot4.hex: app_megaboot4.asm
 app_optiboot1.hex: app_optiboot1.asm
 
-app_webtest1enc28.elf: app_webtest1enc28.o arp.o uart.o enc28j60tcp.o stream.o webtest1.o \
+app_webtest1enc28.elf: app_webtest1enc28.o uart.o enc28j60tcp.o stream.o webtest1.o \
     enc28j60ip.o dhcp.o eth.o enc28j60udp.o enc28j60hw.o
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
     w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
 
-app_telnetloop1.elf: app_telnetloop1.o arp.o uart.o enc28j60tcp.o pinport.o \
+app_telnetloop1.elf: app_telnetloop1.o uart.o enc28j60tcp.o pinport.o \
     enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o misc.o stream.o eth.o
 
-app_bbs1.elf: app_bbs1.o arp.o dns.o uart.o enc28j60tcp.o pinport.o enc28j60ip.o dhcp.o \
+app_bbs1.elf: app_bbs1.o dns.o uart.o enc28j60tcp.o pinport.o enc28j60ip.o dhcp.o \
     enc28j60udp.o enc28j60hw.o misc.o stream.o fatty.o zd2card.o eth.o
 
-app_websdfat1.elf: app_websdfat1.o arp.o enc28j60tcp.o \
-    enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o eth.o \
-    zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
+app_websdfat1.elf: app_websdfat1.o enc28j60tcp.o enc28j60ip.o dhcp.o enc28j60udp.o \
+    enc28j60hw.o eth.o zd2card.o fatty.o pinport.o uart.o stream.o misc.o webserver.o
 
 app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o dhcp.o w5100udp.o \
     w5100tcp.o w5100hw.o zd2card.o fatty.o misc.o eth.o webserver.o
@@ -147,7 +146,7 @@ app_websdfat2.elf: app_websdfat2.o w5100ip.o uart.o pinport.o stream.o dhcp.o w5
 app_chatserver1.elf: app_chatserver1.o w5100ip.o w5100tcp.o \
     w5100hw.o w5100udp.o dhcp.o misc.o pinport.o eth.o stream.o uart.o
 
-app_nslookup1.elf: app_nslookup1.o dns.o arp.o uart.o enc28j60tcp.o \
+app_nslookup1.elf: app_nslookup1.o dns.o uart.o enc28j60tcp.o \
     enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o stream.o eth.o
 
 app_webclient2.elf: app_webclient2.o w5100tcp.o w5100ip.o w5100hw.o w5100udp.o \
@@ -289,14 +288,13 @@ app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_webclient2.o: app_webclient2.cpp
 analog.o: analog.cpp analog.h
-arp.o: arp.cpp arp.h enc28j60ip.h
 busby.o: busby.cpp busby.h schip.h pgmspees.h int.h types.h board.h leonardo.h uno.h
 button.o: button.cpp button.h analog.h tft.h
 calc.o: calc.cpp calc.h types.h
 capsense.o: capsense.cpp capsense.h
 eth.o: eth.cpp eth.h misc.h types.h
 enc28j60hw.o: enc28j60hw.cpp
-enc28j60ip.o: enc28j60ip.cpp enc28j60ip.h arp.h types.h
+enc28j60ip.o: enc28j60ip.cpp enc28j60ip.h types.h
 enc28j60tcp.o: enc28j60tcp.cpp enc28j60tcp.h types.h
 enc28j60udp.o: enc28j60udp.cpp enc28j60udp.h types.h
 fatty.o: fatty.cpp fatty.h stream.h uart.h cdc.h busby.h types.h

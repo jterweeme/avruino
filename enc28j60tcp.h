@@ -9,7 +9,6 @@ private:
     Enc28J60IP * const _eth;
 public:
     UIPClient(Enc28J60IP * const eth);
-    UIPClient(struct uip_conn *_conn);
     UIPClient(Enc28J60IP * const eth, uip_userdata_t* conn_data);
     int16_t connect(uint32_t ip, uint16_t port);
     void stop();

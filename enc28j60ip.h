@@ -65,6 +65,11 @@ struct uip_udpip_hdr
     uint16_t srcport, destport, udplen, udpchksum;
 };
 
+struct uip_eth_addr
+{
+    uint8_t addr[6];
+};
+
 struct uip_userdata_t
 {
     uint8_t state;
@@ -138,17 +143,16 @@ static constexpr uint16_t UIP_IPUDPH_LEN = UIP_UDPH_LEN + UIP_IPH_LEN;
 static constexpr uint16_t UIP_UDP_MAXDATALEN = 1500;
 static constexpr uint16_t UIP_UDP_PHYH_LEN = UIP_LLH_LEN + UIP_IPUDPH_LEN;
 static constexpr uint16_t UIP_UDP_MAXPACKETSIZE = UIP_UDP_MAXDATALEN + UIP_UDP_PHYH_LEN;
-extern struct uip_conn_t *uip_conn;
-extern struct uip_conn_t uip_conns[UIP_CONNS];
-extern struct uip_udp_conn_t *uip_udp_conn;
+extern uip_conn_t *uip_conn;
+extern uip_conn_t uip_conns[UIP_CONNS];
+extern uip_udp_conn_t *uip_udp_conn;
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
-struct uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
+uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
 void uip_send(const void *data, int len);
-struct uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
+uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 extern void *uip_appdata;
 extern uint16_t uip_len;
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
-struct uip_eth_addr { uint8_t addr[6]; };
 
 class Enc28J60IP : public Ethernet
 {
@@ -182,13 +186,67 @@ public:
     void tick();
     static Enc28J60IP *instance;
     Enc28J60IP(Enc28J60Network *ntw) : _nw(ntw) { instance = this; }
-    uint32_t localIP() { return (uint32_t)uip_hostaddr[0] | (uint32_t)uip_hostaddr[1] << 16; }
-    uint32_t subnetMask() { return (uint32_t)uip_netmask[0] | (uint32_t)uip_netmask[1] << 16; }
-    uint32_t gatewayIP() { return (uint32_t)uip_draddr[0] | (uint32_t)uip_draddr[1] << 16; }
+    uint32_t localIP() const;
+    uint32_t subnetMask() const;
+    uint32_t gatewayIP() const;
     uint32_t dnsServerIP() { return _dnsServerAddress; }
     void tick2();
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);
+};
+
+extern struct uip_eth_addr uip_ethaddr;
+
+struct uip_eth_hdr
+{
+    struct uip_eth_addr dest;
+    struct uip_eth_addr src;
+    uint16_t type;
+};
+
+static constexpr uint16_t
+    UIP_ETHTYPE_ARP = 0x0806,
+    UIP_ETHTYPE_IP = 0x0800,
+    UIP_ETHTYPE_IP6 = 0x86dd;
+
+void uip_arp_init();
+void uip_arp_ipin();
+void uip_arp_arpin();
+void uip_arp_out();
+void uip_arp_timer();
+
+static constexpr uint8_t UIP_ARPTAB_SIZE = 8;
+static constexpr uint8_t UIP_ARP_MAXAGE = 120;
+
+struct arp_hdr
+{
+    struct uip_eth_hdr ethhdr;
+    uint16_t hwtype;
+    uint16_t protocol;
+    uint8_t hwlen;
+    uint8_t protolen;
+    uint16_t opcode;
+    struct uip_eth_addr shwaddr;
+    uint16_t sipaddr[2];
+    struct uip_eth_addr dhwaddr;
+    uint16_t dipaddr[2];
+};
+
+struct ethip_hdr
+{
+    struct uip_eth_hdr ethhdr;
+    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
+    uint16_t ipchksum;
+    uint16_t srcipaddr[2], destipaddr[2];
+};
+
+static constexpr uint8_t ARP_REQUEST = 1, ARP_REPLY = 2, ARP_HWTYPE_ETH = 1;
+
+struct arp_entry
+{
+    uint16_t ipaddr[2];
+    struct uip_eth_addr ethaddr;
+    uint8_t time;
 };
 #endif
 
