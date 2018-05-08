@@ -24,6 +24,8 @@ void Enc28J60IP::_flushBlocks(memhandle* block)
     }
 }
 
+static uint8_t uip_flags;
+
 void Enc28J60IP::uipclient_appcall()
 {
     uint16_t send_len = 0;
@@ -149,6 +151,9 @@ finish:
     uip_send(uip_appdata,send_len);
     uip_len = send_len;
 }
+
+struct uip_udp_conn_t *uip_udp_conn;
+static struct uip_udp_conn_t uip_udp_conns[UIP_UDP_CONNS];
 
 void Enc28J60IP::tick()
 {
@@ -379,12 +384,9 @@ void *uip_appdata;
 void *uip_sappdata;
 uint16_t uip_len;
 static uint16_t uip_slen;
-uint8_t uip_flags;
-struct uip_conn *uip_conn;   
-struct uip_conn uip_conns[UIP_CONNS];
+struct uip_conn_t *uip_conn;   
+struct uip_conn_t uip_conns[UIP_CONNS];
 uint16_t uip_listenports[UIP_LISTENPORTS];
-struct uip_udp_conn *uip_udp_conn;
-struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 static uint16_t ipid;
 void uip_setipid(uint16_t id) { ipid = id; }
 static uint8_t iss[4];
@@ -441,9 +443,9 @@ void Enc28J60IP::_uip_init()
         uip_udp_conns[c].lport = 0;
 }
 
-struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
+struct uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
-    struct uip_conn *conn, *cconn;
+    struct uip_conn_t *conn, *cconn;
   
     // Find an unused local port.
 again:
@@ -501,9 +503,9 @@ again:
     return conn;
 }
 
-struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport)
+struct uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
-    struct uip_udp_conn *conn;
+    struct uip_udp_conn_t *conn;
 again:
     ++lastport;
 
@@ -546,7 +548,7 @@ again:
     return conn;
 }
 
-void uip_listen(uint16_t port)
+void Enc28J60IP::uip_listen(uint16_t port)
 {
     for (c = 0; c < UIP_LISTENPORTS; ++c)
     {
@@ -590,7 +592,7 @@ static constexpr uint8_t UIP_TIME_WAIT_TIMEOUT = 120;
 
 void Enc28J60IP::uip_process(uint8_t flag)
 {
-    register struct uip_conn *uip_connr = uip_conn;
+    register struct uip_conn_t *uip_connr = uip_conn;
 
     if (flag == UIP_UDP_SEND_CONN)
         goto udp_send;

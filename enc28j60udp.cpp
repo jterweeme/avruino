@@ -193,39 +193,4 @@ uint32_t UIPUDP::remoteIP()
     return _uip_udp_conn ? *((uint32_t *)_uip_udp_conn->ripaddr) : 0;
 }
 
-// moet verplaatst worden!
-#if 0
-void Enc28J60IP::uipudp_appcall()
-{
-    if (uip_udp_userdata_t *data = (uip_udp_userdata_t *)(uip_udp_conn->appstate))
-    {
-        if (uip_flags & UIP_NEWDATA)
-        {
-            if (data->packet_next == NOBLOCK)
-            {
-                uip_udp_conn->rport = UDPBUF->srcport;
-                ((uint16_t *)uip_udp_conn->ripaddr)[0] = ((uint16_t *)UDPBUF->srcipaddr)[0];
-                ((uint16_t *)uip_udp_conn->ripaddr)[1] = ((uint16_t *)UDPBUF->srcipaddr)[1];
-                data->packet_next = _nw->allocBlock(ntohs(UDPBUF->udplen)-UIP_UDPH_LEN);
-                  //if we are unable to allocate memory the packet is dropped.
-                    // udp doesn't guarantee packet delivery
-                if (data->packet_next != NOBLOCK)
-                {
-                    //discard Linklevel and IP and udp-header and any trailing bytes:
-                    _nw->copyPacket(data->packet_next, 0, in_packet, UIP_UDP_PHYH_LEN,
-                        _nw->blockSize(data->packet_next));
-                }
-            }
-        }
-
-        if ((uip_flags & UIP_POLL) && data->send)
-        {
-            uip_packet = data->packet_out;
-            uip_hdrlen = UIP_UDP_PHYH_LEN;
-            uip_send((char *)uip_appdata, data->out_pos - (UIP_UDP_PHYH_LEN));
-        }
-    }
-}
-#endif
-
 

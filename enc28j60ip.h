@@ -4,8 +4,11 @@
 #include "eth.h"
 
 typedef void * uip_udp_appstate_t;
+typedef void * uip_tcp_appstate_t;
+typedef uint16_t uip_ipaddr_t[2];
+typedef uint8_t uip_socket_ptr;
 
-struct uip_udp_conn
+struct uip_udp_conn_t
 {
     uint16_t ripaddr[2];   /**< The IP address of the remote peer. */
     uint16_t lport;        /**< The local port number in network byte order. */
@@ -14,19 +17,7 @@ struct uip_udp_conn
     uip_udp_appstate_t appstate;
 };
 
-typedef void * uip_tcp_appstate_t;
-static constexpr uint8_t UIP_ARPHDRSIZE = 42;
-#define UIP_BUFSIZE 98
-typedef uint16_t uip_ipaddr_t[2];
-extern uint8_t uip_buf[UIP_BUFSIZE+2];
-void uip_listen(uint16_t port);
-struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
-void uip_send(const void *data, int len);
-struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
-extern void *uip_appdata;
-extern uint16_t uip_len;
-
-struct uip_conn
+struct uip_conn_t
 {
     uip_ipaddr_t ripaddr;   /**< The IP address of the remote host. */
     uint16_t lport;        /**< The local TCP port, in network byte order. */
@@ -45,13 +36,54 @@ struct uip_conn
     uip_tcp_appstate_t appstate;
 };
 
-extern struct uip_conn *uip_conn;
-extern struct uip_conn uip_conns[UIP_CONNS];
-extern struct uip_udp_conn *uip_udp_conn;
-extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
-extern uint8_t uip_flags;
+struct uip_udp_userdata_t
+{
+    memaddress out_pos;
+    memhandle packet_next;
+    memhandle packet_in;
+    memhandle packet_out;
+    bool send;
+};
+
+struct uip_tcpip_hdr
+{
+    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
+    uint16_t ipchksum;
+    uint16_t srcipaddr[2], destipaddr[2];
+    uint16_t srcport, destport;
+    uint8_t seqno[4], ackno[4], tcpoffset, flags, wnd[2];
+    uint16_t tcpchksum;
+    uint8_t urgp[2];
+    uint8_t optdata[4];
+};
+
+struct uip_udpip_hdr
+{
+    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
+    uint16_t ipchksum;
+    uint16_t srcipaddr[2], destipaddr[2];
+    uint16_t srcport, destport, udplen, udpchksum;
+};
+
+struct uip_userdata_t
+{
+    uint8_t state;
+    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
+    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
+    memaddress out_pos;
+    uint32_t timer;
+};
+
+struct uip_userdata_closed_t
+{
+    uint8_t state;
+    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
+    uint16_t lport;        /**< The local TCP port, in network byte order. */
+};
 
 static constexpr uint8_t
+    UIP_ARPHDRSIZE = 42,
+    UIP_LISTENPORTS = 4,
     UIP_DATA = 1,
     UIP_TIMER = 2,
     UIP_POLL_REQUEST = 3,
@@ -84,49 +116,39 @@ static constexpr uint8_t
     UIP_CLIENT_CONNECTED = 0x10,
     UIP_CLIENT_CLOSE = 0x20,
     UIP_CLIENT_REMOTECLOSED = 0x40,
-    UIP_CLIENT_RESTART = 0x80;
+    UIP_CLIENT_RESTART = 0x80,
 
-struct uip_tcpip_hdr
-{
-    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
-    uint16_t ipchksum;
-    uint16_t srcipaddr[2], destipaddr[2];
-    uint16_t srcport, destport;
-    uint8_t seqno[4], ackno[4], tcpoffset, flags, wnd[2];
-    uint16_t tcpchksum;
-    uint8_t urgp[2];
-    uint8_t optdata[4];
-};
+    UIP_CLIENT_STATEFLAGS = UIP_CLIENT_CONNECTED | UIP_CLIENT_CLOSE |
+        UIP_CLIENT_REMOTECLOSED | UIP_CLIENT_RESTART,
 
-struct uip_udpip_hdr
-{
-    uint8_t vhl, tos, len[2], ipid[2], ipoffset[2], ttl, proto;
-    uint16_t ipchksum;
-    uint16_t srcipaddr[2], destipaddr[2];
-    uint16_t srcport, destport, udplen, udpchksum;
-};
+    UIP_CLIENT_SOCKETS = (uint8_t)(~UIP_CLIENT_STATEFLAGS),
+    UIP_IPH_LEN = 20,
+    UIP_UDPH_LEN = 8,
+    UIP_TCPH_LEN = 20,
+    UIP_LLH_LEN = 14,
+    UIP_BUFSIZE = 98;
 
+#define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
+				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
+
+static constexpr uint16_t UIP_TCP_MSS = UIP_CONF_TCP_MSS;
+static constexpr uint16_t UIP_IPTCPH_LEN = UIP_TCPH_LEN + UIP_IPH_LEN;
+static constexpr uint16_t UIP_TCPIP_HLEN = UIP_IPTCPH_LEN;
+static constexpr uint16_t UIP_IPUDPH_LEN = UIP_UDPH_LEN + UIP_IPH_LEN;
+static constexpr uint16_t UIP_UDP_MAXDATALEN = 1500;
+static constexpr uint16_t UIP_UDP_PHYH_LEN = UIP_LLH_LEN + UIP_IPUDPH_LEN;
+static constexpr uint16_t UIP_UDP_MAXPACKETSIZE = UIP_UDP_MAXDATALEN + UIP_UDP_PHYH_LEN;
+extern struct uip_conn_t *uip_conn;
+extern struct uip_conn_t uip_conns[UIP_CONNS];
+extern struct uip_udp_conn_t *uip_udp_conn;
+extern uint8_t uip_buf[UIP_BUFSIZE+2];
+struct uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
+void uip_send(const void *data, int len);
+struct uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
+extern void *uip_appdata;
+extern uint16_t uip_len;
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 struct uip_eth_addr { uint8_t addr[6]; };
-
-typedef struct
-{
-    memaddress out_pos;
-    memhandle packet_next;
-    memhandle packet_in;
-    memhandle packet_out;
-    bool send;
-}
-uip_udp_userdata_t;
-
-struct uip_userdata_t
-{
-    uint8_t state;
-    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
-    memhandle packets_out[UIP_SOCKET_NUMPACKETS];
-    memaddress out_pos;
-    uint32_t timer;
-};
 
 class Enc28J60IP : public Ethernet
 {
@@ -138,6 +160,7 @@ private:
     void uipclient_appcall();
     void uipudp_appcall();
 public:
+    void uip_listen(uint16_t port);
     static uip_userdata_t all_data[UIP_CONNS];
     uip_userdata_t *_allocateData();
     size_t _write(uip_userdata_t *u, const uint8_t *buf, size_t size);
@@ -167,33 +190,6 @@ public:
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);
 };
-
-static constexpr uint8_t
-    UIP_CLIENT_STATEFLAGS = UIP_CLIENT_CONNECTED | UIP_CLIENT_CLOSE |
-        UIP_CLIENT_REMOTECLOSED | UIP_CLIENT_RESTART;
-
-static const uint8_t UIP_CLIENT_SOCKETS = (uint8_t)(~UIP_CLIENT_STATEFLAGS);
-
-struct uip_userdata_closed_t
-{
-    uint8_t state;
-    memhandle packets_in[UIP_SOCKET_NUMPACKETS];
-    uint16_t lport;        /**< The local TCP port, in network byte order. */
-};
-
-#define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
-				      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
-
-typedef uint8_t uip_socket_ptr;
-static constexpr uint8_t UIP_IPH_LEN = 20, UIP_UDPH_LEN = 8, UIP_TCPH_LEN = 20, UIP_LLH_LEN = 14;
-static constexpr uint16_t UIP_TCP_MSS = UIP_CONF_TCP_MSS;
-static constexpr uint16_t UIP_IPTCPH_LEN = UIP_TCPH_LEN + UIP_IPH_LEN;
-static constexpr uint16_t UIP_TCPIP_HLEN = UIP_IPTCPH_LEN;
-static constexpr uint16_t UIP_IPUDPH_LEN = UIP_UDPH_LEN + UIP_IPH_LEN;
-static constexpr uint8_t UIP_LISTENPORTS = 4;
-static constexpr uint16_t UIP_UDP_MAXDATALEN = 1500;
-static constexpr uint16_t UIP_UDP_PHYH_LEN = UIP_LLH_LEN + UIP_IPUDPH_LEN;
-static constexpr uint16_t UIP_UDP_MAXPACKETSIZE = UIP_UDP_MAXDATALEN + UIP_UDP_PHYH_LEN;
 #endif
 
 

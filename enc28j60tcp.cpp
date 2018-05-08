@@ -22,15 +22,14 @@ int UIPClient::connect(uint32_t ip, uint16_t port)
     uint16_t ipaddr[2];
     ipaddr[0] = (uint16_t)(ip & 0xffff);
     ipaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
-    //uip_ip_addr(ipaddr, ip);
-    struct uip_conn* conn = uip_connect(&ipaddr, htons(port));
+    struct uip_conn_t *conn = uip_connect(&ipaddr, htons(port));
 
     if (conn)
     {
 #if 1
         int32_t timeout = millis() + 1000 * UIP_CONNECT_TIMEOUT;
 #endif
-        while((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
+        while ((conn->tcpstateflags & UIP_TS_MASK) != UIP_CLOSED)
         {
             _eth->tick();
 
@@ -206,7 +205,7 @@ UIPClient UIPServer::available()
 
 void UIPServer::begin()
 {
-    uip_listen(_port);
+    _eth->uip_listen(_port);
     _eth->tick();
 }
 

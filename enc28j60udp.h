@@ -6,7 +6,7 @@
 class UIPUDP : public UDP
 {
 private:
-    struct uip_udp_conn *_uip_udp_conn = 0;
+    struct uip_udp_conn_t *_uip_udp_conn = 0;
     uip_udp_userdata_t appdata;
     Enc28J60IP * const _eth;
 public:
