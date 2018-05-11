@@ -156,6 +156,11 @@ finish:
 struct uip_udp_conn_t *uip_udp_conn;
 static struct uip_udp_conn_t uip_udp_conns[UIP_UDP_CONNS];
 
+void uip_arp_ipin();
+void uip_arp_arpin();
+void uip_arp_out();
+void uip_arp_timer();
+
 void Enc28J60IP::tick()
 {
     if (in_packet == NOBLOCK)
@@ -168,7 +173,7 @@ void Enc28J60IP::tick()
 
         if (uip_len > 0)
         {
-            nw()->readPacket(in_packet, 0, (uint8_t*)uip_buf,UIP_BUFSIZE);
+            nw()->readPacket(in_packet, 0, (uint8_t*)uip_buf, UIP_BUFSIZE);
 
             if (((struct uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_IP))
             {
@@ -261,6 +266,20 @@ sendandfree:
     nw()->freeBlock(uip_packet);
     uip_packet = NOBLOCK;
     return true;
+}
+
+static const struct uip_eth_addr broadcast_ethaddr = {{0xff,0xff,0xff,0xff,0xff,0xff}};
+static const uint16_t broadcast_ipaddr[2] = {0xffff,0xffff};
+static struct arp_entry arp_table[UIP_ARPTAB_SIZE];
+static uint16_t ipaddr[2];
+static uint8_t i, c2;
+static uint8_t arptime;
+static uint8_t tmpage;
+
+static void uip_arp_init()
+{
+    for (i = 0; i < UIP_ARPTAB_SIZE; ++i)
+        memset(arp_table[i].ipaddr, 0, 4);
 }
 
 void Enc28J60IP::init(const uint8_t* mac)
@@ -411,10 +430,6 @@ static uint16_t lastport;  /* Keeps track of the last port used for a new connec
 uint8_t uip_acc32[4];
 static uint8_t c, opt;
 static uint16_t tmp16;
-#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define FBUF ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
-#define ICMPBUF ((struct uip_icmpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
 
 void uip_add32(uint8_t *op32, uint16_t op16)
 {
@@ -485,18 +500,20 @@ again:
 
     for(c = 0; c < UIP_CONNS; ++c)
     {
-    cconn = &uip_conns[c];
-    if(cconn->tcpstateflags == UIP_CLOSED) {
-      conn = cconn;
-      break;
+        cconn = &uip_conns[c];
+        if(cconn->tcpstateflags == UIP_CLOSED)
+        {
+            conn = cconn;
+            break;
+        }
+        if(cconn->tcpstateflags == UIP_TIME_WAIT)
+        {
+        if (conn == 0 || cconn->timer > conn->timer)
+        {
+            conn = cconn;
+        }
     }
-    if(cconn->tcpstateflags == UIP_TIME_WAIT) {
-      if(conn == 0 ||
-	 cconn->timer > conn->timer) {
-	conn = cconn;
-      }
     }
-  }
 
     if (conn == 0)
         return 0;
@@ -558,7 +575,6 @@ again:
     {
         conn->ripaddr[0] = (uint16_t)ripaddr[0];
         conn->ripaddr[1] = (uint16_t)ripaddr[1];
-        //uip_ipaddr_copy(&conn->ripaddr, ripaddr);
     }
     
     conn->ttl = UIP_TTL;
@@ -586,26 +602,25 @@ static void uip_add_rcv_nxt(uint16_t n)
     uip_conn->rcv_nxt[3] = uip_acc32[3];
 }
 
+#undef BUF
+#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define FBUF ((struct uip_tcpip_hdr *)&uip_reassbuf[0])
+#define ICMPBUF ((struct uip_icmpip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define uip_outstanding(conn) ((conn)->len)
 static const uip_ipaddr_t all_ones_addr = {0xffff,0xffff};
 
-#if 0
-static inline void uip_ipaddr_copy(uint16_t *dst, uint16_t *src)
-{
-    ((uint16_t *)dst)[0] = ((uint16_t *)src)[0];
-    ((uint16_t *)dst)[1] = ((uint16_t *)src)[1];
-}
-#else
 #define uip_ipaddr_copy(dest, src) do { \
                      ((uint16_t *)dest)[0] = ((uint16_t *)src)[0]; \
                      ((uint16_t *)dest)[1] = ((uint16_t *)src)[1]; \
                   } while(0)
-#endif
 
 #define UIP_LOG(m)
 #define UIP_RECEIVE_WINDOW UIP_CONF_RECEIVE_WINDOW
 
 static constexpr uint8_t UIP_TIME_WAIT_TIMEOUT = 120;
+
+#define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
+                      ((uint16_t *)addr1)[1] == ((uint16_t *)addr2)[1])
 
 void Enc28J60IP::uip_process(uint8_t flag)
 {
@@ -632,28 +647,32 @@ void Enc28J60IP::uip_process(uint8_t flag)
     }
     else if (flag == UIP_TIMER)
     {
+        // Increase the initial sequence number.
+        if (++iss[3] == 0)
+        {
+            if (++iss[2] == 0)
+            {
+                if (++iss[1] == 0)
+                {
+                    ++iss[0];
+                }
+            }
+        }
 
-    /* Increase the initial sequence number. */
-    if(++iss[3] == 0) {
-      if(++iss[2] == 0) {
-	if(++iss[1] == 0) {
-	  ++iss[0];
-	}
-      }
-    }
+        /* Reset the length variables. */
+        uip_len = 0;
+        uip_slen = 0;
 
-    /* Reset the length variables. */
-    uip_len = 0;
-    uip_slen = 0;
+        /* Check if the connection is in a state in which we simply wait
+        for the connection to time out. If so, we increase the
+        connection's timer and remove the connection if it times
+        out. */
+        if(uip_connr->tcpstateflags == UIP_TIME_WAIT ||
+            uip_connr->tcpstateflags == UIP_FIN_WAIT_2)
+        {
+            ++(uip_connr->timer);
 
-    /* Check if the connection is in a state in which we simply wait
-       for the connection to time out. If so, we increase the
-       connection's timer and remove the connection if it times
-       out. */
-    if(uip_connr->tcpstateflags == UIP_TIME_WAIT ||
-       uip_connr->tcpstateflags == UIP_FIN_WAIT_2) {
-      ++(uip_connr->timer);
-      if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
+            if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
 	uip_connr->tcpstateflags = UIP_CLOSED;
       }
     } else if(uip_connr->tcpstateflags != UIP_CLOSED) {
@@ -1533,7 +1552,7 @@ size_t Enc28J60IP::_write(uip_userdata_t *u, const uint8_t *buf, size_t size)
     int remain = size;
     uint16_t written;
 repeat:
-    Enc28J60IP::instance->tick();
+    tick();
 
     if (u && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
     {
@@ -1608,19 +1627,7 @@ void Enc28J60IP::uipudp_appcall()
     }
 }
 
-static const struct uip_eth_addr broadcast_ethaddr = {{0xff,0xff,0xff,0xff,0xff,0xff}};
-static const uint16_t broadcast_ipaddr[2] = {0xffff,0xffff};
-static struct arp_entry arp_table[UIP_ARPTAB_SIZE];
-static uint16_t ipaddr[2];
-static uint8_t i, c2;
-static uint8_t arptime;
-static uint8_t tmpage;
 
-void uip_arp_init()
-{
-    for (i = 0; i < UIP_ARPTAB_SIZE; ++i)
-        memset(arp_table[i].ipaddr, 0, 4);
-}
 
 void uip_arp_timer()
 {
@@ -1739,16 +1746,12 @@ void uip_arp_arpin()
 
     uip_len = 0;
   
-    switch(BUF->opcode)
+    switch (((struct arp_hdr *)&uip_buf[0])->opcode)
     {
     case htons(ARP_REQUEST):
-        // ARP request. If it asked for our address, we send out a reply.
-        if (uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr))
+        if (uip_ipaddr_cmp(((struct arp_hdr *)&uip_buf[0])->dipaddr, uip_hostaddr))
         {
-            /* First, we register the one who made the request in our ARP
-             table, since it is likely that we will do more communication
-             with this host in the future. */
-            uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
+            uip_arp_update(((struct arp_hdr *)&uip_buf[0])->sipaddr, &BUF->shwaddr);
             BUF->opcode = htons(2);
             memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
             memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
@@ -1763,7 +1766,6 @@ void uip_arp_arpin()
         }
         break;
     case htons(ARP_REPLY):
-        // ARP reply. We insert or update the ARP table if it was meant for us.
         if (uip_ipaddr_cmp(BUF->dipaddr, uip_hostaddr))
             uip_arp_update(BUF->sipaddr, &BUF->shwaddr);
 
@@ -1772,33 +1774,6 @@ void uip_arp_arpin()
 
     return;
 }
-
-/**
- * Prepend Ethernet header to an outbound IP packet and see if we need
- * to send out an ARP request.
- *
- * This function should be called before sending out an IP packet. The
- * function checks the destination IP address of the IP packet to see
- * what Ethernet MAC address that should be used as a destination MAC
- * address on the Ethernet.
- *
- * If the destination IP address is in the local network (determined
- * by logical ANDing of netmask and our IP address), the function
- * checks the ARP cache to see if an entry for the destination IP
- * address is found. If so, an Ethernet header is prepended and the
- * function returns. If no ARP cache entry is found for the
- * destination IP address, the packet in the uip_buf[] is replaced by
- * an ARP request packet for the IP address. The IP packet is dropped
- * and it is assumed that they higher level protocols (e.g., TCP)
- * eventually will retransmit the dropped packet.
- *
- * If the destination IP address is not on the local network, the IP
- * address of the default router is used instead.
- *
- * When the function returns, a packet is present in the uip_buf[]
- * buffer, and the length of the packet is in the global variable
- * uip_len.
- */
 
 #define uip_ipaddr_maskcmp(addr1, addr2, mask) \
                           (((((uint16_t *)addr1)[0] & ((uint16_t *)mask)[0]) == \
@@ -1810,14 +1785,6 @@ void uip_arp_out()
 {
     struct arp_entry *tabptr;
   
-    /* Find the destination IP address in the ARP table and construct
-     the Ethernet header. If the destination IP addres isn't on the
-     local network, we use the default router's IP address instead.
-
-     If not ARP table entry is found, we overwrite the original IP
-     packet with an ARP request for the IP address. */
-
-    // First check if destination is a local broadcast.
     if (uip_ipaddr_cmp(((struct ethip_hdr *)&uip_buf[0])->destipaddr, broadcast_ipaddr))
     {
         memcpy(((struct ethip_hdr *)&uip_buf[0])->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);

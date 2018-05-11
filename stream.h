@@ -22,16 +22,22 @@ static inline char nibble(uint8_t n)
     return n <= 9 ? '0' + n : 'A' + n - 10;
 }
 
-static inline void hex32(uint32_t v, ostream &os)
+static inline void hex8(uint8_t v, ostream &os)
 {
-    os.put(nibble(v >> 28 & 0xf));
-    os.put(nibble(v >> 24 & 0xf));
-    os.put(nibble(v >> 20 & 0xf));
-    os.put(nibble(v >> 16 & 0xf));
-    os.put(nibble(v >> 12 & 0xf));
-    os.put(nibble(v >> 8 & 0xf));
     os.put(nibble(v >> 4 & 0xf));
     os.put(nibble(v >> 0 & 0xf));
+}
+
+static inline void hex16(uint16_t v, ostream &os)
+{
+    hex8(v >> 8 & 0xff, os);
+    hex8(v >> 0 & 0xff, os);
+}
+
+static inline void hex32(uint32_t v, ostream &os)
+{
+    hex16(v >> 16 & 0xffff, os);
+    hex16(v >> 0 & 0xffff, os);
 }
 
 class istream

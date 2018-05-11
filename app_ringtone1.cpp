@@ -1,6 +1,7 @@
 /*
 Uno: OC1A/#9
 Ocho: OC1A/#9
+Mega: OC1A/#11
 */
 
 #ifndef F_CPU
@@ -10,6 +11,9 @@ Ocho: OC1A/#9
 #include "pgmspees.h"
 #include "board.h"
 #include "misc.h"
+#include "stream.h"
+
+static UartStream *gout;
 
 static const uint16_t notes[] PROGMEM =
 {
@@ -53,6 +57,8 @@ static constexpr uint8_t CLK1 = 1, CLK8 = 2, CLK64 = 3, CLK256 = 4, CLK1024 = 5;
 
 void Rtttl::_tone(uint16_t frequency)
 {
+    hex16(frequency, *gout);
+    *gout << "\r\n";
     uint8_t prescalarbits = 0b001;
     *p_ocr1a_ddr |= 1<<ocr1a_bit;
     *p_tccr1a = 1<<com1a0;
@@ -171,6 +177,9 @@ void Rtttl::_play(const char *p, uint8_t octave_offset, bool pgm)
         if (read_byte(p, pgm) == ',')
             p++; // skip comma for next note (or we may be at the end)
 
+        hex32(duration, *gout);
+        *gout << "\r\n";
+
         if (note)
         {
             _tone(pgm_read_word(&notes[(scale - 4) * 12 + note]));
@@ -285,6 +294,10 @@ const char ateam[] PROGMEM =
 int main()
 {
     zei();
+    DefaultUart s;
+    UartStream cout(&s);
+    gout = &cout;
+    cout << "Startup\r\n";
     Rtttl player;
     player.play_P(godfather, 0);
     return 0;

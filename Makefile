@@ -182,7 +182,7 @@ app_pi1.elf: app_pi1.o uart.o stream.o $(USBOPT)
 app_pirate1.elf: app_pirate1.o vgax.o
 app_pong1.elf: app_pong1.o
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o pinport.o uart.o stream.o misc.o $(USBOPT)
-app_ringtone1.elf: app_ringtone1.o pinport.o uart.o misc.o
+app_ringtone1.elf: app_ringtone1.o pinport.o uart.o stream.o misc.o
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
 app_rndisping1.elf: app_rndisping1.o busby.o

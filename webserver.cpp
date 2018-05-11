@@ -49,14 +49,7 @@ void Webserver::_printDirectory(Fyle dir, uint8_t numTabs, ostream &os) const
         {
             os << "<td>";
             uint32_t size = entry.size();
-            os.put(nibble(size >> 28 & 0xf));
-            os.put(nibble(size >> 24 & 0xf));
-            os.put(nibble(size >> 20 & 0xf));
-            os.put(nibble(size >> 16 & 0xf));
-            os.put(nibble(size >> 12 & 0xf));
-            os.put(nibble(size >> 8 & 0xf));
-            os.put(nibble(size >> 4 & 0xf));
-            os.put(nibble(size & 0xf));
+            hex32(size, os);
             os << "</td>";
         }
         entry.close();
