@@ -184,7 +184,6 @@ struct arp_entry
     uint8_t time;
 };
 
-extern uip_conn_t *uip_conn;
 extern uip_conn_t uip_conns[UIP_CONNS];
 extern uip_udp_conn_t *uip_udp_conn;
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
@@ -194,7 +193,6 @@ uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 extern void *uip_appdata;
 extern uint16_t uip_len;
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
-extern struct uip_eth_addr uip_ethaddr;
 
 class Enc28J60IP : public Ethernet
 {
