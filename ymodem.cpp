@@ -195,7 +195,7 @@ int YReceiver::wcrx(ostream &os)
 
 void YReceiver::receive(Fatty &zd)
 {
-    FyleOfstream ofs;
+    FyleOfstream ofs(&zd);
     *_os << "waiting to receive.";
     _os->flush();
     //_wcrxpn();

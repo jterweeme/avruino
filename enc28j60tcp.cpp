@@ -22,7 +22,7 @@ int UIPClient::connect(uint32_t ip, uint16_t port)
     uint16_t ipaddr[2];
     ipaddr[0] = (uint16_t)(ip & 0xffff);
     ipaddr[1] = (uint16_t)(ip >> 16 & 0xffff);
-    struct uip_conn_t *conn = uip_connect(&ipaddr, htons(port));
+    uip_conn_t *conn = _eth->uip_connect(&ipaddr, htons(port));
 
     if (conn)
     {
@@ -188,8 +188,7 @@ UIPClient UIPServer::available()
 {
     _eth->tick();
 
-    for (uip_userdata_t *data = &Enc28J60IP::all_data[0];
-        data < &Enc28J60IP::all_data[UIP_CONNS]; data++)
+    for (uip_userdata_t *data = &_eth->all_data[0]; data < &_eth->all_data[UIP_CONNS]; data++)
     {
         if (data->packets_in[0] != NOBLOCK && (((data->state & UIP_CLIENT_CONNECTED) &&
                 uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)
@@ -213,8 +212,7 @@ size_t UIPServer::write(const uint8_t *buf, size_t size)
 {
     size_t ret = 0;
 
-    for (uip_userdata_t* data = &Enc28J60IP::all_data[0]; data < &Enc28J60IP::all_data[UIP_CONNS];
-        data++)
+    for (uip_userdata_t *data = &_eth->all_data[0]; data < &_eth->all_data[UIP_CONNS]; data++)
     {
         if ((data->state & UIP_CLIENT_CONNECTED) &&
             uip_conns[data->state & UIP_CLIENT_SOCKETS].lport ==_port)

@@ -76,7 +76,7 @@ static constexpr uint8_t
     adch = 0x79,
     adcsra = 0x7a,
         adps0 = 0, adps1 = 1, adps2 = 2, adie = 3, adif = 4, adate = 5, adsc = 6, aden = 7,
-    adcsrb = 0x7b,
+    adcsrb = 0x7b, adts0 = 0, adts1 = 1, adts2 = 2, adts3 = 3, mux5 = 5, acme = 6, adhsm = 7,
     admux = 0x7c,
         mux0 = 0, mux1 = 1, mux2 = 2, mux3 = 3, mux4 = 4, adlar = 5, refs0 = 6, refs1 = 7,
     tccr1a = 0x80,

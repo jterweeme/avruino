@@ -6,7 +6,7 @@ int main()
     USBStream cout(&cdc);
 
     while (true)
-        cout.writeString("pharmacist\r\n");
+        cout << "pharmacist\r\n";
 
     return 0;
 }

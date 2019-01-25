@@ -18,6 +18,7 @@ private:
     void _httpDelete(ostream &client, Buffer &buffer);
     void _httpMkcol(Buffer &buffer);
     void _serveFile(ostream &client, const char *fn);
+    void _servePHP(ostream &client, const char *fn);
     void _listing(ostream &client) const;
     void _printDirectory(Fyle dir, uint8_t numTabs, ostream &os) const;
 public:

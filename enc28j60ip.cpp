@@ -28,6 +28,16 @@ void Enc28J60IP::_flushBlocks(memhandle* block)
 static uint8_t uip_flags;
 uip_conn_t *uip_conn;
 uip_eth_addr uip_ethaddr = {{0,0,0,0,0,0}};
+static uint16_t uip_slen;
+void *uip_sappdata;
+
+static void uip_send(const void *data, int len)
+{
+    uip_slen = len;
+
+    if (len > 0 && data != uip_sappdata)
+        my_memcpy(uip_sappdata, (data), uip_slen);
+}
 
 void Enc28J60IP::uipclient_appcall()
 {
@@ -214,26 +224,28 @@ static void uip_arp_update(uint16_t *ipaddr, uip_eth_addr *ethaddr)
     tabptr->time = arptime;
 }
 
+static uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
+
 static void uip_arp_ipin()
 {
     uip_len -= sizeof(struct uip_eth_hdr);
  
     /* Only insert/update an entry if the source IP address of the
      incoming IP packet comes from a host on the local network. */
-    if ((((struct ethip_hdr *)&uip_buf[0])->srcipaddr[0] & uip_netmask[0]) !=
+    if ((((ethip_hdr *)&uip_buf[0])->srcipaddr[0] & uip_netmask[0]) !=
         (uip_hostaddr[0] & uip_netmask[0]))
     {
         return;
     }
 
-    if ((((struct ethip_hdr *)&uip_buf[0])->srcipaddr[1] & uip_netmask[1]) !=
+    if ((((ethip_hdr *)&uip_buf[0])->srcipaddr[1] & uip_netmask[1]) !=
         (uip_hostaddr[1] & uip_netmask[1]))
     {
         return;
     }
 
-    uip_arp_update(((struct ethip_hdr *)&uip_buf[0])->srcipaddr,
-        &(((struct ethip_hdr *)&uip_buf[0])->ethhdr.src));
+    uip_arp_update(((ethip_hdr *)&uip_buf[0])->srcipaddr,
+        &(((ethip_hdr *)&uip_buf[0])->ethhdr.src));
 }
 
 #define uip_ipaddr_cmp(addr1, addr2) (((uint16_t *)addr1)[0] == ((uint16_t *)addr2)[0] && \
@@ -290,7 +302,7 @@ static void uip_arp_arpin()
                            ((((uint16_t *)addr1)[1] & ((uint16_t *)mask)[1]) == \
                             (((uint16_t *)addr2)[1] & ((uint16_t *)mask)[1])))
 
-static const struct uip_eth_addr broadcast_ethaddr = {{0xff,0xff,0xff,0xff,0xff,0xff}};
+static const uip_eth_addr broadcast_ethaddr = {{0xff,0xff,0xff,0xff,0xff,0xff}};
 static const uint16_t broadcast_ipaddr[2] = {0xffff,0xffff};
 static uint16_t ipaddr[2];
 
@@ -298,9 +310,9 @@ static void uip_arp_out()
 {
     struct arp_entry *tabptr;
   
-    if (uip_ipaddr_cmp(((struct ethip_hdr *)&uip_buf[0])->destipaddr, broadcast_ipaddr))
+    if (uip_ipaddr_cmp(((ethip_hdr *)&uip_buf[0])->destipaddr, broadcast_ipaddr))
     {
-        memcpy(((struct ethip_hdr *)&uip_buf[0])->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
+        memcpy(((ethip_hdr *)&uip_buf[0])->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
     }
     else
     {
@@ -356,9 +368,9 @@ static void uip_arp_out()
         memcpy(((struct ethip_hdr *)&uip_buf[0])->ethhdr.dest.addr, tabptr->ethaddr.addr, 6);
     }
 
-    memcpy(((struct ethip_hdr *)&uip_buf[0])->ethhdr.src.addr, uip_ethaddr.addr, 6);
-    ((struct ethip_hdr *)&uip_buf[0])->ethhdr.type = htons(UIP_ETHTYPE_IP);
-    uip_len += sizeof(struct uip_eth_hdr);
+    memcpy(((ethip_hdr *)&uip_buf[0])->ethhdr.src.addr, uip_ethaddr.addr, 6);
+    ((ethip_hdr *)&uip_buf[0])->ethhdr.type = htons(UIP_ETHTYPE_IP);
+    uip_len += sizeof(uip_eth_hdr);
 }
 
 void Enc28J60IP::tick()
@@ -375,7 +387,7 @@ void Enc28J60IP::tick()
         {
             nw()->readPacket(in_packet, 0, (uint8_t*)uip_buf, UIP_BUFSIZE);
 
-            if (((struct uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_IP))
+            if (((uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_IP))
             {
                 uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
                 uip_arp_ipin();
@@ -387,7 +399,7 @@ void Enc28J60IP::tick()
                     network_send();
                 }
             }
-            else if (((struct uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_ARP))
+            else if (((uip_eth_hdr *)&uip_buf[0])->type == htons(UIP_ETHTYPE_ARP))
             {
                 uip_arp_arpin();
 
@@ -416,7 +428,7 @@ void Enc28J60IP::tick()
         }
         else
         {
-            if ((long)( now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
+            if ((long)(now - ((uip_userdata_t*)uip_conn->appstate)->timer) >= 0)
                 process(UIP_POLL_REQUEST);
             else
                 continue;
@@ -486,8 +498,6 @@ void Enc28J60IP::init(const uint8_t* mac)
     uip_arp_init();
 }
 
-uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
-
 uint32_t Enc28J60IP::localIP() const
 {
     return (uint32_t)uip_hostaddr[0] | (uint32_t)uip_hostaddr[1] << 16;
@@ -555,8 +565,8 @@ uint16_t Enc28J60IP::upper_layer_chksum(uint8_t proto)
     uint16_t sum;
 
     uint16_t upper_layer_len =
-        (((uint16_t)(((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])->len[0]) << 8) +
-        ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])->len[1]) - UIP_IPH_LEN;
+        (((uint16_t)(((uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])->len[0]) << 8) +
+        ((uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])->len[1]) - UIP_IPH_LEN;
 
     sum = upper_layer_len + proto;
 
@@ -607,10 +617,8 @@ struct uip_icmpip_hdr
 static const uip_ipaddr_t all_zeroes_addr = {0x0000,0x0000};
 uint8_t uip_buf[UIP_BUFSIZE + 2];
 void *uip_appdata;
-void *uip_sappdata;
 uint16_t uip_len;
-static uint16_t uip_slen;
-struct uip_conn_t uip_conns[UIP_CONNS];
+uip_conn_t uip_conns[UIP_CONNS];
 uint16_t uip_listenports[UIP_LISTENPORTS];
 static uint16_t ipid;
 void uip_setipid(uint16_t id) { ipid = id; }
@@ -664,7 +672,7 @@ void Enc28J60IP::_uip_init()
         uip_udp_conns[c].lport = 0;
 }
 
-uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
+uip_conn_t *Enc28J60IP::uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
 {
     uip_conn_t *conn, *cconn;
   
@@ -806,17 +814,16 @@ static const uip_ipaddr_t all_ones_addr = {0xffff,0xffff};
 
 static constexpr uint8_t UIP_TIME_WAIT_TIMEOUT = 120;
 
-void Enc28J60IP::uip_process(uint8_t flag)
+void Enc28J60IP::process(uint8_t flag)
 {
-    register struct uip_conn_t *uip_connr = uip_conn;
+    uip_conn_t *uip_connr = uip_conn;
 
     if (flag == UIP_UDP_SEND_CONN)
         goto udp_send;
 
     uip_sappdata = uip_appdata = &uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN];
 
-    /* Check if we were invoked because of a poll request for a
-     particular connection. */
+    // Check if we were invoked because of a poll request for a particular connection.
     if (flag == UIP_POLL_REQUEST)
     {
         if ((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED && !((uip_connr)->len))
@@ -827,7 +834,7 @@ void Enc28J60IP::uip_process(uint8_t flag)
         }
         goto drop;
     
-    /* Check if we were invoked because of the perodic timer fireing. */
+        /* Check if we were invoked because of the perodic timer fireing. */
     }
     else if (flag == UIP_TIMER)
     {
@@ -857,9 +864,10 @@ void Enc28J60IP::uip_process(uint8_t flag)
             ++(uip_connr->timer);
 
             if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
-	uip_connr->tcpstateflags = UIP_CLOSED;
-      }
-    } else if(uip_connr->tcpstateflags != UIP_CLOSED) {
+                uip_connr->tcpstateflags = UIP_CLOSED;
+            }
+        } else if(uip_connr->tcpstateflags != UIP_CLOSED)
+        {
       /* If the connection has outstanding data, we increase the
 	 connection's timer and see if it has reached the RTO value
 	 in which case we retransmit. */
@@ -883,10 +891,8 @@ void Enc28J60IP::uip_process(uint8_t flag)
 	  }
 
 	  /* Exponential backoff. */
-	  uip_connr->timer = UIP_RTO << (uip_connr->nrtx > 4?
-					 4:
-					 uip_connr->nrtx);
-	  ++(uip_connr->nrtx);
+        uip_connr->timer = UIP_RTO << (uip_connr->nrtx > 4 ? 4: uip_connr->nrtx);
+        ++(uip_connr->nrtx);
 	  
 	  /* Ok, so we need to retransmit. We do this differently
 	     depending on which state we are in. In ESTABLISHED, we
@@ -954,7 +960,9 @@ void Enc28J60IP::uip_process(uint8_t flag)
     if ((uint16_t)((BUF->len[0] << 8) + BUF->len[1]) <= uip_len)
     {
         uip_len = (BUF->len[0] << 8) + BUF->len[1];
-    } else {
+    }
+    else
+    {
         UIP_LOG("ip: packet shorter than reported in IP header.");
         goto drop;
     }
@@ -1162,59 +1170,64 @@ reset:
      with a connection in LISTEN. In that case, we should create a new
      connection and send a SYNACK in return. */
 found_listen:
-  /* First we check if there are any connections avaliable. Unused
+    /* First we check if there are any connections avaliable. Unused
      connections are kept in the same table as used connections, but
      unused ones have the tcpstate set to CLOSED. Also, connections in
      TIME_WAIT are kept track of and we'll use the oldest one if no
      CLOSED connections are found. Thanks to Eddie C. Dost for a very
      nice algorithm for the TIME_WAIT search. */
-  uip_connr = 0;
-  for(c = 0; c < UIP_CONNS; ++c) {
-    if(uip_conns[c].tcpstateflags == UIP_CLOSED) {
-      uip_connr = &uip_conns[c];
-      break;
-    }
-    if(uip_conns[c].tcpstateflags == UIP_TIME_WAIT) {
-      if(uip_connr == 0 ||
-	 uip_conns[c].timer > uip_connr->timer) {
-	uip_connr = &uip_conns[c];
-      }
-    }
-  }
+    uip_connr = 0;
 
-  if(uip_connr == 0) {
-    /* All connections are used already, we drop packet and hope that
-       the remote end will retransmit the packet at a time when we
-       have more spare connections. */
-    UIP_LOG("tcp: found no unused connections.");
-    goto drop;
-  }
-  uip_conn = uip_connr;
+    for (c = 0; c < UIP_CONNS; ++c)
+    {
+        if (uip_conns[c].tcpstateflags == UIP_CLOSED)
+        {
+            uip_connr = &uip_conns[c];
+            break;
+        }
+
+        if(uip_conns[c].tcpstateflags == UIP_TIME_WAIT)
+        {
+            if(uip_connr == 0 || uip_conns[c].timer > uip_connr->timer)
+            {
+                uip_connr = &uip_conns[c];
+            }
+        }
+    }
+
+    if (uip_connr == 0)
+    {
+        /* All connections are used already, we drop packet and hope that
+        the remote end will retransmit the packet at a time when we
+        have more spare connections. */
+        UIP_LOG("tcp: found no unused connections.");
+        goto drop;
+    }
+    uip_conn = uip_connr;
   
-  /* Fill in the necessary fields for the new connection. */
-  uip_connr->rto = uip_connr->timer = UIP_RTO;
-  uip_connr->sa = 0;
-  uip_connr->sv = 4;
-  uip_connr->nrtx = 0;
-  uip_connr->lport = BUF->destport;
-  uip_connr->rport = BUF->srcport;
-  uip_ipaddr_copy(uip_connr->ripaddr, BUF->srcipaddr);
-  uip_connr->tcpstateflags = UIP_SYN_RCVD;
+    /* Fill in the necessary fields for the new connection. */
+    uip_connr->rto = uip_connr->timer = UIP_RTO;
+    uip_connr->sa = 0;
+    uip_connr->sv = 4;
+    uip_connr->nrtx = 0;
+    uip_connr->lport = BUF->destport;
+    uip_connr->rport = BUF->srcport;
+    uip_ipaddr_copy(uip_connr->ripaddr, BUF->srcipaddr);
+    uip_connr->tcpstateflags = UIP_SYN_RCVD;
+    uip_connr->snd_nxt[0] = iss[0];
+    uip_connr->snd_nxt[1] = iss[1];
+    uip_connr->snd_nxt[2] = iss[2];
+    uip_connr->snd_nxt[3] = iss[3];
+    uip_connr->len = 1;
 
-  uip_connr->snd_nxt[0] = iss[0];
-  uip_connr->snd_nxt[1] = iss[1];
-  uip_connr->snd_nxt[2] = iss[2];
-  uip_connr->snd_nxt[3] = iss[3];
-  uip_connr->len = 1;
+    /* rcv_nxt should be the seqno from the incoming packet + 1. */
+    uip_connr->rcv_nxt[3] = BUF->seqno[3];
+    uip_connr->rcv_nxt[2] = BUF->seqno[2];
+    uip_connr->rcv_nxt[1] = BUF->seqno[1];
+    uip_connr->rcv_nxt[0] = BUF->seqno[0];
+    uip_add_rcv_nxt(1);
 
-  /* rcv_nxt should be the seqno from the incoming packet + 1. */
-  uip_connr->rcv_nxt[3] = BUF->seqno[3];
-  uip_connr->rcv_nxt[2] = BUF->seqno[2];
-  uip_connr->rcv_nxt[1] = BUF->seqno[1];
-  uip_connr->rcv_nxt[0] = BUF->seqno[0];
-  uip_add_rcv_nxt(1);
-
-  /* Parse the TCP MSS option, if present. */
+    /* Parse the TCP MSS option, if present. */
   if((BUF->tcpoffset & 0xf0) > 0x50) {
     for(c = 0; c < ((BUF->tcpoffset >> 4) - 5) << 2 ;) {
       opt = uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN + c];
@@ -1433,22 +1446,25 @@ found:
     state. We require that there is no outstanding data; otherwise the
     sequence numbers will be screwed up. */
 
-    if(BUF->flags & TCP_FIN && !(uip_connr->tcpstateflags & UIP_STOPPED)) {
-      if(uip_outstanding(uip_connr)) {
-	goto drop;
-      }
-      uip_add_rcv_nxt(1 + uip_len);
-      uip_flags |= UIP_CLOSE;
-      if(uip_len > 0) {
-	uip_flags |= UIP_NEWDATA;
-      }
+    if(BUF->flags & TCP_FIN && !(uip_connr->tcpstateflags & UIP_STOPPED))
+    {
+        if(uip_outstanding(uip_connr))
+        {
+	        goto drop;
+        }
+        uip_add_rcv_nxt(1 + uip_len);
+        uip_flags |= UIP_CLOSE;
+        if(uip_len > 0)
+        {
+	        uip_flags |= UIP_NEWDATA;
+        }
         uipclient_appcall();
-      uip_connr->len = 1;
-      uip_connr->tcpstateflags = UIP_LAST_ACK;
-      uip_connr->nrtx = 0;
+        uip_connr->len = 1;
+        uip_connr->tcpstateflags = UIP_LAST_ACK;
+        uip_connr->nrtx = 0;
 tcp_send_finack:
-      BUF->flags = TCP_FIN | TCP_ACK;
-      goto tcp_send_nodata;
+        BUF->flags = TCP_FIN | TCP_ACK;
+        goto tcp_send_nodata;
     }
 
     /* Check the URG flag. If this is set, the segment carries urgent
@@ -1475,24 +1491,24 @@ tcp_send_finack:
     {
         uip_slen = 0;
         uipclient_appcall();
-
 appsend:
-      
-      if(uip_flags & UIP_ABORT) {
-	uip_slen = 0;
-	uip_connr->tcpstateflags = UIP_CLOSED;
-	BUF->flags = TCP_RST | TCP_ACK;
-	goto tcp_send_nodata;
-      }
+        if (uip_flags & UIP_ABORT)
+        {
+            uip_slen = 0;
+            uip_connr->tcpstateflags = UIP_CLOSED;
+            BUF->flags = TCP_RST | TCP_ACK;
+            goto tcp_send_nodata;
+        }
 
-      if(uip_flags & UIP_CLOSE) {
-	uip_slen = 0;
-	uip_connr->len = 1;
-	uip_connr->tcpstateflags = UIP_FIN_WAIT_1;
-	uip_connr->nrtx = 0;
-	BUF->flags = TCP_FIN | TCP_ACK;
-	    goto tcp_send_nodata;
-      }
+        if (uip_flags & UIP_CLOSE)
+        {
+            uip_slen = 0;
+            uip_connr->len = 1;
+            uip_connr->tcpstateflags = UIP_FIN_WAIT_1;
+            uip_connr->nrtx = 0;
+            BUF->flags = TCP_FIN | TCP_ACK;
+            goto tcp_send_nodata;
+        }
 
       /* If uip_slen > 0, the application has data to be sent. */
       if(uip_slen > 0) {
@@ -1588,9 +1604,9 @@ appsend:
     }
     goto drop;
       
-  case UIP_FIN_WAIT_2:
+    case UIP_FIN_WAIT_2:
     if(uip_len > 0) {
-      uip_add_rcv_nxt(uip_len);
+        uip_add_rcv_nxt(uip_len);
     }
     if(BUF->flags & TCP_FIN) {
       uip_connr->tcpstateflags = UIP_TIME_WAIT;
@@ -1667,14 +1683,6 @@ drop:
     uip_len = 0;
     uip_flags = 0;
     return;
-}
-
-void uip_send(const void *data, int len)
-{
-    uip_slen = len;
-
-    if (len > 0 && data != uip_sappdata)
-        my_memcpy(uip_sappdata, (data), uip_slen);
 }
 
 void Enc28J60IP::_send(uip_udp_userdata_t *data)
@@ -1810,11 +1818,5 @@ void Enc28J60IP::uipudp_appcall()
         }
     }
 }
-
-
-
-
-
-
 
 

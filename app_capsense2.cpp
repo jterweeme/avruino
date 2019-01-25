@@ -15,8 +15,8 @@ int main()
     CapSense sense10(board.pin13, board.pin10);
     CapSense sense11(board.pin13, board.pin11);
     CapSense sense12(board.pin13, board.pin12);
-    CapSense senseA2(board.pin13, board.pinA2);
-    CapSense senseA3(board.pin13, board.pinA3);
+    //CapSense senseA2(board.pin13, board.pinA2);
+    //CapSense senseA3(board.pin13, board.pinA3);
     CapSense senseA4(board.pin13, board.pinA4);
     CapSense senseA5(board.pin13, board.pinA5);
 #if defined (__AVR_ATmega32U4__)
@@ -39,34 +39,34 @@ int main()
         uint32_t total12 = sense12.senseRaw(30);
         uint32_t totalA5 = senseA5.senseRaw(30);
         uint32_t totalA4 = senseA4.senseRaw(30);
-        uint32_t totalA3 = senseA3.senseRaw(30);
-        uint32_t totalA2 = senseA2.senseRaw(30);
+        //uint32_t totalA3 = senseA3.senseRaw(30);
+        //uint32_t totalA2 = senseA2.senseRaw(30);
         char buf[50];
         snprintf(buf, 50, "%lu\t", total12);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total11);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total10);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total9);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total8);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total7);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total6);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", total08);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", totalA2);
-        cout.writeString(buf);
-        snprintf(buf, 50, "%lu\t", totalA3);
-        cout.writeString(buf);
+        cout << buf;
+        //snprintf(buf, 50, "%lu\t", totalA2);
+        //cout << buf;
+        //snprintf(buf, 50, "%lu\t", totalA3);
+        //cout << buf;
         snprintf(buf, 50, "%lu\t", totalA4);
-        cout.writeString(buf);
+        cout << buf;
         snprintf(buf, 50, "%lu\t", totalA5);
-        cout.writeString(buf);
-        cout.writeString("\r\n");
+        cout << buf;
+        cout << "\r\n";
         cout.flush();
 
         for (volatile uint32_t i = 0; i < 0x3fff; i++)
@@ -75,5 +75,18 @@ int main()
     return 0;
 }
 
+#if defined (__AVR_ATmega32U4__)
+extern "C" void USB_COM __attribute__ ((signal, used, externally_visible));
+void USB_COM
+{
+    USB::instance->com();
+}
+
+extern "C" void USB_GEN __attribute__ ((signal, used, externally_visible));
+void USB_GEN
+{
+    USB::instance->gen();
+}
+#endif
 
 

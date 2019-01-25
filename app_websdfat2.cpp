@@ -14,6 +14,8 @@ ostream *gout;
 
 int main()
 {
+    *p_pin13_ddr |= 1<<pin13_bit;
+    *p_pin13_port &= ~(1<<pin13_bit);
     Board b;
     Sd2Card sd(&b.pin4);
     Fatty zd(&sd);
@@ -57,6 +59,7 @@ int main()
 
     cout << "SD Card initialized successful\r\n";
     Webserver web(&zd, &cout);
+    *p_pin13_port |= 1<<pin13_bit;  // status led everything OK
 
     while (true)
     {

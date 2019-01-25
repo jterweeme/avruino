@@ -74,10 +74,10 @@ TARGETS = app_blink1.elf app_blink3.elf \
     app_calc2.elf app_pi1.elf app_servoknob1.elf \
     app_blink4.hex app_analog1.elf \
     app_megaboot4.hex app_sdmbr1.elf \
-    app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
+    app_miniboot1.hex app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
     app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
-    app_ringtone1.elf
+    app_ringtone1.elf app_speckb1.elf
 
 ifeq ($(POOL1), ja)
 TARGETS += app_pong1.elf app_fourinone.elf app_pirate1.elf app_vga2.elf
@@ -105,7 +105,7 @@ TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
 endif
 
 %.o: %.cpp
-	avr-g++ -Os -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
+	avr-g++ -O2 -Wall -Wno-strict-aliasing -mmcu=$(MMCU) -std=c++11 -c -o $@ $<
 
 %.elf: %.o
 	avr-g++ -mmcu=$(MMCU) -o $@ $^
@@ -120,6 +120,7 @@ endif
 
 all: $(TARGETS)
 
+app_miniboot1.hex: app_miniboot1.asm
 app_blink4.hex: app_blink4.asm
 app_heliosboot1.hex: app_heliosboot1.asm
 app_megaboot4.hex: app_megaboot4.asm
@@ -193,6 +194,7 @@ app_sdmbr1.elf: app_sdmbr1.o zd2card.o pinport.o uart.o stream.o misc.o $(USBOPT
 app_segment1.elf: app_segment1.o
 app_serialusb1.elf: app_serialusb1.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_sound1.elf: app_sound1.o
+app_speckb1.elf: app_speckb1.o uart.o
 app_test1.elf: app_test1.o
 app_test2.elf: app_test2.o
 app_ts1.elf: app_ts1.o analog.o pinport.o uart.o misc.o stream.o
@@ -272,6 +274,7 @@ app_sdmbr1.o: app_sdmbr1.cpp zd2card.h
 app_serialusb1.o: app_serialusb1.cpp misc.h
 app_servoknob1.o: app_servoknob1.cpp
 app_sound1.o: app_sound1.cpp
+app_speckb1.o: app_speckb1.cpp
 app_test1.o: app_test1.cpp
 app_test2.o: app_test2.cpp
 app_ts1.o: app_ts1.cpp
@@ -327,7 +330,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

@@ -211,7 +211,7 @@ int main()
 
             if (client.connected() && client.available())
             {
-                FyleIfstream myFile;
+                FyleIfstream myFile(&zd);
                 myFile.open("dopefish.ans");
                 cat(myFile, client);
                 myFile.close();
@@ -233,7 +233,7 @@ int main()
                     if (c == 'a')
                     {
                         XTSender xs(&client);
-                        FyleIfstream myFile;
+                        FyleIfstream myFile(&zd);
                         myFile.open("nc50.7z");
                         xs.send(myFile);
                         myFile.close();

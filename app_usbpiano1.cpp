@@ -230,8 +230,10 @@ private:
     CapSense _toets06;
     CapSense _toets07;
     CapSense _toets08;
+#if 0
     CapSense _toets09;
     CapSense _toets10;
+#endif
     CapSense _toets11;
     CapSense _toets12;
 public:
@@ -302,8 +304,10 @@ void MIDI::task()
     uint32_t toets06 = _toets06.senseRaw(30);
     uint32_t toets07 = _toets07.senseRaw(30);
     uint32_t toets08 = _toets08.senseRaw(30);
+#if 0
     uint32_t toets09 = _toets09.senseRaw(30);
     uint32_t toets10 = _toets10.senseRaw(30);
+#endif
     uint32_t toets11 = _toets11.senseRaw(30);
     uint32_t toets12 = _toets12.senseRaw(30);
 
@@ -354,7 +358,7 @@ void MIDI::task()
         midiCommand = MIDI_COMMAND_NOTE_ON;
         midiPitch = 0x3c;
     }
-
+#if 0
     if (toets09 > _toets09.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
@@ -366,7 +370,7 @@ void MIDI::task()
         midiCommand = MIDI_COMMAND_NOTE_ON;
         midiPitch = 0x3e;
     }
-
+#endif
     if (toets11 > _toets11.threshold())
     {
         midiCommand = MIDI_COMMAND_NOTE_ON;
@@ -414,8 +418,8 @@ MIDI::MIDI()
     _toets06(_board.pin13, _board.pin7, 1500),
     _toets07(_board.pin13, _board.pin6, 1500),
     _toets08(_board.pin13, _board.pin5, 1500),
-    _toets09(_board.pin13, _board.pinA2, 1500),
-    _toets10(_board.pin13, _board.pinA3, 2000),
+    //_toets09(_board.pin13, _board.pinA2, 1500),
+    //_toets10(_board.pin13, _board.pinA3, 2000),
     _toets11(_board.pin13, _board.pinA4, 1500),
     _toets12(_board.pin13, _board.pinA5, 2200)
 {

@@ -299,7 +299,7 @@ int main()
     gout = &cout;
     cout << "Startup\r\n";
     Rtttl player;
-    player.play_P(godfather, 0);
+    player.play_P(ateam, 0);
     return 0;
 }
 

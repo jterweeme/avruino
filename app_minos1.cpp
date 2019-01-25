@@ -115,7 +115,7 @@ void App::_cat(Fatty &zd, ostream &os)
 
     if (zd.exists(fn))
     {
-        FyleIfstream myFile;
+        FyleIfstream myFile(&zd);
         myFile.open(fn);
         cat(myFile, os);
         myFile.close();
@@ -155,7 +155,7 @@ void App::_od(Fatty &zd, ostream &os)
     
     if (zd.exists(fn))
     {
-        FyleIfstream ifs;
+        FyleIfstream ifs(&zd);
         ifs.open(fn);
         od(ifs, os);
         ifs.close();
@@ -174,7 +174,7 @@ void App::_sx(Fatty &zd, istream *is, ostream *os)
 
     if (zd.exists(fn))
     {
-        FyleIfstream ifs;
+        FyleIfstream ifs(&zd);
         ifs.open(fn);
         XSender x(is, os);
         x.send(ifs);
@@ -193,7 +193,7 @@ void App::_rx(Fatty &zd, istream *is, ostream *os)
     char fn[50] = {0};
     _buf.token2(fn);
     XReceiver x(is, os);
-    FyleOfstream ofs;
+    FyleOfstream ofs(&zd);
     ofs.open(fn);
     x.receive(ofs);
     ofs.close();
@@ -219,7 +219,7 @@ void App::_sb(Fatty &zd, istream *is, ostream *os)
         Fyle fyle = zd.open(fn);
         uint32_t filesize = fyle.size();
         fyle.close();
-        FyleIfstream ifs;
+        FyleIfstream ifs(&zd);
         ifs.open(fn);
         YSender y(is, os);
         y.send(ifs, fn, filesize, 0, 0);
@@ -240,7 +240,7 @@ void App::_md5sum(Fatty &zd, ostream &os)
 
     if (zd.exists(fn))
     {
-        FyleIfstream ifs;
+        FyleIfstream ifs(&zd);
         ifs.open(fn);
         Hasher hasher;
         hasher.reset();
@@ -263,7 +263,7 @@ void App::_more(Fatty &zd, istream &is, ostream &os)
 
     if (zd.exists(fn))
     {
-        FyleIfstream ifs;
+        FyleIfstream ifs(&zd);
         ifs.open(fn);
         more(is, ifs, os);
         ifs.close();

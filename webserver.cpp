@@ -13,6 +13,20 @@ public:
     bool end() const;
 };
 
+template <size_t N> class Fifo
+{
+    char _buf[5];
+    uint8_t _count = 0;
+public:
+    uint8_t count() const { return _count; }
+    void shift() { for (uint8_t i = 0; i < N - 1; i++) _buf[i] = _buf[i + 1]; }
+    void push(char c) { shift(); _buf[N - 1] = c; if (_count < 5) ++_count; }
+    char pull() { char c = _buf[0]; shift(); _count--; return c; }
+    char front() const { return _buf[0]; }
+    void clear() { _count = 0; my_memset(_buf, 0, 5); }
+    int comp(const char *s, size_t n) { return my_strncmp(_buf + N - n, s, n); }
+};
+
 Webserver::Webserver(Fatty *fs, ostream *serial) : _fs(fs), _serial(serial)
 {
 }
@@ -75,10 +89,70 @@ void Webserver::_serveFile(ostream &client, const char *fn)
     FyleIfstream ifs(_fs);
     ifs.open(fn);
 
-    for (int c2; (c2 = ifs.get()) != -1;)
+    for (int16_t c2; (c2 = ifs.get()) != -1;)
         client.put(c2);
 
     ifs.close();
+}
+
+void Webserver::_servePHP(ostream &client, const char *fn)
+{
+    Fifo<5> fifo;
+    FyleIfstream ifs(_fs);
+    ifs.open(fn);
+    // todo: open included php
+    bool flag = false;
+
+    for (int16_t c2; (c2 = ifs.get()) != -1;)
+    {
+        fifo.push(c2);
+
+        if (fifo.comp("<?php", 5) == 0)
+        {
+            fifo.clear();
+            while ((c2 = ifs.get()) != '\"');
+            char buf[20] = {0};
+            char *bufp = buf;
+            
+            while ((c2 = ifs.get()) != '\"')
+                *bufp++ = (char)c2;
+
+            uint32_t pos = ifs.tellg();
+            ifs.close();
+            ifs.open(buf);
+
+            for (int16_t c3; (c3 = ifs.get()) != -1;)
+                client.put(c3);
+
+            ifs.close();
+            ifs.open(fn);
+            ifs.seekg(pos);
+            flag = true;
+        }
+
+        if (flag)
+        {
+            if (fifo.comp("?>", 2) == 0)
+            {
+                fifo.clear();
+                flag = false;
+            }
+
+            continue;
+        }
+
+        if (fifo.count() == 5)
+        {
+            client.put(fifo.front());
+        }
+    }
+
+    fifo.pull();
+
+    while (fifo.count())
+        client.put(fifo.pull());    // drain the fifo
+
+    ifs.close();   
 }
 
 void Webserver::_contentType(ostream &client, const char *ext)
@@ -127,6 +201,8 @@ void Webserver::_httpGet(ostream &client, Buffer &buffer)
 
     if (my_strncmp(fn, "listing", 7) == 0)
         _listing(client);
+    else if (my_strncmp(ext, "php", 3) == 0)
+        _servePHP(client, fn);
     else
         _serveFile(client, fn);
 }

@@ -26,8 +26,6 @@ int main()
     *p_timsk0 |= 1<<toie0;
     zei();
     DefaultUart s;
-    *p_ucsr9a |= 1<<u2x9;
-    *p_ubrr9 = 16;
     UartStream cout(&s);
     gout = &cout;
 

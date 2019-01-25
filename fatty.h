@@ -742,6 +742,8 @@ private:
 public:
     FyleIfstream() { }
     FyleIfstream(Fatty *fatty) : _fatty(fatty) { }
+    uint32_t tellg() { return _fyle.position(); }
+    void seekg(uint32_t pos) { _fyle.seek(pos); }
     int peek() { return _fyle.peek(); }
     void open(const char *fn) { _fyle = Fatty::instance->open(fn); }
     void close() { _fyle.close(); }
@@ -754,10 +756,9 @@ private:
     Fyle _fyle;
     Fatty *_fatty;
 public:
-    FyleOfstream() { }
     FyleOfstream(Fatty *fatty) : _fatty(fatty) { }
     void put(char c) { _fyle.write((uint8_t)c); }
-    void open(const char *fn) { _fyle = Fatty::instance->open(fn, FILE_WRITE); }
+    void open(const char *fn) { _fyle = _fatty->open(fn, FILE_WRITE); }
     void close() { _fyle.close(); }
     void flush() { _fyle.flush(); }
 };

@@ -12,9 +12,9 @@ public:
     EthernetClass(W5100Class *nw) : _nw(nw) { }
     uint8_t _state[MAX_SOCK_NUM] = {0,0,0,0};
     uint16_t _server_port[MAX_SOCK_NUM] = {0,0,0,0};
-    uint32_t localIP();
-    uint32_t subnetMask();
-    uint32_t gatewayIP();
+    uint32_t localIP() const;
+    uint32_t subnetMask() const;
+    uint32_t gatewayIP() const;
     int16_t recv(SOCKET s, uint8_t *buf, int16_t len);
     uint16_t peek(SOCKET s, uint8_t *buf);
     void close(SOCKET s);

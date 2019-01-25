@@ -201,7 +201,7 @@ void App::_rx(Fatty &zd, istream *is, ostream *os)
     char fn[50] = {0};
     _buf.token2(fn);
     XReceiver x(is, os);
-    FyleOfstream ofs;
+    FyleOfstream ofs(&zd);
     ofs.open(fn);
     x.receive(ofs);
     ofs.close();

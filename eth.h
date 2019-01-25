@@ -35,7 +35,6 @@ public:
     virtual uint32_t localIP() const { return 0; }
     virtual uint32_t subnetMask() const { return 0; }
     virtual uint32_t gatewayIP() const { return 0; }
-    virtual uint32_t dnsServerIP() const { return 0; }
     void addresses(ostream &os);
 };
 

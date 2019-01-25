@@ -187,12 +187,9 @@ struct arp_entry
 extern uip_conn_t uip_conns[UIP_CONNS];
 extern uip_udp_conn_t *uip_udp_conn;
 extern uint8_t uip_buf[UIP_BUFSIZE+2];
-uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
-void uip_send(const void *data, int len);
 uip_udp_conn_t *uip_udp_new(uip_ipaddr_t *ripaddr, uint16_t rport);
 extern void *uip_appdata;
 extern uint16_t uip_len;
-extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 
 class Enc28J60IP : public Ethernet
 {
@@ -203,33 +200,32 @@ private:
     uint16_t chksum(uint16_t sum, const uint8_t* data, uint16_t len);
     void uipclient_appcall();
     void uipudp_appcall();
+    uint8_t packetstate;
+    uint16_t ipchksum();
+    uint32_t _dnsServerAddress;
+    memhandle uip_packet;
 public:
+    uip_conn_t *uip_connect(uip_ipaddr_t *ripaddr, uint16_t port);
     void uip_listen(uint16_t port);
     static uip_userdata_t all_data[UIP_CONNS];
     uip_userdata_t *_allocateData();
     size_t _write(uip_userdata_t *u, const uint8_t *buf, size_t size);
     void _send(uip_udp_userdata_t *data);
     Enc28J60Network *nw() { return _nw; }
-    void uip_process(uint8_t flag);
-    void process(uint8_t flags) { uip_process(flags); }
+    void process(uint8_t flag);
     void init(const uint8_t* mac);
     void configure(uint32_t ip, uint32_t dns, uint32_t gw, uint32_t subnet);
-    uint16_t ipchksum();
     uint16_t upper_layer_chksum(uint8_t proto);
     memhandle in_packet;
     uint8_t uip_hdrlen;
     bool network_send();
-    memhandle uip_packet;
-    uint8_t packetstate;
     void _flushBlocks(memhandle *blocks);
-    uint32_t _dnsServerAddress;
     void tick();
     static Enc28J60IP *instance;
     Enc28J60IP(Enc28J60Network *ntw) : _nw(ntw) { instance = this; }
     uint32_t localIP() const;
     uint32_t subnetMask() const;
     uint32_t gatewayIP() const;
-    uint32_t dnsServerIP() { return _dnsServerAddress; }
     void tick2();
     uint8_t _currentBlock(memhandle *block);
     void _eatBlock(memhandle *blocks);

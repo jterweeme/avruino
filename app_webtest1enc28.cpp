@@ -28,8 +28,10 @@ int main()
     Enc28J60Network nw;
     Enc28J60IP eth(&nw);
     g_eth = &eth;
+#if 1
     *p_tccr0b = 1<<cs02; // | CS00;
     *p_timsk0 |= 1<<toie0;
+#endif
     uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
     eth.init(mac);
 
