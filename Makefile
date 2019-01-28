@@ -77,7 +77,7 @@ TARGETS = app_blink1.elf app_blink3.elf \
     app_miniboot1.hex app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
     app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
-    app_ringtone1.elf app_speckb1.elf
+    app_ringtone1.elf app_speckb1.elf app_stepper1.elf
 
 ifeq ($(POOL1), ja)
 TARGETS += app_pong1.elf app_fourinone.elf app_pirate1.elf app_vga2.elf
@@ -195,6 +195,7 @@ app_segment1.elf: app_segment1.o
 app_serialusb1.elf: app_serialusb1.o pinport.o uart.o stream.o $(USBOPT) $(BSP)
 app_sound1.elf: app_sound1.o
 app_speckb1.elf: app_speckb1.o uart.o
+app_stepper1.elf: app_stepper1.o
 app_test1.elf: app_test1.o
 app_test2.elf: app_test2.o
 app_ts1.elf: app_ts1.o analog.o pinport.o uart.o misc.o stream.o
@@ -275,6 +276,7 @@ app_serialusb1.o: app_serialusb1.cpp misc.h
 app_servoknob1.o: app_servoknob1.cpp
 app_sound1.o: app_sound1.cpp
 app_speckb1.o: app_speckb1.cpp
+app_stepper1.o: app_stepper1.cpp
 app_test1.o: app_test1.cpp
 app_test2.o: app_test2.cpp
 app_ts1.o: app_ts1.cpp
