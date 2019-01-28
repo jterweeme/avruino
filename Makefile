@@ -332,7 +332,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<

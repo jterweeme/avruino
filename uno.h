@@ -1,3 +1,7 @@
+/*
+atmega328p
+*/
+
 #ifndef _UNO_H_
 #define _UNO_H_
 #include "pinport.h"
@@ -340,12 +344,16 @@ static volatile uint8_t
     * const p_pin7_ddr = (volatile uint8_t * const)pin7_ddr,
     * const p_pin8_base = (volatile uint8_t * const)pin8_base,
     * const p_pin8_ddr = (volatile uint8_t * const)pin8_ddr,
+    * const p_pin8_port = (volatile uint8_t * const)pin8_port,
     * const p_pin9_base = (volatile uint8_t * const)pin9_base,
     * const p_pin9_ddr = (volatile uint8_t * const)pin9_ddr,
+    * const p_pin9_port = (volatile uint8_t * const)pin9_port,
     * const p_pin10_base = (volatile uint8_t * const)pin10_base,
     * const p_pin10_ddr = (volatile uint8_t * const)pin10_ddr,
+    * const p_pin10_port = (volatile uint8_t * const)pin10_port,
     * const p_pin11_base = (volatile uint8_t * const)pin11_base,
     * const p_pin11_ddr = (volatile uint8_t * const)pin11_ddr,
+    * const p_pin11_port = (volatile uint8_t * const)pin11_port,
     * const p_pin12_base = (volatile uint8_t * const)pin12_base,
     * const p_pin12_ddr = (volatile uint8_t * const)pin12_ddr,
     * const p_pin13_base = (volatile uint8_t * const)pin13_base,
