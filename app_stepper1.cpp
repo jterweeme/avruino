@@ -4,7 +4,7 @@ Stepper motor experiment
 
 #include "board.h"
 
-#define F_CPU 16000000UL
+#define F_CPU 1000000UL
 #include <util/delay.h>
 
 class Stepper
@@ -82,13 +82,13 @@ void Stepper::step()
 
 int main()
 {
-    *p_pin8_ddr |= 1<<pin8_bit;
-    *p_pin9_ddr |= 1<<pin9_bit;
-    *p_pin10_ddr |= 1<<pin10_bit;
-    *p_pin11_ddr |= 1<<pin11_bit;
+    *p_pin0_ddr |= 1<<pin0_bit;
+    *p_pin1_ddr |= 1<<pin1_bit;
+    *p_pin2_ddr |= 1<<pin2_bit;
+    *p_pin3_ddr |= 1<<pin3_bit;
 
-    Stepper stepper(p_pin8_port, pin8_bit, p_pin9_port, pin9_bit, p_pin10_port, pin10_bit,
-                p_pin11_port, pin11_bit);
+    Stepper stepper(p_pin0_port, pin0_bit, p_pin1_port, pin1_bit, p_pin2_port, pin2_bit,
+                p_pin3_port, pin3_bit);
 
     stepper.step(1000);
     

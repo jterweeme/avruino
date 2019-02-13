@@ -5,6 +5,7 @@ POOL1 = nee
 POOL2 = nee
 POOL3 = nee
 POOL4 = nee
+POOL5 = nee
 
 ifeq ($(BOARD), mega)
 PART = m2560
@@ -15,6 +16,7 @@ POOL1 = ja
 POOL2 = nee
 POOL3 = ja
 POOL4 = ja
+POOL5 = ja
 else ifeq ($(BOARD), ocho)
 PART = m8
 MMCU = atmega8
@@ -24,6 +26,7 @@ POOL1 = nee
 POOL2 = nee
 POOL3 = nee
 POOL4 = nee
+POOL5 = ja
 else ifeq ($(BOARD), leonardo)
 PART = m32u4
 MMCU = atmega32u4
@@ -33,6 +36,7 @@ POOL1 = nee
 POOL2 = ja
 POOL3 = ja
 POOL4 = ja
+POOL5 = ja
 else ifeq ($(BOARD), teensy20pp)
 PART = usb1286
 MMCU = at90usb1286
@@ -41,6 +45,7 @@ POOL1 = ja
 POOL2 = nee
 POOL3 = ja
 POOL4 = ja
+POOL5 = ja
 else ifeq ($(BOARD), zestien)
 PART = 16u2
 MMCU = atmega16u2
@@ -50,6 +55,7 @@ POOL1 = nee
 POOL2 = ja
 POOL3 = nee
 POOL4 = nee
+POOL5 = ja
 else ifeq ($(BOARD), uno)
 PART = m328p
 MMCU = atmega328p
@@ -59,6 +65,17 @@ POOL1 = ja
 POOL2 = nee
 POOL3 = ja
 POOL4 = ja
+POOL5 = ja
+else ifeq ($(BOARD), attiny85)
+PART = t85
+MMCU = attiny85
+BSP =
+USBOPT =
+POOL1 = nee
+POOL2 = nee
+POOL3 = nee
+POOL4 = nee
+POOL5 = nee
 else
 PART = m328p
 MMCU = atmega328p
@@ -68,19 +85,13 @@ POOL1 = ja
 POOL2 = nee
 POOL3 = ja
 POOL4 = ja
+POOL5 = ja
 endif
 
-TARGETS = app_blink1.elf app_blink3.elf \
-    app_calc2.elf app_pi1.elf app_servoknob1.elf \
-    app_blink4.hex app_analog1.elf \
-    app_megaboot4.hex app_sdmbr1.elf \
-    app_miniboot1.hex app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
-    app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
-    app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
-    app_ringtone1.elf app_speckb1.elf app_stepper1.elf
+TARGETS = app_blink1.elf app_stepper1.elf
 
 ifeq ($(POOL1), ja)
-TARGETS += app_pong1.elf app_fourinone.elf app_pirate1.elf app_vga2.elf
+TARGETS += app_pong1.elf app_fourinone.elf app_pirate1.elf app_vga2.elf app_eedump1.elf
 endif
 
 ifeq ($(POOL2), ja)
@@ -102,6 +113,17 @@ TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
     app_chatserver1.elf app_websdfat2.elf app_bbs1.elf app_websdfat1.elf \
     app_webtest1enc28.elf app_minos1.elf app_minos2.elf app_webclient2.elf app_sdls1.elf \
     app_infrared1.elf app_ps2kb2.elf app_sound1.elf app_vga1.elf
+endif
+
+ifeq ($(POOL5), ja)
+TARGETS += app_blink3.elf \
+    app_calc2.elf app_pi1.elf app_servoknob1.elf \
+    app_blink4.hex app_analog1.elf \
+    app_megaboot4.hex app_sdmbr1.elf \
+    app_miniboot1.hex app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
+    app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
+    app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
+    app_ringtone1.elf app_speckb1.elf
 endif
 
 %.o: %.cpp
@@ -169,6 +191,7 @@ app_calc2.elf: app_calc2.o calc.o pinport.o uart.o misc.o
 app_capsense2.elf: app_capsense2.o capsense.o pinport.o uart.o stream.o misc.o $(USBOPT)
 app_dfkeyb1.elf: app_dfkeyb1.o pinport.o uart.o stream.o misc.o analog.o lcd.o
 app_ds1302test1.elf: app_ds1302test1.o pinport.o uart.o stream.o misc.o lcd.o
+app_eedump1.elf: app_eedump1.o stream.o uart.o
 app_fourinone.elf: app_fourinone.o analog.o pinport.o
 app_groen1.elf: app_groen1.o
 app_i2cscan1.elf: app_i2cscan1.o i2c.o pinport.o uart.o misc.o stream.o $(USBOPT)
@@ -247,12 +270,16 @@ app_telnetloop1.o: app_telnetloop1.cpp enc28j60tcp.h enc28j60udp.h stream.h misc
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
-app_blink1.o: app_blink1.cpp board.h uno.h leonardo.h mega.h misc.h storage.h pinport.h types.h
+
+app_blink1.o: app_blink1.cpp board.h uno.h leonardo.h mega.h misc.h \
+    storage.h pinport.h types.h attiny85.h
+
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
 app_calc2.o: app_calc2.cpp misc.h
 app_chatserver1.o: app_chatserver1.cpp
 app_ds1302test1.o: app_ds1302test1.cpp misc.h
+app_eedump1.o: app_eedump1.cpp
 app_fourinone.o: app_fourinone.cpp
 app_groen1.o: app_groen1.cpp
 app_i2cscan1.o: app_i2cscan1.cpp misc.h
@@ -332,7 +359,7 @@ ymodem.o: ymodem.cpp ymodem.h stream.h types.h
 zd2card.o: zd2card.cpp zd2card.h
 
 arduino: $(APP)
-	avrdude -c arduino -p $(PART) -P /dev/ttyUSB0 -U $<
+	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
 
 wiring: $(APP)
 	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<
