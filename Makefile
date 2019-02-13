@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = uno
+BOARD = mega
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -362,7 +362,7 @@ arduino: $(APP)
 	avrdude -c arduino -p $(PART) -P /dev/ttyACM0 -U $<
 
 wiring: $(APP)
-	avrdude -c wiring -p $(PART) -P /dev/ttyACM0 -U $<
+	avrdude -c wiring -p $(PART) -P /dev/ttyUSB0 -D -U $<
 
 download: $(APP)
 	avrdude -c stk500 -p $(PART) -P /dev/ttyUSB0 -U $<

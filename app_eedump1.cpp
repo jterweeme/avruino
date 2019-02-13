@@ -47,13 +47,20 @@ void EEBlock::hexDump(ostream &os) const
     }   
 }
 
+
+#if defined (__AVR_ATmega2560__)
+static const uint16_t bytes = 4096;
+#else
+static const uint16_t bytes = 1024;
+#endif
+
 int main()
 {
     DefaultUart s;
     UartStream cout(&s);
     EEBlock eeblock;
 
-    for (uint16_t i = 0; i < 1024; i += 128)
+    for (uint16_t i = 0; i < bytes; i += 128)
     {
         eeblock.read((const void *)i);
         eeblock.hexDump(cout);
