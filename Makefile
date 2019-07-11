@@ -1,5 +1,5 @@
 APP = app_usbloop1.elf
-BOARD = mega
+BOARD = uno
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
@@ -109,7 +109,7 @@ TARGETS += app_ts2.elf app_calc1.elf app_ds1302test1.elf \
 endif
 
 ifeq ($(POOL4), ja)
-TARGETS += app_webtest1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
+TARGETS += app_webtest1w5100.elf app_ws1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
     app_chatserver1.elf app_websdfat2.elf app_bbs1.elf app_websdfat1.elf \
     app_webtest1enc28.elf app_minos1.elf app_minos2.elf app_webclient2.elf app_sdls1.elf \
     app_infrared1.elf app_ps2kb2.elf app_sound1.elf app_vga1.elf
@@ -153,6 +153,9 @@ app_webtest1enc28.elf: app_webtest1enc28.o uart.o enc28j60tcp.o stream.o webtest
 
 app_webtest1w5100.elf: app_webtest1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
     w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webtest1.o $(USBOPT)
+
+app_ws1w5100.elf: app_ws1w5100.o w5100ip.o uart.o pinport.o stream.o dhcp.o \
+    w5100udp.o w5100tcp.o w5100hw.o misc.o eth.o webservice1.o $(USBOPT)
 
 app_telnetloop1.elf: app_telnetloop1.o uart.o enc28j60tcp.o pinport.o \
     enc28j60ip.o dhcp.o enc28j60udp.o enc28j60hw.o misc.o stream.o eth.o
@@ -251,6 +254,11 @@ app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h \
     eth.h cdc.h busby.h
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h \
+    cdc.h busby.h board.h mega.h uno.h leonardo.h \
+    misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h client.h \
+    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
+
+app_ws1w5100.o: app_ws1w5100.cpp webservice1.h stream.h board.h \
     cdc.h busby.h board.h mega.h uno.h leonardo.h \
     misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h client.h \
     udp.h w5100udp.h w5100tcp.h uart.h dhcp.h

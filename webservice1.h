@@ -5,13 +5,13 @@
 class Client;
 class ostream;
 
-class WebTest1
+class WebService1
 {
 private:
     ostream * const _serial;    // voor debug/log berichten
     uint8_t _count = 0;
 public:
-    WebTest1(ostream *serial);
+    WebService1(ostream *serial);
     void dispatch(Client &client);
 };
 #endif
