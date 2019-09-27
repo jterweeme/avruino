@@ -15,6 +15,7 @@ public:
     virtual void write(const char *s, size_t n);
     virtual void operator<< (const char *s) { while (*s) put(*s++); }
     virtual void flush() { }
+    virtual void dinges(const char *s) { while (*s) put(*s++); }
 };
 
 static inline char nibble(uint8_t n)

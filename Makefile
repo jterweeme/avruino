@@ -118,12 +118,12 @@ endif
 ifeq ($(POOL5), ja)
 TARGETS += app_blink3.elf \
     app_calc2.elf app_pi1.elf app_servoknob1.elf \
-    app_blink4.hex app_analog1.elf \
+    app_blink4.hex app_analog1.elf app_analog2.elf \
     app_megaboot4.hex app_sdmbr1.elf \
     app_miniboot1.hex app_optiboot1.hex app_heliosboot1.hex app_test2.elf \
     app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
-    app_ringtone1.elf app_speckb1.elf
+    app_ringtone1.elf app_speckb1.elf app_rc522dump.elf
 endif
 
 %.o: %.cpp
@@ -187,6 +187,7 @@ app_minos2.elf: app_minos2.o fatty.o zd2card.o pinport.o xmodem.o ymodem.o \
 
 app_aditbox.elf: app_aditbox.o analog.o button.o tft.o pinport.o uart.o misc.o
 app_analog1.elf: app_analog1.o pinport.o uart.o stream.o misc.o
+app_analog2.elf: app_analog2.o pinport.o uart.o stream.o misc.o
 app_blink1.elf: app_blink1.o
 app_blink3.elf: app_blink3.o pinport.o
 app_calc1.elf: app_calc1.o analog.o button.o tft.o calc.o pinport.o misc.o
@@ -209,6 +210,7 @@ app_pi1.elf: app_pi1.o uart.o stream.o $(USBOPT)
 app_pirate1.elf: app_pirate1.o vgax.o
 app_pong1.elf: app_pong1.o
 app_ps2kb2.elf: app_ps2kb2.o keyboard.o pinport.o uart.o stream.o misc.o $(USBOPT)
+app_rc522dump.elf: app_rc522dump.o rc522.o uart.o stream.o
 app_ringtone1.elf: app_ringtone1.o pinport.o uart.o stream.o misc.o
 app_rndis1.elf: app_rndis1.o busby.o
 app_rndis2.elf: app_rndis2.o
@@ -299,6 +301,7 @@ app_lcdtest3.o: app_lcdtest3.cpp
 app_ledmatrix1.o: app_ledmatrix1.cpp
 app_ledmatrix2.o: app_ledmatrix2.cpp
 app_pcf8563test2.o: app_pcf8563test2.cpp misc.h
+app_rc522dump.o: app_rc522dump.cpp
 app_ringtone1.o: app_ringtone1.cpp
 app_rndis1.o: app_rndis1.cpp busby.h
 app_rndis2.o: app_rndis2.cpp
@@ -347,6 +350,7 @@ mega.o: mega.cpp misc.h types.h storage.h pinport.h
 md5sum.o: md5sum.cpp md5sum.cpp stream.h uart.h types.h
 misc.o: misc.cpp misc.h types.h storage.h pinport.h
 pinport.o: pinport.cpp pinport.h types.h
+rc522.o: rc522.cpp rc522.h
 stream.o: stream.cpp stream.h uart.h cdc.h busby.h types.h
 tft.o: tft.cpp tft.h board.h leonardo.h uno.h mega.h teensy20pp.h types.h pinport.h
 teensy20pp.o: teensy20pp.cpp teensy20pp.h types.h pinport.h
