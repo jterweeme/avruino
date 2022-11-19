@@ -29,18 +29,6 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
-#ifndef usb_serial_h__
-#define usb_serial_h__
-
-
-
-void usb_init(void);            // initialize everything
-uint8_t usb_configured(void);       // is the USB port configured
-
-int8_t usb_debug_putchar(uint8_t c);    // transmit a character
-void usb_debug_flush_output(void);  // immediately transmit any buffered output
-#define USB_DEBUG_HID
-
 static constexpr uint8_t
     EP_TYPE_CONTROL = 0x00,
     EP_TYPE_BULK_IN = 0x81,
@@ -48,44 +36,36 @@ static constexpr uint8_t
     EP_TYPE_INTERRUPT_IN = 0xc1,
     EP_TYPE_INTERRUPT_OUT = 0xc0,
     EP_TYPE_ISOCHRONOUS_IN = 0x41,
-    EP_TYPE_ISOCHRONOUS_OUT = 0x40;
+    EP_TYPE_ISOCHRONOUS_OUT = 0x40,
+    EP_SINGLE_BUFFER = 0x02,
+    EP_DOUBLE_BUFFER = 0x06,
+    MAX_ENDPOINT = 4;
 
-#if 1
 
-#define EP_SINGLE_BUFFER        0x02
-#define EP_DOUBLE_BUFFER        0x06
+
 
 #define EP_SIZE(s)  ((s) == 64 ? 0x30 : \
             ((s) == 32 ? 0x20 : \
             ((s) == 16 ? 0x10 : \
                          0x00)))
 
-#define MAX_ENDPOINT        4
 
 #define LSB(n) (n & 255)
 #define MSB(n) ((n >> 8) & 255)
 
-#if defined(__AVR_AT90USB162__)
-#define HW_CONFIG() 
-#define PLL_CONFIG() (PLLCSR = ((1<<PLLE)|(1<<PLLP0)))
-#define USB_CONFIG() (USBCON = (1<<USBE))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-#elif defined(__AVR_ATmega32U4__)
-#define HW_CONFIG() (UHWCON = 0x01)
+#if defined(__AVR_ATmega32U4__)
+static void hw_config() { UHWCON = 0x01; }
 #define PLL_CONFIG() (PLLCSR = 0x12)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
 #elif defined(__AVR_AT90USB646__)
-#define HW_CONFIG() (UHWCON = 0x81)
+static void hw_config() { UHWCON = 0x81; }
 #define PLL_CONFIG() (PLLCSR = 0x1A)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
 #elif defined(__AVR_AT90USB1286__)
-#define HW_CONFIG() (UHWCON = 0x81)
+static void hw_config() { UHWCON = 0x81; }
 #define PLL_CONFIG() (PLLCSR = 0x16)
-#define USB_CONFIG() (USBCON = ((1<<USBE)|(1<<OTGPADE)))
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
 #endif
+
+
+
 
 // standard control endpoint request types
 #define GET_STATUS          0
@@ -107,18 +87,16 @@ static constexpr uint8_t
 #define CDC_SET_LINE_CODING     0x20
 #define CDC_GET_LINE_CODING     0x21
 #define CDC_SET_CONTROL_LINE_STATE  0x22
-#endif
-#endif
 
 
 #define print(s) print_P(PSTR(s))
 #define pchar(c) usb_debug_putchar(c)
 
-void print_P(const char *s);
-void phex(unsigned char c);
-void phex16(unsigned int i);
+uint8_t usb_configured(void);       // is the USB port configured
+int8_t usb_debug_putchar(uint8_t c);    // transmit a character
+void usb_debug_flush_output(void);  // immediately transmit any buffered output
 
-int16_t analogRead(uint8_t pin)
+static int16_t analogRead(uint8_t pin)
 {
     DIDR0 |= 0x01;
     ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
@@ -131,7 +109,7 @@ int16_t analogRead(uint8_t pin)
     return ADCH << 8 | ADCL;
 }
 
-void print_P(const char *s)
+static void print_P(const char *s)
 {
     while (1)
     {
@@ -142,59 +120,24 @@ void print_P(const char *s)
     }
 }
 
-void phex1(unsigned char c)
+static void phex1(unsigned char c)
 {
     usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
 }
 
-void phex(unsigned char c)
+static void phex(unsigned char c)
 {
     phex1(c >> 4);
     phex1(c & 15);
 }
 
-void phex16(unsigned int i)
+static void phex16(unsigned int i)
 {
     phex(i >> 8);
     phex(i);
 }
 
-int main(void)
-{
-    //set for 16 MHz clock
-    CLKPR = 0x80;
-    CLKPR = 0;
 
-    //turn on the LED
-    DDRD |= 1<<6;
-    PORTD &= ~(1<<6);
-
-	// initialize the USB, and then wait for the host
-	// to set configuration.  If the Teensy is powered
-	// without a PC connected to the USB port, this 
-	// will wait forever.
-	usb_init();
-	while (!usb_configured()) /* wait */ ;
-
-	// wait an extra second for the PC's operating system
-	// to load drivers and do whatever it does to actually
-	// be ready for input
-	_delay_ms(1000);
-
-	// start printing stuff.  If hid_listen is running on
-	// the host, this should appear.
-	print("USB debug only example\n");
-    uint16_t count = 1;
-	while (1) {
-		print("Hello World ");
-		phex16(count++);
-		uint16_t val = analogRead(0);
-		print(", ADC0=");
-		phex16(val);
-		print("\n");
-		_delay_ms(1000);
-	}
-}
 
 
 /**************************************************************************
@@ -390,12 +333,12 @@ static volatile uint8_t usb_configuration=0;
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer=0;
 
-void usb_init(void)
+static void usb_init(void)
 {
-    HW_CONFIG();
+    hw_config();
 
     //enable USB
-    USB_FREEZE();
+    USBCON = 1<<USBE | 1<<FRZCLK;
 
     //config PLL
     PLL_CONFIG();
@@ -405,7 +348,7 @@ void usb_init(void)
         continue;
 
     //start usb clock
-    USB_CONFIG();
+    USBCON = 1<<USBE | 1<<OTGPADE;
 
     // enable attach resistor
     UDCON = 0;				
@@ -533,7 +476,8 @@ ISR(USB_GEN_vect)
 // Misc functions to wait for ready and send/receive packets
 static inline void usb_wait_in_ready(void)
 {
-	while (!(UEINTX & (1<<TXINI))) ;
+	while (!(UEINTX & (1<<TXINI)))
+        continue;
 }
 static inline void usb_send_in(void)
 {
@@ -541,13 +485,9 @@ static inline void usb_send_in(void)
 }
 static inline void usb_wait_receive_out(void)
 {
-	while (!(UEINTX & (1<<RXOUTI))) ;
+	while (!(UEINTX & (1<<RXOUTI)))
+        continue;
 }
-static inline void usb_ack_out(void)
-{
-	UEINTX = ~(1<<RXOUTI);
-}
-
 
 
 // USB Endpoint Interrupt - endpoint 0 is handled here.  The
@@ -556,9 +496,9 @@ static inline void usb_ack_out(void)
 //
 ISR(USB_COM_vect)
 {
-        uint8_t intbits;
+    uint8_t intbits;
 	const uint8_t *list;
-        const uint8_t *cfg;
+    const uint8_t *cfg;
 	uint8_t i, n, len, en;
 	uint8_t bmRequestType;
 	uint8_t bRequest;
@@ -656,19 +596,16 @@ ISR(USB_COM_vect)
 		if (bRequest == GET_STATUS) {
 			usb_wait_in_ready();
 			i = 0;
-			#ifdef SUPPORT_ENDPOINT_HALT
 			if (bmRequestType == 0x82) {
 				UENUM = wIndex;
 				if (UECONX & (1<<STALLRQ)) i = 1;
 				UENUM = 0;
 			}
-			#endif
 			UEDATX = i;
 			UEDATX = 0;
 			usb_send_in();
 			return;
 		}
-		#ifdef SUPPORT_ENDPOINT_HALT
 		if ((bRequest == CLEAR_FEATURE || bRequest == SET_FEATURE)
 		  && bmRequestType == 0x02 && wValue == 0) {
 			i = wIndex & 0x7F;
@@ -685,7 +622,6 @@ ISR(USB_COM_vect)
 				return;
 			}
 		}
-		#endif
 		if (bRequest == HID_GET_REPORT && bmRequestType == 0xA1) {
 			if (wIndex == 0) {
 				len = wLength;
@@ -708,6 +644,45 @@ ISR(USB_COM_vect)
 		}
         }
 	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
+}
+
+int main()
+{
+    //set for 16 MHz clock
+    CLKPR = 0x80;
+    CLKPR = 0;
+
+    //turn on the LED
+    DDRD |= 1<<6;
+    PORTD &= ~(1<<6);
+
+	// initialize the USB, and then wait for the host
+	// to set configuration.  If the Teensy is powered
+	// without a PC connected to the USB port, this 
+	// will wait forever.
+	usb_init();
+
+	while (!usb_configured())
+        continue;
+
+	// wait an extra second for the PC's operating system
+	// to load drivers and do whatever it does to actually
+	// be ready for input
+	_delay_ms(1000);
+
+	// start printing stuff.  If hid_listen is running on
+	// the host, this should appear.
+	print("USB debug only example\n");
+    uint16_t count = 1;
+	while (1) {
+		print("Hello World ");
+		phex16(count++);
+		uint16_t val = analogRead(0);
+		print(", ADC0=");
+		phex16(val);
+		print("\n");
+		_delay_ms(1000);
+	}
 }
 
 
