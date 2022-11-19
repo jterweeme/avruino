@@ -11,7 +11,11 @@ static constexpr uint8_t
     EP_TYPE_ISOCHRONOUS = 1,
     EP_TYPE_BULK = 2,
     EP_TYPE_INTERRUPT = 3,
+#ifdef __AVR_AT90USB1286__
+    USB_PLL_PSC = 0x16,
+#else
     USB_PLL_PSC = 1<<pindiv,       // for 16MHz; choose 0 for 8MHz
+#endif
     USB_STREAM_TIMEOUT_MS = 100,
     ENDPOINT_EPNUM_MASK = 0x0f,
     ENDPOINT_CONTROLEP = 0,

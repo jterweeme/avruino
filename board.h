@@ -8,13 +8,13 @@ Jasper ter Weeme
 #if defined (__AVR_ATmega328P__)
 #include "uno.h"
 #elif defined (__AVR_ATmega8__)
-#include "ocho.h"
+#include "brd_ocho.h"
 #elif defined (__AVR_ATmega32U4__)
-#include "leonardo.h"
+#include "brd_leonardo.h"
 #elif defined (__AVR_ATmega2560__)
 #include "mega.h"
 #elif defined (__AVR_AT90USB1286__)
-#include "teensy20pp.h"
+#include "brd_teensy20pp.h"
 #elif defined (__AVR_ATmega16U2__)
 #include "zestien.h"
 #elif defined (__AVR_ATtiny85__)

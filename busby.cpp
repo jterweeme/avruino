@@ -116,7 +116,8 @@ void USB::clearStatusStage() const
             if (state == DEVICE_STATE_UNATTACHED)
                 return;
 
-        *p_ueintx &= ~(1<<rxouti | 1<<fifocon); // clear out
+        //clear out
+        *p_ueintx &= ~(1<<rxouti | 1<<fifocon); 
     }
     else
     {
@@ -124,7 +125,8 @@ void USB::clearStatusStage() const
             if (state == DEVICE_STATE_UNATTACHED)
                 return;
 
-        *p_ueintx &= ~(1<<txini | 1<<fifocon); // endpoint clear in
+        //endpoint clear in
+        *p_ueintx &= ~(1<<txini | 1<<fifocon); 
     }
 }
 

@@ -6,6 +6,8 @@
 #include "cdc.h"
 #elif defined (__AVR_ATmega16U2__)
 #include "cdc.h"
+#elif defined (__AVR_AT90USB1286__)
+#include "cdc.h"
 #endif
 
 class ostream
@@ -86,7 +88,7 @@ public:
     int16_t get(uint32_t timeout) { return _serial->get(timeout); }
 };
 
-#if defined (__AVR_ATmega32U4__)
+#ifdef _CDC_H_
 class USBStream : public ostream
 {
 private:

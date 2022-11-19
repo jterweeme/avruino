@@ -21,14 +21,18 @@
  * THE SOFTWARE.
  */
 
+#define F_CPU 16000000UL
+
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <avr/interrupt.h>
+#include <stdint.h>
 
 #ifndef usb_serial_h__
 #define usb_serial_h__
 
-#include <stdint.h>
+
 
 void usb_init(void);            // initialize everything
 uint8_t usb_configured(void);       // is the USB port configured
@@ -37,21 +41,16 @@ int8_t usb_debug_putchar(uint8_t c);    // transmit a character
 void usb_debug_flush_output(void);  // immediately transmit any buffered output
 #define USB_DEBUG_HID
 
+static constexpr uint8_t
+    EP_TYPE_CONTROL = 0x00,
+    EP_TYPE_BULK_IN = 0x81,
+    EP_TYPE_BULK_OUT = 0x80,
+    EP_TYPE_INTERRUPT_IN = 0xc1,
+    EP_TYPE_INTERRUPT_OUT = 0xc0,
+    EP_TYPE_ISOCHRONOUS_IN = 0x41,
+    EP_TYPE_ISOCHRONOUS_OUT = 0x40;
 
-// Everything below this point is only intended for usb_serial.c
-//#ifdef USB_SERIAL_PRIVATE_INCLUDE
 #if 1
-#include <avr/io.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
-
-#define EP_TYPE_CONTROL         0x00
-#define EP_TYPE_BULK_IN         0x81
-#define EP_TYPE_BULK_OUT        0x80
-#define EP_TYPE_INTERRUPT_IN        0xC1
-#define EP_TYPE_INTERRUPT_OUT       0xC0
-#define EP_TYPE_ISOCHRONOUS_IN      0x41
-#define EP_TYPE_ISOCHRONOUS_OUT     0x40
 
 #define EP_SINGLE_BUFFER        0x02
 #define EP_DOUBLE_BUFFER        0x06
@@ -121,8 +120,6 @@ void phex16(unsigned int i);
 
 int16_t analogRead(uint8_t pin)
 {
-    uint8_t low;
-
     DIDR0 |= 0x01;
     ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
     ADMUX = 0x40;  // channel 0, ref=vcc
@@ -131,16 +128,14 @@ int16_t analogRead(uint8_t pin)
     while (ADCSRA & (1<<ADSC))
         continue;
 
-    low = ADCL;
-    return (ADCH << 8) | low;
+    return ADCH << 8 | ADCL;
 }
 
 void print_P(const char *s)
 {
-    char c;
-
-    while (1) {
-        c = pgm_read_byte(s++);
+    while (1)
+    {
+        char c = pgm_read_byte(s++);
         if (!c) break;
         if (c == '\n') usb_debug_putchar('\r');
         usb_debug_putchar(c);
@@ -402,18 +397,28 @@ static volatile uint8_t debug_flush_timer=0;
  *
  **************************************************************************/
 
+#define PLL_CONFIG() (PLLCSR = 0x16)
+
+#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
 
 // initialize USB
 void usb_init(void)
 {
-	HW_CONFIG();
-	USB_FREEZE();				// enable USB
+    UHWCON = 0x81;
+
+    //enable USB
+    USBCON = 1<<USBE | 1<<FRZCLK;
 	PLL_CONFIG();				// config PLL
-        while (!(PLLCSR & (1<<PLOCK))) ;	// wait for PLL lock
-        USB_CONFIG();				// start USB clock
-        UDCON = 0;				// enable attach resistor
-	usb_configuration = 0;
-        UDIEN = (1<<EORSTE)|(1<<SOFE);
+
+    // wait for PLL lock
+    while (!(PLLCSR & 1<<PLOCK))
+        continue;
+
+    //start usb clock
+    USBCON = 1<<USBE|1<<OTGPADE;
+    UDCON = 0;				// enable attach resistor
+    usb_configuration = 0;
+    UDIEN = (1<<EORSTE)|(1<<SOFE);
 	sei();
 }
 
@@ -496,33 +501,25 @@ void usb_debug_flush_output(void)
 	SREG = intr_state;
 }
 
-
-
-/**************************************************************************
- *
- *  Private Functions - not intended for general user consumption....
- *
- **************************************************************************/
-
-
-
 // USB Device Interrupt - handle all device-level events
 // the transmit buffer flushing is triggered by the start of frame
 //
 ISR(USB_GEN_vect)
 {
-	uint8_t intbits, t;
+	uint8_t t;
+    uint8_t intbits = UDINT;
+    UDINT = 0;
 
-        intbits = UDINT;
-        UDINT = 0;
-        if (intbits & (1<<EORSTI)) {
+    if (intbits & (1<<EORSTI))
+    {
 		UENUM = 0;
 		UECONX = 1;
 		UECFG0X = EP_TYPE_CONTROL;
 		UECFG1X = EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER;
 		UEIENX = (1<<RXSTPE);
 		usb_configuration = 0;
-        }
+    }
+
 	if (intbits & (1<<SOFI)) {
 		if (usb_configuration) {
 			t = debug_flush_timer;
