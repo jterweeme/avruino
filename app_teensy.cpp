@@ -390,33 +390,25 @@ static volatile uint8_t usb_configuration=0;
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer=0;
 
-
-/**************************************************************************
- *
- *  Public Functions - these are the API intended for the user
- *
- **************************************************************************/
-
-#define PLL_CONFIG() (PLLCSR = 0x16)
-
-#define USB_FREEZE() (USBCON = ((1<<USBE)|(1<<FRZCLK)))
-
-// initialize USB
 void usb_init(void)
 {
-    UHWCON = 0x81;
+    HW_CONFIG();
 
     //enable USB
-    USBCON = 1<<USBE | 1<<FRZCLK;
-	PLL_CONFIG();				// config PLL
+    USB_FREEZE();
+
+    //config PLL
+    PLL_CONFIG();
 
     // wait for PLL lock
     while (!(PLLCSR & 1<<PLOCK))
         continue;
 
     //start usb clock
-    USBCON = 1<<USBE|1<<OTGPADE;
-    UDCON = 0;				// enable attach resistor
+    USB_CONFIG();
+
+    // enable attach resistor
+    UDCON = 0;				
     usb_configuration = 0;
     UDIEN = (1<<EORSTE)|(1<<SOFE);
 	sei();
