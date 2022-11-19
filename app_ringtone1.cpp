@@ -2,6 +2,7 @@
 Uno: OC1A/#9
 Ocho: OC1A/#9
 Mega: OC1A/#11
+Teensy20++: OC1A/B5
 */
 
 #ifndef F_CPU

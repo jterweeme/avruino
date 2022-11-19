@@ -19,6 +19,8 @@ Jasper ter Weeme
 #include "zestien.h"
 #elif defined (__AVR_ATtiny85__)
 #include "attiny85.h"
+#elif defined (__AVR_ATtiny13__)
+#include "attiny13.h"
 #endif
 
 #define zei()  __asm__ __volatile__ ("sei" ::: "memory")

@@ -1,28 +1,43 @@
 /*
-ATTiny85
+ATTiny13
+
+pinout:
 
 1/PB5/PCINT5/RESET/ADC0/dW
-2/PB3/PCINT3/XTAL1/CLKI/OC1B/ADC3
-3/PB4/PCINT4/XTAL2/CLKO/OC1B/ADC2
+2/PB3/PCINT3/CLKI/ADC3
+3/PB4/PCINT4/ADC2
 4/GND
-5/PB0/MOSI/DI/SDA/AIN0/OC0A/OC1A/AREF/PCINT0
-6/PB1/MISO/D0/AIN1/OC0B/OC1A/PCINT1
-7/PB2/SCK/USCK/SCL/ADC1/T0/INT0/PCINT2
+5/PB0/MOSI/AIN0/OC0A/PCINT0         D13
+6/PB1/MISO/AIN1/OC0B/INT0/PCINT1
+7/PB2/SCK/ADC1/T0/PCINT2
 8/VCC
 
 */
 
-#ifndef _ATTINY85_
-#define _ATTINY85_
+#ifndef _ATTINY13_
+#define _ATTINY13_
 #include "pinport.h"
 
 static constexpr uint8_t
     portb_base = 0x36,
         pinb = portb_base,
             pinb0 = 0, pinb1 = 1, pinb2 = 2, pinb3 = 3,
-            pinb4 = 4, pinb5 = 5, pinb6 = 6, pinb7 = 7,
+            pinb4 = 4, pinb5 = 5,
         ddrb = portb_base + 1,
             ddb0 = 0, ddb1 = 1, ddb2 = 2, ddb3 = 3, ddb4 = 4, ddb5 = 5, ddb6 = 6, ddb7 = 7,
+        portb = portb_base + 2,
+
+    ocr0b = 0x49,
+    tccr0a = 0x4f, wgm00 = 0, wgm01 = 1, com0b0 = 4, com0b1 = 5, com0a0 = 6, com0a1 = 7,
+    tcnt0 = 0x52,
+    tccr0b = 0x53, cs00 = 0, cs01 = 1, cs02 = 2, wgm02 = 3, foc0b = 6, foc0a = 7,
+    mcusr = 0x54, porf = 0, extrf = 1, borf = 2, wdrf = 3,
+    mcucr = 0x55, isc00 = 0, isc01 = 1, sm0 = 3, sm1 = 4, se = 5, pud = 6,
+    ocr0a = 0x56,
+    tifr0 = 0x58, tov0 = 1, ocf0a = 2, ocf0b = 3,
+    timsk0 = 0x59, toie0 = 1, ocie0a = 2, ocie0b = 3,
+    gifr = 0x5a,
+    gimsk = 0x5b,
 
     pin0_base = portb_base,
     pin0_in = pin0_base + 0,
@@ -55,6 +70,14 @@ static volatile uint8_t
     * const p_pinb = (volatile uint8_t * const)pinb,
     * const p_ddrb = (volatile uint8_t * const)ddrb,
 
+    * const p_ocr0b = (volatile uint8_t * const)ocr0b,
+    * const p_tccr0a = (volatile uint8_t * const)tccr0a,
+    * const p_tcnt0 = (volatile uint8_t * const)tcnt0,
+    * const p_tccr0b = (volatile uint8_t * const)tccr0b,
+    * const p_ocr0a = (volatile uint8_t * const)ocr0a,
+    * const p_tifr0 = (volatile uint8_t * const)tifr0,
+    * const p_timsk0 = (volatile uint8_t * const)timsk0,
+
     * const p_pin0_base = (volatile uint8_t * const)pin0_base,
     * const p_pin0_ddr = (volatile uint8_t * const)pin0_ddr,
     * const p_pin0_port = (volatile uint8_t * const)pin0_port,
@@ -70,6 +93,7 @@ static volatile uint8_t
     * const p_pin13_base = (volatile uint8_t * const)pin13_base,
     * const p_pin13_ddr = (volatile uint8_t * const)pin13_ddr,
     * const p_pin13_port = (volatile uint8_t * const)pin13_port;
+
 
 #endif
 

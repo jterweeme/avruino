@@ -1,5 +1,76 @@
-#ifndef _TWAALF_H_
-#define _TWAALF_H_
+/*
+Teensy20++, AT90USB1286
+
+1/PE6
+2/PE7
+3/
+4/
+5/
+6/
+7/
+8/
+9/PE3
+10/PB0
+11/PB1/PCINT1/SCLK
+12/PB2/PDI/PCINT2/MOSI
+13/PB3/PDO/PCINT3/MISO
+14/PB4/PCINT4/OC2A
+15/PB5/PCINT5/OC1A
+16/PB6/PCINT6/OC1B
+17/PB7/PCINT7/OC0A/OC1C
+18/PE4/INT4/TOSC1
+19/PE5/INT5/TOSC2
+20/RESET
+21/VCC
+22/GND
+23/XTAL2
+24/XTAL1
+25/PD0/OC0B/SCL/INT0
+26/PD1/OC2B/SDA/INT1
+27/PD2/RXD1/INT2
+28/PD3/TXD1/INT3
+29/PD4/ICP1
+30/PD5
+31/PD6
+32/PD7
+33/PE0
+34/PE1
+35/PC0
+36/PC1
+37/PC2
+38/PC3
+39/PC4
+40/PC5
+41/PC6
+42/
+43/
+44/
+45/
+46/
+47/
+48/
+49/
+50/
+51/
+52/VCC
+53/GND
+54/
+55/
+56/
+57/
+58/
+59/
+60/PF1/ADC1
+61/PF0/ADC0
+62/AREF
+63/GND
+64/AVCC
+
+
+*/
+
+#ifndef _TEENSY20PP_H_
+#define _TEENSY20PP_H_
 #include "pinport.h"
 
 static constexpr uint8_t
@@ -27,6 +98,7 @@ static constexpr uint8_t
         pine = porte_base + 0,
         ddre = porte_base + 1,
         porte = porte_base + 2,
+            pe0 = 0, pe1 = 1, pe2 = 2, pe3 = 3, pe4 = 4, pe5 = 5, pe6 = 6, pe7 = 7,
     tifr0 = 0x35, tov0 = 0, ocf0a = 1, ocf0b = 2,
     tifr1 = 0x36, tov1 = 0, ocf1a = 1, ocf1b = 2, ocf1c = 3, icf1 = 5,
     tifr2 = 0x37, tov2 = 0, ocf2a = 1, ocf2b = 2,
@@ -109,7 +181,14 @@ static constexpr uint8_t
     udint = 0xe1,
     udien = 0xe2,
     udaddr = 0xe3,
+    ueintx = 0xe8,
+    uenum = 0xe9,
+    uerst = 0xea,
+    uedatx = 0xf1,
 
+    /*
+UCSR9 maps to a UCSR with different number, often UCSR0 or UCSR1
+    */
     ucsr9a = ucsr1a,
         mpcm9 = 0, u2x9 = 1, upe9 = 2, dor9 = 3, fe9 = 4, udre9 = 5, txc9 = 6, rxc9 = 7,
     ucsr9b = ucsr1b,
@@ -123,6 +202,11 @@ static constexpr uint8_t
     ubrr9h = ubrr1h,
     udr9 = udr1,
 
+    ocr0a_port_base = portb_base,
+    ocr0a_ddr = ocr0a_port_base + 1,
+    ocr0a_bit = pb7,
+    ocr0b_port_base = portd_base,
+    ocr0b_ddr = ocr0b_port_base + 1,
     ocr0b_bit = pd0,
     ocr1a_port_base = portb_base,
     ocr1a_in = ocr1a_port_base + 0,
@@ -166,6 +250,11 @@ static constexpr uint8_t
     miso_port = miso_port_base + 2,
     miso_bit = pb3,
 
+    pin0_base = porte_base,
+    pin0_in = pin0_base + 0,
+    pin0_ddr = pin0_base + 1,
+    pin0_port = pin0_base + 2,
+    pin0_bit = pe0,
     pin1_base = portd_base,
     pin1_in = pin1_base + 0,
     pin1_ddr = pin1_base + 1,
@@ -217,8 +306,10 @@ static constexpr uint8_t
     pin10_port = pin10_base + 2,
     pin10_bit = pd3,
     pin11_base = portd_base,
+    pin11_ddr = pin11_base + 1,
     pin11_bit = pd4,
     pin12_base = portd_base,
+    pin12_ddr = pin12_base + 1,
     pin12_bit = pd5,
     pin13_base = portd_base,
     pin13_in = pin13_base + 0,
@@ -312,6 +403,11 @@ static volatile uint8_t
     * const p_ucsr1b = (volatile uint8_t * const)ucsr1b,
     * const p_ucsr1c = (volatile uint8_t * const)ucsr1c,
     * const p_udr1 = (volatile uint8_t * const)udr1,
+    * const p_uhwcon = (volatile uint8_t * const)uhwcon,
+    * const p_udaddr = (volatile uint8_t * const)udaddr,
+    * const p_uenum = (volatile uint8_t * const)uenum,
+    * const p_uerst = (volatile uint8_t * const)uerst,
+    * const p_uedatx = (volatile uint8_t * const)uedatx,
 
     * const p_ucsr9a = (volatile uint8_t * const)ucsr9a,
     * const p_ucsr9b = (volatile uint8_t * const)ucsr9b,
@@ -320,6 +416,8 @@ static volatile uint8_t
     * const p_ubrr9h = (volatile uint8_t * const)ubrr9h,
     * const p_udr9 = (volatile uint8_t * const)udr9,
 
+    * const p_ocr0a_ddr = (volatile uint8_t * const)ocr0a_ddr,
+    * const p_ocr0b_ddr = (volatile uint8_t * const)ocr0b_ddr,
     * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
     * const p_ocr1b_ddr = (volatile uint8_t * const)ocr1b_ddr,
     * const p_ocr2b_ddr = (volatile uint8_t * const)ocr2b_ddr,
@@ -336,18 +434,29 @@ static volatile uint8_t
     * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
     * const p_miso_port = (volatile uint8_t * const)miso_port,
 
+/*
+for compatibility with Arduino, the Teensy20++ uses
+different numbering
+*/
+    * const p_pin0_in = (volatile uint8_t * const)pin0_in,
+    * const p_pin0_ddr = (volatile uint8_t * const)pin0_ddr,
+    * const p_pin0_port = (volatile uint8_t * const)pin0_port,
     * const p_pin1_in = (volatile uint8_t * const)pin1_in,
     * const p_pin1_ddr = (volatile uint8_t * const)pin1_ddr,
+    * const p_pin1_port = (volatile uint8_t * const)pin1_port,
     * const p_pin2_in = (volatile uint8_t * const)pin2_in,
     * const p_pin2_ddr = (volatile uint8_t * const)pin2_ddr,
+    * const p_pin2_port = (volatile uint8_t * const)pin2_port,
     * const p_pin3_in = (volatile uint8_t * const)pin3_in,
     * const p_pin3_ddr = (volatile uint8_t * const)pin3_ddr,
+    * const p_pin3_port = (volatile uint8_t * const)pin3_port,
     * const p_pin4_in = (volatile uint8_t * const)pin4_in,
     * const p_pin4_ddr = (volatile uint8_t * const)pin4_ddr,
     * const p_pin5_in = (volatile uint8_t * const)pin5_in,
     * const p_pin5_ddr = (volatile uint8_t * const)pin5_ddr,
     * const p_pin6_in = (volatile uint8_t * const)pin6_in,
     * const p_pin6_ddr = (volatile uint8_t * const)pin6_ddr,
+    * const p_pin6_port = (volatile uint8_t * const)pin6_port,
     * const p_pin7_in = (volatile uint8_t * const)pin7_in,
     * const p_pin7_ddr = (volatile uint8_t * const)pin7_ddr,
     * const p_pin8_in = (volatile uint8_t * const)pin8_in,
@@ -359,6 +468,8 @@ static volatile uint8_t
     * const p_pin10_in = (volatile uint8_t * const)pin10_in,
     * const p_pin10_ddr = (volatile uint8_t * const)pin10_ddr,
     * const p_pin10_port = (volatile uint8_t * const)pin10_port,
+    * const p_pin11_ddr = (volatile uint8_t * const)pin11_ddr,
+    * const p_pin12_ddr = (volatile uint8_t * const)pin12_ddr,
     * const p_pin13_ddr = (volatile uint8_t * const)pin13_ddr,
     * const p_pin13_port = (volatile uint8_t * const)pin13_port,
     * const p_pinA0_ddr = (volatile uint8_t * const)pinA0_ddr,

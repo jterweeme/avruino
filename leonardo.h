@@ -1,3 +1,54 @@
+/*
+Arduino Leonardo, ATmega32U4
+
+1/PE6
+2/UVcc
+3/D-
+4/D+
+5/UGnd
+6/UCap
+7/VBus
+8/PB0/SS/PCINT0
+9/PB1
+10/PB2
+11/PB3
+12/PB7/PCINT7/OC0A/OC1C/RTS
+13/RESET
+14/VCC
+15/GND
+16/XTAL2
+17/XTAL1
+18/PD0/OC0B/SCL/INT0
+19/PD1/SDA/INT1
+20/PD2
+21/PD3
+22/PD5/XCK1/CTS
+23/GND
+24/AVCC
+25/PD4
+26/PD6
+27/PD7
+28/PB4
+29/PB5/PCINT5/OC1A/OC4B
+30/PB6/PCINT6/OC1B/OC4B
+31/PC6/OC3A/OC4A
+32/PC7/ICP3/CLK0/OC4A
+33/PE2/HWB
+34/VCC
+35/GND
+36/PF7/ADC7/TDI
+37/PF6/ADC6/TDO
+38/PF5/ADC5/TMS
+39/PF4/ADC4/TCK
+40/PF1/ADC1
+41/PF0/ADC0
+42/AREF
+43/GND
+44/AVCC
+
+
+*/
+
 #ifndef _LEONARDO_H_
 #define _LEONARDO_H_
 #include "pinport.h"
@@ -51,6 +102,7 @@ static constexpr uint8_t
     gpior0 = 0x3e,
     eecr = 0x3f,
     eedr = 0x40,
+    eear = 0x41, eearl = 0x41, eearh = 0x42,
     tccr0a = 0x44, wgm00 = 0, wgm01 = 1, com0b0 = 4, com0b1 = 5, com0a0 = 6, com0a1 = 7,
     tccr0b = 0x45, cs00 = 0, cs01 = 1, cs02 = 2, wgm02 = 3, foc0b = 6, foc0a = 7,
     tcnt0 = 0x46,
@@ -62,6 +114,9 @@ static constexpr uint8_t
     spcr = 0x4c, spr0 = 0, spr1 = 1, cpha = 2, cpol = 3, mstr = 4, dord = 5, spe = 6, spie = 7,
     spsr = 0x4d, spi2x = 0, wcol = 6, spif = 7,
     spdr = 0x4e,
+    acsr = 0x50, acd = 7, acbg = 6, aco = 5, aci = 4, acie = 3, acic = 2, acis1 = 1, acis0 = 0,
+    mondr = 0x51, ocdr = 0x51, idrd = 7, ocdr7 = 7, ocdr6 = 6, ocdr5 = 5, ocdr4 = 4,
+        ocdr3 = 3, ocdr2 = 2, ocdr1 = 1, ocdr0 = 0,
     pllfrq = 0x52,
         pdiv0 = 0, pdiv1 = 1, pdiv2 = 2, pdiv3 = 3,
         plltm0 = 4, plltm1 = 5, pllusb = 6, pinmux = 7,
@@ -169,6 +224,9 @@ static constexpr uint8_t
     udr9 = udr1,
 
     ocr0a_base = portb_base,
+    ocr0a_in = ocr0a_base + 0,
+    ocr0a_ddr = ocr0a_base + 1,
+    ocr0a_port = ocr0a_base + 2,
     ocr0a_bit = pb7,
     ocr0b_base = portd_base,
     ocr0b_ddr = ocr0b_base + 1,
@@ -395,6 +453,7 @@ static volatile uint8_t
     * const p_ubrr9l = (volatile uint8_t * const)ubrr9l,
     * const p_udr9 = (volatile uint8_t * const)udr9,
 
+    * const p_ocr0a_ddr = (volatile uint8_t * const)ocr0a_ddr,
     * const p_ocr0b_ddr = (volatile uint8_t * const)ocr0b_ddr,
     * const p_ocr1a_in = (volatile uint8_t * const)ocr1a_in,
     * const p_ocr1a_ddr = (volatile uint8_t * const)ocr1a_ddr,
@@ -418,15 +477,19 @@ static volatile uint8_t
     * const p_pin0_base = (volatile uint8_t * const)pin0_base,
     * const p_pin0_in = (volatile uint8_t * const)pin0_in,
     * const p_pin0_ddr = (volatile uint8_t * const)pin0_ddr,
+    * const p_pin0_port = (volatile uint8_t * const)pin0_port,
     * const p_pin1_base = (volatile uint8_t * const)pin1_base,
     * const p_pin1_in = (volatile uint8_t * const)pin1_in,
     * const p_pin1_ddr = (volatile uint8_t * const)pin1_ddr,
+    * const p_pin1_port = (volatile uint8_t * const)pin1_port,
     * const p_pin2_base = (volatile uint8_t * const)pin2_base,
     * const p_pin2_in = (volatile uint8_t * const)pin2_in,
     * const p_pin2_ddr = (volatile uint8_t * const)pin2_ddr,
+    * const p_pin2_port = (volatile uint8_t * const)pin2_port,
     * const p_pin3_base = (volatile uint8_t * const)pin3_base,
     * const p_pin3_in = (volatile uint8_t * const)pin3_in,
     * const p_pin3_ddr = (volatile uint8_t * const)pin3_ddr,
+    * const p_pin3_port = (volatile uint8_t * const)pin3_port,
     * const p_pin4_base = (volatile uint8_t * const)pin4_base,
     * const p_pin4_in = (volatile uint8_t * const)pin4_in,
     * const p_pin4_ddr = (volatile uint8_t * const)pin4_ddr,

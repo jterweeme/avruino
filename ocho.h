@@ -1,5 +1,40 @@
+/*
+ATMega8
+
+1/PC6/RESET
+2/PD0/RXD           D0
+3/PD1/TXD           D1
+4/PD2/INT0          D2
+5/PD3/INT1          D3
+6/PD4/XCK/T0        D4
+7/VCC
+8/GND
+9/PB6/XTAL1/TOSC1
+10/PB7/XTAL2/TOSC2
+11/PD5/T1           D5
+12/PD6/AIN0         D6
+13/PD7/AIN1         D7
+14/PB0/ICP1         D8
+15/PB1/OC1A         D9
+16/PB2/SS/OC1B      D10
+17/PB3/MOSI/OC2     D11
+18/PB4/MISO         D12
+19/PB5/SCK          D13
+20/AVCC
+21/AREF
+22/GND
+23/PC0/ADC0         A0
+24/PC1/ADC1         A1
+25/PC2/ADC2         A2
+26/PC3/ADC3         A3
+27/PC4/ADC4/SDA     A4
+28/PC5/ADC5/SCL     A5
+
+*/
+
 #ifndef _OCHO_H_
 #define _OCHO_H_
+
 #include "pinport.h"
 
 static constexpr uint8_t
@@ -298,18 +333,24 @@ static volatile uint8_t
 
     * const p_pin0_base = (volatile uint8_t * const)pin0_base,
     * const p_pin0_ddr = (volatile uint8_t * const)pin0_ddr,
+    * const p_pin0_port = (volatile uint8_t * const)pin0_port,
     * const p_pin1_base = (volatile uint8_t * const)pin1_base,
     * const p_pin1_ddr = (volatile uint8_t * const)pin1_ddr,
+    * const p_pin1_port = (volatile uint8_t * const)pin1_port,
     * const p_pin2_base = (volatile uint8_t * const)pin2_base,
     * const p_pin2_ddr = (volatile uint8_t * const)pin2_ddr,
+    * const p_pin2_port = (volatile uint8_t * const)pin2_port,
     * const p_pin3_base = (volatile uint8_t * const)pin3_base,
     * const p_pin3_ddr = (volatile uint8_t * const)pin3_ddr,
+    * const p_pin3_port = (volatile uint8_t * const)pin3_port,
     * const p_pin4_base = (volatile uint8_t * const)pin4_base,
     * const p_pin4_ddr = (volatile uint8_t * const)pin4_ddr,
     * const p_pin5_base = (volatile uint8_t * const)pin5_base,
     * const p_pin5_ddr = (volatile uint8_t * const)pin5_ddr,
     * const p_pin6_base = (volatile uint8_t * const)pin6_base,
+    * const p_pin6_in = (volatile uint8_t * const)p_pin6_in,
     * const p_pin6_ddr = (volatile uint8_t * const)pin6_ddr,
+    * const p_pin6_port = (volatile uint8_t * const)pin6_port,
     * const p_pin7_base = (volatile uint8_t * const)pin7_base,
     * const p_pin7_ddr = (volatile uint8_t * const)pin7_ddr,
     * const p_pin8_base = (volatile uint8_t * const)pin8_base,
@@ -317,8 +358,11 @@ static volatile uint8_t
     * const p_pin9_base = (volatile uint8_t * const)pin9_base,
     * const p_pin9_ddr = (volatile uint8_t * const)pin9_ddr,
     * const p_pin10_base = (volatile uint8_t * const)pin10_base,
+    * const p_pin10_ddr = (volatile uint8_t * const)pin10_ddr,
     * const p_pin11_base = (volatile uint8_t * const)pin11_base,
+    * const p_pin11_ddr = (volatile uint8_t * const)pin11_ddr,
     * const p_pin12_base = (volatile uint8_t * const)pin12_base,
+    * const p_pin12_ddr = (volatile uint8_t * const)pin12_ddr,
     * const p_pin13_base = (volatile uint8_t * const)pin13_base,
     * const p_pin13_ddr = (volatile uint8_t * const)pin13_ddr,
     * const p_pin13_port = (volatile uint8_t * const)pin13_port,

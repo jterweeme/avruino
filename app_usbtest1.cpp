@@ -1,3 +1,4 @@
+#include "cdc.h"
 #include "stream.h"
 
 int main()

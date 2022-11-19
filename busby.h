@@ -170,6 +170,7 @@ struct DescEndpoint
 }
 __attribute__ ((packed));
 
+//Template kan wel weg hier...
 template <size_t S> struct DescString
 {
     uint8_t size;

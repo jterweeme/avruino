@@ -1,11 +1,30 @@
+#AVRuino Makefile
+
+#Select target board here
+BOARD = teensy20pp
+
+#Optionall: sekect standard download app here
 APP = app_usbloop1.elf
-BOARD = uno
+
+
+#No editing past this line
 USBO = busby.o cdc.o
 POOL1 = nee
 POOL2 = nee
 POOL3 = nee
 POOL4 = nee
 POOL5 = nee
+POOL6 = nee
+
+#               0   1   2   3   4   5   6
+# Uno           Y   Y       Y   Y   Y
+# Mega          Y   Y       Y   Y   Y   Y
+# Ocho          Y                   Y
+# Leonardo      Y       Y   Y   Y   Y
+# Teensy20pp    Y   Y       Y   Y   Y   Y
+# Zestien       Y       Y           Y
+# Attiny85      Y
+# Attiny13      Y
 
 ifeq ($(BOARD), mega)
 PART = m2560
@@ -17,6 +36,7 @@ POOL2 = nee
 POOL3 = ja
 POOL4 = ja
 POOL5 = ja
+POOL6 = ja
 else ifeq ($(BOARD), ocho)
 PART = m8
 MMCU = atmega8
@@ -27,6 +47,7 @@ POOL2 = nee
 POOL3 = nee
 POOL4 = nee
 POOL5 = ja
+POOL6 = nee
 else ifeq ($(BOARD), leonardo)
 PART = m32u4
 MMCU = atmega32u4
@@ -37,25 +58,29 @@ POOL2 = ja
 POOL3 = ja
 POOL4 = ja
 POOL5 = ja
+POOL6 = nee
 else ifeq ($(BOARD), teensy20pp)
 PART = usb1286
 MMCU = at90usb1286
 BSP = teensy20pp.o misc.o
+USBOPT = $(USB0)
 POOL1 = ja
 POOL2 = nee
 POOL3 = ja
 POOL4 = ja
 POOL5 = ja
+POOL6 = ja
 else ifeq ($(BOARD), zestien)
 PART = 16u2
 MMCU = atmega16u2
 BSP = zestien.o misc.o
-USBOPT = $(USB0)
+USBOPT = $(USBO)
 POOL1 = nee
 POOL2 = ja
 POOL3 = nee
 POOL4 = nee
 POOL5 = ja
+POOL6 = nee
 else ifeq ($(BOARD), uno)
 PART = m328p
 MMCU = atmega328p
@@ -66,6 +91,7 @@ POOL2 = nee
 POOL3 = ja
 POOL4 = ja
 POOL5 = ja
+POOL6 = nee
 else ifeq ($(BOARD), attiny85)
 PART = t85
 MMCU = attiny85
@@ -76,6 +102,18 @@ POOL2 = nee
 POOL3 = nee
 POOL4 = nee
 POOL5 = nee
+POOL6 = nee
+else ifeq ($(BOARD), attiny13)
+PART = t13
+MMCU = attiny13
+BSP =
+USBOPT =
+POOL1 = nee
+POOL2 = nee
+POOL3 = nee
+POOL4 = nee
+POOL5 = nee
+POOL6 = nee
 else
 PART = m328p
 MMCU = atmega328p
@@ -86,32 +124,34 @@ POOL2 = nee
 POOL3 = ja
 POOL4 = ja
 POOL5 = ja
+POOL6 = nee
 endif
 
-TARGETS = app_blink1.elf app_stepper1.elf
+# Pool 0...
+TARGETS = app_blink1.elf app_mollen.elf app_stepper1.elf
 
 ifeq ($(POOL1), ja)
 TARGETS += app_pong1.elf app_fourinone.elf app_pirate1.elf app_vga2.elf app_eedump1.elf
 endif
 
 ifeq ($(POOL2), ja)
-TARGETS += app_usbtest1.elf app_usbsd2.elf \
-    app_serialusb1.elf app_usbloop1.elf \
-    app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf \
-    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf \
+TARGETS += app_usbtest1.elf app_usbsd2.elf\
+    app_serialusb1.elf app_usbloop1.elf\
+    app_usbsound1.elf app_usbmidi1.elf app_usbjoy1.elf app_usbkb1.elf\
+    app_usbpiano1.elf app_rndis1.elf app_rndis2.elf\
     app_rndisping1.elf app_rndisbridge1.elf app_groen1.elf app_ledmatrix1.elf
 endif
 
 ifeq ($(POOL3), ja)
-TARGETS += app_ts2.elf app_calc1.elf app_ds1302test1.elf \
-    app_dfkeyb1.elf app_ts1.elf \
+TARGETS += app_ts2.elf app_calc1.elf app_ds1302test1.elf\
+    app_dfkeyb1.elf app_ts1.elf\
     app_aditbox.elf app_capsense2.elf
 endif
 
 ifeq ($(POOL4), ja)
 TARGETS += app_webtest1w5100.elf app_ws1w5100.elf app_nslookup1.elf app_telnetloop1.elf \
-    app_chatserver1.elf app_websdfat2.elf app_bbs1.elf app_websdfat1.elf \
-    app_webtest1enc28.elf app_minos1.elf app_minos2.elf app_webclient2.elf app_sdls1.elf \
+    app_chatserver1.elf \
+    app_webtest1enc28.elf app_webclient2.elf app_sdls1.elf \
     app_infrared1.elf app_ps2kb2.elf app_sound1.elf app_vga1.elf
 endif
 
@@ -124,6 +164,10 @@ TARGETS += app_blink3.elf \
     app_test1.elf app_i2cscan1.elf app_uartloop1.elf app_segment1.elf app_uartloop2.elf \
     app_lcdtest2.elf app_lcdtest3.elf app_lcdtest1.elf app_pcf8563test2.elf \
     app_ringtone1.elf app_speckb1.elf app_rc522dump.elf
+endif
+
+ifeq ($(POOL6), ja)
+TARGETS += app_websdfat1.elf app_websdfat2.elf app_bbs1.elf app_minos1.elf app_minos2.elf
 endif
 
 %.o: %.cpp
