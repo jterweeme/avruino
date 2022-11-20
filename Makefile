@@ -1,14 +1,15 @@
 #AVRuino Makefile
 
 #Select target board here
-BOARD = leonardo
+BOARD = teensy20pp
 
 #Optionall: sekect standard download app here
 APP = app_usbloop1.elf
 
 #No editing past this line
 USBO = busby.o cdc.o
-TARGETS = app_blink1.elf 
+TARGETS = app_blink1.elf
+BRD = board.h brd_attiny13.h brd_leonardo.h brd_ocho.h brd_teensy20pp.h brd_uno.h
 
 ifeq ($(BOARD), mega)
 PART = m2560
@@ -39,9 +40,37 @@ TARGETS +=\
     app_blink3.elf\
     app_calc1.elf\
     app_calc2.elf\
+    app_capsense2.elf\
+    app_chatserver1.elf\
+    app_dfkeyb1.elf\
+    app_ds1302test1.elf\
+    app_groen1.elf\
+    app_i2cscan1.elf\
+    app_infrared1.elf\
+    app_klok1.elf\
+    app_lcdtest1.elf\
+    app_lcdtest2.elf\
+    app_lcdtest3.elf\
+    app_ledmatrix1.elf\
+    app_malloc1.elf\
+    app_megaboot4.hex\
+    app_serialusb1.elf\
+    app_servoknob1.elf\
+    app_sound1.elf\
+    app_stepper1.elf\
     app_teensy.elf\
+    app_telnetloop1.elf\
+    app_test1.elf\
+    app_test2.elf\
+    app_uartloop1.elf\
+    app_uartloop2.elf\
+    app_usbjoy1.elf\
     app_usbkb1.elf\
     app_usbmidi1.elf\
+    app_usbpiano1.elf\
+    app_usbloop1.elf\
+    app_usbmidi1.elf\
+    app_usbsd2.elf\
     app_usbsound1.elf\
     app_vga1.elf
 
@@ -50,7 +79,13 @@ PART = usb1286
 MMCU = at90usb1286
 BSP = brd_teensy20pp.o misc.o
 USBOPT = $(USBO)
-TARGETS += app_teensy.elf
+TARGETS +=\
+    app_aditbox.elf\
+    app_analog1.elf\
+    app_analog2.elf\
+    app_blink3.elf\
+    app_teensy.elf\
+    app_usbloop1.elf
 else ifeq ($(BOARD), zestien)
 PART = 16u2
 MMCU = atmega16u2
@@ -60,7 +95,25 @@ else ifeq ($(BOARD), uno)
 PART = m328p
 MMCU = atmega328p
 BSP = uno.o misc.o
-USBOPT = 
+USBOPT =
+
+TARGETS +=\
+    app_aditbox.elf\
+    app_analog1.elf\
+    app_analog2.elf\
+    app_blink3.elf\
+    app_calc1.elf\
+    app_calc2.elf\
+    app_capsense2.elf\
+    app_chatserver1.elf\
+    app_eedump1.elf\
+    app_lcdtest1.elf\
+    app_lcdtest2.elf\
+    app_lcdtest3.elf\
+    app_malloc1.elf\
+    app_nslookup1.elf\
+    app_vga1.elf\
+    app_vga2.elf
 else ifeq ($(BOARD), attiny85)
 PART = t85
 MMCU = attiny85
@@ -74,8 +127,8 @@ USBOPT =
 else
 PART = m328p
 MMCU = atmega328p
-BSP = uno.o misc.o
-USBOPT = 
+BSP = brd_uno.o misc.o
+USBOPT =
 endif
 
 %.o: %.cpp
@@ -202,40 +255,37 @@ app_minos1.o: app_minos1.cpp fatty.h fatty_util.h misc.h types.h \
 app_minos2.o: app_minos2.cpp fatty.h fatty_util.h misc.h stream.h types.h \
     md5sum.h xmodem.h ymodem.h storage.h pinport.h
 
-app_webtest1enc28.o: app_webtest1enc28.cpp misc.h board.h stream.h dhcp.h\
+app_webtest1enc28.o: app_webtest1enc28.cpp misc.h stream.h dhcp.h\
     enc28j60ip.h enc28j60udp.h enc28j60hw.h types.h webtest1.h uart.h\
-    uno.h mega.h brd_leonardo.h storage.h pinport.h enc28j60tcp.h\
-    eth.h cdc.h busby.h
+    mega.h storage.h pinport.h enc28j60tcp.h\
+    eth.h cdc.h busby.h $(BRD)
 
 app_webtest1w5100.o: app_webtest1w5100.cpp webtest1.h stream.h board.h\
-    cdc.h busby.h board.h mega.h uno.h brd_leonardo.h\
+    cdc.h busby.h mega.h brd_uno.h brd_leonardo.h\
     misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h client.h\
-    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
+    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h $(BRD)
 
 app_ws1w5100.o: app_ws1w5100.cpp webservice1.h stream.h board.h\
-    cdc.h busby.h board.h mega.h uno.h brd_leonardo.h\
+    cdc.h busby.h mega.h\
     misc.h storage.h pinport.h types.h w5100ip.h w5100hw.h eth.h client.h \
-    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h
+    udp.h w5100udp.h w5100tcp.h uart.h dhcp.h $(BRD)
 
-app_websdfat1.o: app_websdfat1.cpp fatty.h webserver.h dhcp.h types.h storage.h \
-    enc28j60udp.h enc28j60tcp.h board.h misc.h stream.h zd2card.h pgmspees.h \
-    cdc.h uart.h busby.h
+app_websdfat1.o: app_websdfat1.cpp fatty.h webserver.h dhcp.h types.h storage.h\
+    enc28j60udp.h enc28j60tcp.h misc.h stream.h zd2card.h pgmspees.h\
+    cdc.h uart.h busby.h $(BRD)
 
-app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h \
-    w5100tcp.h fatty.h zd2card.h board.h uno.h mega.h brd_leonardo.h misc.h \
+app_websdfat2.o: app_websdfat2.cpp dhcp.h webserver.h\
+    w5100tcp.h fatty.h zd2card.h mega.h misc.h\
     stream.h types.h w5100udp.h udp.h w5100hw.h \
-    w5100ip.h eth.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h
+    w5100ip.h eth.h client.h pgmspees.h uart.h cdc.h busby.h storage.h pinport.h $(BRD)
 
 app_telnetloop1.o: app_telnetloop1.cpp enc28j60tcp.h enc28j60udp.h stream.h misc.h \
-    dhcp.h board.h uno.h brd_leonardo.h mega.h brd_teensy20pp.h pinport.h types.h
+    dhcp.h brd_leonardo.h mega.h brd_teensy20pp.h pinport.h types.h $(BRD)
 
 app_aditbox.o: app_aditbox.cpp misc.h
 app_analog1.o: app_analog1.cpp misc.h
 app_dfkeyb1.o: app_dfkeyb1.cpp misc.h
-
-app_blink1.o: app_blink1.cpp board.h uno.h brd_leonardo.h mega.h misc.h \
-    storage.h pinport.h types.h attiny85.h
-
+app_blink1.o: app_blink1.cpp mega.h misc.h storage.h pinport.h types.h attiny85.h $(BRD)
 app_blink3.o: app_blink3.cpp misc.h
 app_calc1.o: app_calc1.cpp misc.h
 app_calc2.o: app_calc2.cpp misc.h
@@ -283,7 +333,7 @@ app_vga1.o: app_vga1.cpp
 app_vga2.o: app_vga2.cpp
 app_webclient2.o: app_webclient2.cpp
 analog.o: analog.cpp analog.h
-busby.o: busby.cpp busby.h schip.h pgmspees.h int.h types.h board.h brd_leonardo.h uno.h
+busby.o: busby.cpp busby.h schip.h pgmspees.h int.h types.h board.h brd_leonardo.h brd_uno.h
 button.o: button.cpp button.h analog.h tft.h
 calc.o: calc.cpp calc.h types.h
 capsense.o: capsense.cpp capsense.h
@@ -296,7 +346,7 @@ fatty.o: fatty.cpp fatty.h stream.h uart.h cdc.h busby.h types.h
 helios.o: helios.cpp helios.h misc.h
 i2c.o: i2c.cpp misc.h types.h
 infrared.o: infrared.cpp infrared.h types.h
-keyboard.o: keyboard.cpp keyboard.h board.h uno.h brd_leonardo.h mega.h pinport.h types.h
+keyboard.o: keyboard.cpp keyboard.h board.h brd_uno.h brd_leonardo.h mega.h pinport.h types.h
 lcd.o: lcd.cpp lcd.h
 mega.o: mega.cpp misc.h types.h storage.h pinport.h
 md5sum.o: md5sum.cpp md5sum.cpp stream.h uart.h types.h
@@ -304,10 +354,10 @@ misc.o: misc.cpp misc.h types.h storage.h pinport.h
 pinport.o: pinport.cpp pinport.h types.h
 rc522.o: rc522.cpp rc522.h
 stream.o: stream.cpp stream.h uart.h cdc.h busby.h types.h
-tft.o: tft.cpp tft.h board.h brd_leonardo.h uno.h mega.h brd_teensy20pp.h types.h pinport.h
+tft.o: tft.cpp tft.h types.h pinport.h $(BRD)
 brd_teensy20pp.o: brd_teensy20pp.cpp brd_teensy20pp.h types.h pinport.h
 uart.o: uart.cpp uart.h types.h misc.h storage.h pinport.h
-uno.o: uno.cpp uno.h misc.h types.h storage.h pinport.h
+brd_uno.o: brd_uno.cpp brd_uno.h misc.h types.h storage.h pinport.h
 usbkb.o: usbkb.cpp usbkb.h misc.h usbhid.h types.h
 usbsd.o: usbsd.cpp usbsd.h busby.h types.h
 vga.o: vga.cpp vga.h misc.h storage.h pinport.h types.h

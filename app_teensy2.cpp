@@ -21,13 +21,8 @@
  * THE SOFTWARE.
  */
 
-#define F_CPU 16000000UL
-
-#include <avr/io.h>
-#include <avr/pgmspace.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <stdint.h>
+#include "board.h"
+#include "pgmspees.h"
 
 static constexpr uint8_t
     EP_TYPE_CONTROL = 0x00,
@@ -53,16 +48,7 @@ static constexpr uint8_t
 #define LSB(n) (n & 255)
 #define MSB(n) ((n >> 8) & 255)
 
-#if defined(__AVR_ATmega32U4__)
-static void hw_config() { UHWCON = 0x01; }
-#define PLL_CONFIG() (PLLCSR = 0x12)
-#elif defined(__AVR_AT90USB646__)
-static void hw_config() { UHWCON = 0x81; }
-#define PLL_CONFIG() (PLLCSR = 0x1A)
-#elif defined(__AVR_AT90USB1286__)
-static void hw_config() { UHWCON = 0x81; }
-#define PLL_CONFIG() (PLLCSR = 0x16)
-#endif
+
 
 
 
@@ -98,15 +84,15 @@ void usb_debug_flush_output(void);  // immediately transmit any buffered output
 
 static int16_t analogRead(uint8_t pin)
 {
-    DIDR0 |= 0x01;
-    ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
-    ADMUX = 0x40;  // channel 0, ref=vcc
-    ADCSRA |= (1<<ADSC);
+    *p_didr0 |= 0x01;
+    *p_adcsra = (1<<aden) | (1<<adps2) | (1<<adps1) | (1<<adps0);
+    *p_admux = 0x40;  // channel 0, ref=vcc
+    *p_adcsra |= (1<<adsc);
 
-    while (ADCSRA & (1<<ADSC))
+    while (*p_adcsra & 1<<adsc)
         continue;
 
-    return ADCH << 8 | ADCL;
+    return *p_adch << 8 | *p_adcl;
 }
 
 static void print_P(const char *s)
@@ -114,8 +100,13 @@ static void print_P(const char *s)
     while (1)
     {
         char c = pgm_read_byte(s++);
-        if (!c) break;
-        if (c == '\n') usb_debug_putchar('\r');
+
+        if (!c)
+            break;
+
+        if (c == '\n')
+            usb_debug_putchar('\r');
+
         usb_debug_putchar(c);
     }
 }
@@ -333,30 +324,6 @@ static volatile uint8_t usb_configuration=0;
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer=0;
 
-static void usb_init(void)
-{
-    hw_config();
-
-    //enable USB
-    USBCON = 1<<USBE | 1<<FRZCLK;
-
-    //config PLL
-    PLL_CONFIG();
-
-    // wait for PLL lock
-    while (!(PLLCSR & 1<<PLOCK))
-        continue;
-
-    //start usb clock
-    USBCON = 1<<USBE | 1<<OTGPADE;
-
-    // enable attach resistor
-    UDCON = 0;				
-    usb_configuration = 0;
-    UDIEN = (1<<EORSTE)|(1<<SOFE);
-    SREG |= 1<<7;
-}
-
 // return 0 if the USB is not configured, or the configuration
 // number selected by the HOST
 uint8_t usb_configured(void)
@@ -376,8 +343,8 @@ int8_t usb_debug_putchar(uint8_t c)
 	// used from the main program or interrupt context,
 	// even both in the same program!
 	intr_state = SREG;
-    SREG &= ~(1<<7);
-	UENUM = DEBUG_TX_ENDPOINT;
+	zli();
+	*p_uenum = DEBUG_TX_ENDPOINT;
 	// if we gave up due to timeout before, don't wait again
 	if (previous_timeout) {
 		if (!(UEINTX & (1<<RWAL))) {
@@ -401,7 +368,7 @@ int8_t usb_debug_putchar(uint8_t c)
 		if (!usb_configuration) return -1;
 		// get ready to try checking again
 		intr_state = SREG;
-		//cli();
+		cli();
 		UENUM = DEBUG_TX_ENDPOINT;
 	}
 	// actually write the byte into the FIFO
@@ -424,7 +391,7 @@ void usb_debug_flush_output(void)
 	uint8_t intr_state;
 
 	intr_state = SREG;
-	//cli();
+	cli();
 	if (debug_flush_timer) {
 		UENUM = DEBUG_TX_ENDPOINT;
 		while ((UEINTX & (1<<RWAL))) {
@@ -483,12 +450,6 @@ static inline void usb_send_in(void)
 {
 	UEINTX = ~(1<<TXINI);
 }
-static inline void usb_wait_receive_out(void)
-{
-	while (!(UEINTX & (1<<RXOUTI)))
-        continue;
-}
-
 
 // USB Endpoint Interrupt - endpoint 0 is handled here.  The
 // other endpoints are manipulated by the user-callable
@@ -509,9 +470,10 @@ ISR(USB_COM_vect)
 	const uint8_t *desc_addr;
 	uint8_t	desc_length;
 
-        UENUM = 0;
-        intbits = UEINTX;
-        if (intbits & (1<<RXSTPI)) {
+    UENUM = 0;
+    intbits = UEINTX;
+    if (intbits & (1<<RXSTPI))
+    {
                 bmRequestType = UEDATX;
                 bRequest = UEDATX;
                 wValue = UEDATX;
@@ -646,6 +608,17 @@ ISR(USB_COM_vect)
 	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
 }
 
+#if defined(__AVR_ATmega32U4__)
+static void hw_config() { UHWCON = 0x01; }
+#define PLL_CONFIG() (PLLCSR = 0x12)
+#elif defined(__AVR_AT90USB646__)
+static void hw_config() { UHWCON = 0x81; }
+#define PLL_CONFIG() (PLLCSR = 0x1A)
+#elif defined(__AVR_AT90USB1286__)
+static void hw_config() { UHWCON = 0x81; }
+#define PLL_CONFIG() (PLLCSR = 0x16)
+#endif
+
 int main()
 {
     //set for 16 MHz clock
@@ -660,7 +633,26 @@ int main()
 	// to set configuration.  If the Teensy is powered
 	// without a PC connected to the USB port, this 
 	// will wait forever.
-	usb_init();
+    hw_config();
+
+    //enable USB
+    USBCON = 1<<USBE | 1<<FRZCLK;
+
+    //config PLL
+    PLL_CONFIG();
+
+    // wait for PLL lock
+    while (!(PLLCSR & 1<<PLOCK))
+        continue;
+
+    //start usb clock
+    USBCON = 1<<USBE | 1<<OTGPADE;
+
+    // enable attach resistor
+    UDCON = 0;				
+    usb_configuration = 0;
+    UDIEN = (1<<EORSTE)|(1<<SOFE);
+	sei();
 
 	while (!usb_configured())
         continue;

@@ -3,6 +3,19 @@
 
 #include "types.h"
 
+#define zei()  __asm__ __volatile__ ("sei" ::: "memory")
+#define zli()  __asm__ __volatile__ ("cli" ::: "memory")
+
+#define INTR0 __vector_1()
+#define USB_GEN __vector_10()
+#define USB_COM __vector_11()
+#define TIMER2_OVF __vector_15()
+#define TIMER1_OVF __vector_20()
+#define TIMER0_COMPA __vector_21()
+#define TIMER0_COMPB __vector_22()
+#define TIMER0_OVF __vector_23()
+#define USART_RX __vector_25()
+
 static constexpr uint8_t 
     porta_base = 0x20,
         pina = porta_base + 0,
@@ -46,13 +59,21 @@ static constexpr uint8_t
     tcnt0 = 0x46,
     ocr0a = 0x47,
     ocr0b = 0x48,
-    pllcsr = 0x49, plock = 0, plee = 1, pllp0 = 2, pllp1 = 3, pllp2 = 4,
+
+    //PLL
+    pllcsr = 0x49, plock = 0, plle = 1, pllp0 = 2, pllp1 = 3, pllp2 = 4,
+
+    //GPIO
     gpior1 = 0x4a,
     gpior2 = 0x4b,
+
     spcr = 0x4c, spr0 = 0, spr1 = 1, cpha = 2, cpol = 3, mstr = 4, dord = 5, spe = 6, spie = 7,
     spsr = 0x4d, spi2x = 0, wcol = 6, spif = 7,
     spdr = 0x4e,
     acsr = 0x50, acis0 = 0, acis1 = 1, acic = 2, acie = 3, aci = 4,
+    mondr = 0x51,
+    ocdr = 0x51,
+    smcr = 0x53,
     eicra = 0x69,
         isc00 = 0, isc01 = 1, isc10 = 2, isc11 = 3, isc20 = 4, isc21 = 5, isc30 = 6, isc31 = 7,
     timsk0 = 0x6e, toie0 = 0, ocie0a = 1, ocie0b = 2,
@@ -107,10 +128,20 @@ static constexpr uint8_t
     ubrr1l = 0xcc,
     ubrr1h = 0xcd,
     udr1 = 0xce,
-    uhwcon = 0xd7,
-    udint = 0xe1,
+    uhwcon = 0xd7, uimod = 7, uide = 6, uvcone = 4, uvrege = 0,
+    usbcon = 0xd8, usbe = 7, host = 6, frzclk = 5, otgpade = 4, idte = 1, vbuste = 0,
+    usbsta = 0xd9, speed = 3, id = 1, vbus = 0,
+    usbint = 0xda, idti = 1, vbusti = 0,
+    udpadd = 0xdb,
+    udpaddl = 0xdb,
+    udpaddh = 0xdc,
+    udcon = 0xe0, lsm = 2, rmwkup = 1, detach = 0,
+    udint = 0xe1, uprsmi = 6, eorsmi = 5, wakeupi = 4, eorsti = 3, sofi = 2, suspi = 0,
     udien = 0xe2, uprsme = 6, eorsme = 5, wakeupe = 4, eorste = 3, sofe = 2, suspe = 0,
     udaddr = 0xe3, adden = 7,
+    udfnum = 0xe4, udfnuml = 0xe4, udfnumh = 0xe5,
+    udmfn = 0xe6,
+    udtst = 0xe7, opmode2 = 5, tstpckt = 4, tstk = 3, tstj = 2,
     ueintx = 0xe8,
         fifocon = 7, nakini = 6, rwal = 5, nakouti = 4, rxstpi = 3, rxouti = 2,
         stalledi = 1, txini = 0,
@@ -119,6 +150,8 @@ static constexpr uint8_t
     ueconx = 0xeb, stallrq = 5, stallrqc = 4, rstdt = 3, epen = 0,
     uecfg0x = 0xec, eptype1 = 7, eptype0 = 6, epdir = 0,
     uecfg1x = 0xed, epsize2 = 6, epsize1 = 5, epsize0 = 4, epbk1 = 3, epbk0 = 2, alloc = 1,
+    ueienx = 0xf0, txine = 0, stallede = 1, rxoute = 2, rxstpe = 3, nakroute = 4, nakine = 6,
+        flerre = 7,
     uedatx = 0xf1,
     uebclx = 0xf2,
     uebchx = 0xf3,
@@ -174,6 +207,7 @@ static constexpr uint8_t
 
 static volatile uint8_t
     * const p_porta_base = (volatile uint8_t * const)porta_base,
+    * const p_pina = (volatile uint8_t * const)pina,
     * const p_portb_base = (volatile uint8_t * const)portb_base,
     * const p_pinb = (volatile uint8_t * const)pinb,
     * const p_ddrb = (volatile uint8_t * const)ddrb,
@@ -229,12 +263,20 @@ static volatile uint8_t
     * const p_ucsr1c = (volatile uint8_t * const)ucsr1c,
     * const p_udr1 = (volatile uint8_t * const)udr1,
     * const p_uhwcon = (volatile uint8_t * const)uhwcon,
+    * const p_usbcon = (volatile uint8_t * const)usbcon,
+    * const p_usbsta = (volatile uint8_t * const)usbsta,
+    * const p_usbint = (volatile uint8_t * const)usbint,
+    * const p_udcon = (volatile uint8_t * const)udcon,
+    * const p_udint = (volatile uint8_t * const)udint,
+    * const p_udien = (volatile uint8_t * const)udien,
     * const p_udaddr = (volatile uint8_t * const)udaddr,
+    * const p_ueintx = (volatile uint8_t * const)ueintx,
     * const p_uenum = (volatile uint8_t * const)uenum,
     * const p_uerst = (volatile uint8_t * const)uerst,
     * const p_ueconx = (volatile uint8_t * const)ueconx,
     * const p_uecfg0x = (volatile uint8_t * const)uecfg0x,
     * const p_uecfg1x = (volatile uint8_t * const)uecfg1x,
+    * const p_ueienx = (volatile uint8_t * const)ueienx,
     * const p_uedatx = (volatile uint8_t * const)uedatx,
     * const p_uebclx = (volatile uint8_t * const)uebclx,
     * const p_uebchx = (volatile uint8_t * const)uebchx,
@@ -257,6 +299,14 @@ static volatile uint8_t
     * const p_miso_ddr = (volatile uint8_t * const)miso_ddr,
     * const p_miso_port = (volatile uint8_t * const)miso_port;
 
+static volatile uint16_t
+    * const p_tcnt1 = (volatile uint16_t * const)tcnt1,
+    * const p_icr1 = (volatile uint16_t * const)icr1,
+    * const p_ocr1a = (volatile uint16_t * const)ocr1a,
+    * const p_ocr1b = (volatile uint16_t * const)ocr1b,
+    * const p_ocr1c = (volatile uint16_t * const)ocr1c,
+    * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
+    * const p_udfnum = (volatile uint16_t * const)udfnum;
 
 #endif
 

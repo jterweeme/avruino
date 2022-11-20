@@ -3,6 +3,20 @@
 
 #include "types.h"
 
+#define INTR0 __vector_1()
+#define USB_GEN __vector_10()
+#define USB_COM __vector_11()
+#define TIMER1_CAPT __vector_16()
+#define TIMER1_COMPA __vector_17()
+#define TIMER1_OVF __vector_20()
+#define TIMER0_COMPA __vector_21()
+#define TIMER0_COMPB __vector_22()
+#define TIMER0_OVF __vector_23()
+#define USART1_RX __vector_25()
+
+#define zei()  __asm__ __volatile__ ("sei" ::: "memory")
+#define zli()  __asm__ __volatile__ ("cli" ::: "memory")
+
 static constexpr uint8_t
     portb_base = 0x23,
         pinb = portb_base,
@@ -84,6 +98,9 @@ static constexpr uint8_t
     adcsrb = 0x7b, adts0 = 0, adts1 = 1, adts2 = 2, adts3 = 3, mux5 = 5, acme = 6, adhsm = 7,
     admux = 0x7c,
         mux0 = 0, mux1 = 1, mux2 = 2, mux3 = 3, mux4 = 4, adlar = 5, refs0 = 6, refs1 = 7,
+    didr2 = 0x7d,
+    didr0 = 0x7e,
+    didr1 = 0x7f, ain0d = 0, ain1d = 1,
     tccr1a = 0x80,
         wgm10 = 0, wgm11 = 1, com1c0 = 2, com1c1 = 3,
         com1b0 = 4, com1b1 = 5, com1a0 = 6, com1a1 = 7,
@@ -248,6 +265,7 @@ static volatile uint8_t
     * const p_adcsra = (volatile uint8_t * const)adcsra,
     * const p_adcsrb = (volatile uint8_t * const)adcsrb,
     * const p_admux = (volatile uint8_t * const)admux,
+    * const p_didr0 = (volatile uint8_t * const)didr0,
     * const p_tccr1a = (volatile uint8_t * const)tccr1a,
     * const p_tccr1b = (volatile uint8_t * const)tccr1b,
     * const p_tccr1c = (volatile uint8_t * const)tccr1c,

@@ -303,16 +303,6 @@ struct Board
         pinA5 { portF, BIT0 };
 };
 
-#define INTR0 __vector_1()
-#define USB_GEN __vector_10()
-#define USB_COM __vector_11()
-#define TIMER1_CAPT __vector_16()
-#define TIMER1_COMPA __vector_17()
-#define TIMER1_OVF __vector_20()
-#define TIMER0_COMPA __vector_21()
-#define TIMER0_COMPB __vector_22()
-#define TIMER0_OVF __vector_23()
-#define USART1_RX __vector_25()
 #define USART_RX USART1_RX
 #endif
 

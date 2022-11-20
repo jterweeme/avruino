@@ -239,12 +239,6 @@ static volatile uint8_t
     * const p_pinA4_port = (volatile uint8_t * const)pinA4_port;
 
 static volatile uint16_t
-    * const p_tcnt1 = (volatile uint16_t * const)tcnt1,
-    * const p_icr1 = (volatile uint16_t * const)icr1,
-    * const p_ocr1a = (volatile uint16_t * const)ocr1a,
-    * const p_ocr1b = (volatile uint16_t * const)ocr1b,
-    * const p_ocr1c = (volatile uint16_t * const)ocr1c,
-    * const p_ubrr1 = (volatile uint16_t * const)ubrr1,
     * const p_ubrr9 = (volatile uint16_t * const)ubrr9;
 
 struct Board
@@ -275,16 +269,6 @@ struct Board
         pinA4 {portC, pc3},
         pinA5 {portC, pc4};
 };
-
-#define INTR0 __vector_1()
-#define TIMER2_OVF __vector_15()
-#define TIMER1_OVF __vector_20()
-#define TIMER0_COMPA __vector_21()
-#define TIMER0_COMPB __vector_22()
-#define TIMER0_OVF __vector_23()
-#define USART_RX __vector_25()
-
-
 #endif
 
 

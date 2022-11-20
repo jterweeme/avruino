@@ -6,14 +6,17 @@ LED: D13
 
 int main()
 {
+    //pin 13 output
     *p_pin13_ddr |= 1<<pin13_bit;
 
     while (true)
     {
+        //toggle pin 13
         *p_pin13_port ^= 1<<pin13_bit;
 
-        for (volatile uint32_t i = 0; i < 0x1ffff; i++) // delay
-            ;
+        //delay
+        for (volatile uint32_t i = 0; i < 0x1ffff; i++)
+            continue;
     }
         
     return 0;
