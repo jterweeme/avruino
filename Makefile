@@ -83,9 +83,28 @@ TARGETS +=\
     app_aditbox.elf\
     app_analog1.elf\
     app_analog2.elf\
+    app_bbs1.elf\
     app_blink3.elf\
+    app_chatserver1.elf\
+    app_dfkeyb1.elf\
+    app_ds1302test1.elf\
+    app_eedump1.elf\
+    app_flash1.elf\
+    app_fourinone.elf\
+    app_groen1.elf\
+    app_i2cscan1.elf\
+    app_klok1.elf\
+    app_minos1.elf\
+    app_minos2.elf\
+    app_malloc1.elf\
     app_teensy.elf\
-    app_usbloop1.elf
+    app_ts1.elf\
+    app_ts2.elf\
+    app_uartloop1.elf\
+    app_uartloop2.elf\
+    app_usbloop1.elf\
+    app_vga1.elf\
+    app_websdfat1.elf
 else ifeq ($(BOARD), zestien)
 PART = 16u2
 MMCU = atmega16u2
@@ -201,6 +220,7 @@ app_capsense2.elf: app_capsense2.o capsense.o pinport.o uart.o stream.o misc.o $
 app_dfkeyb1.elf: app_dfkeyb1.o pinport.o uart.o stream.o misc.o analog.o lcd.o
 app_ds1302test1.elf: app_ds1302test1.o pinport.o uart.o stream.o misc.o lcd.o
 app_eedump1.elf: app_eedump1.o stream.o uart.o
+app_flash1.elf: app_flash1.o $(USBOPT)
 app_fourinone.elf: app_fourinone.o analog.o pinport.o
 app_groen1.elf: app_groen1.o
 app_i2cscan1.elf: app_i2cscan1.o i2c.o pinport.o uart.o misc.o stream.o $(USBOPT)

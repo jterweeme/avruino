@@ -187,11 +187,11 @@ void USB::Device_ClearSetFeature()
     {
     case REQREC_DEVICE:
         if ((uint8_t)_ctrlReq.wValue == FEATURE_SEL_DeviceRemoteWakeup)
+        {
             _remoteWakeupEn = _ctrlReq.bRequest == REQ_SetFeature;
-        else
-            return;
-
-        break;
+            break;
+        }
+        return;
     case REQREC_ENDPOINT:
         if ((uint8_t)_ctrlReq.wValue == FEATURE_SEL_ENDPOINTHALT)
         {
@@ -248,13 +248,16 @@ uint8_t USB::write_Control_Stream_LE(const void* const buffer, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
 
-        if (*p_ueintx & 1<<rxstpi)  // setup received?
+        //setup received?
+        if (*p_ueintx & 1<<rxstpi)  
             return ENDPOINT_RWCSTREAM_HostAborted;
 
-        if (*p_ueintx & 1<<rxouti)  // out received?
+        //out received?
+        if (*p_ueintx & 1<<rxouti)  
             break;
 
-        if (*p_ueintx & 1<<txini)   // in ready?
+        //in ready?
+        if (*p_ueintx & 1<<txini)   
         {
             uint16_t bytesInEp = bytesInEndpoint();
 
@@ -472,7 +475,7 @@ void USB::gen()
             *p_pllcsr = USB_PLL_PSC | 1<<plle;
 
             while ((*p_pllcsr & 1<<plock) == 0)
-                ;
+                continue;
 
             state = DEVICE_STATE_POWERED;
             connect();
@@ -495,9 +498,14 @@ void USB::gen()
 
     if (*p_udint & 1<<wakeupi && *p_udien & 1<<wakeupe)
     {
+        //PLL on
         *p_pllcsr = USB_PLL_PSC;
-        *p_pllcsr = USB_PLL_PSC | 1<<plle;   // PLL on
-        while ((*p_pllcsr & 1<<plock) == 0);   // PLL is ready?
+        *p_pllcsr = USB_PLL_PSC | 1<<plle;
+
+        //PLL is ready?
+        while ((*p_pllcsr & 1<<plock) == 0)
+            continue;
+
         *p_usbcon &= ~(1<<frzclk);
         *p_udint &= ~(1<<wakeupi);
         *p_udien &= ~(1<<wakeupe);
@@ -539,10 +547,12 @@ uint8_t USB::readControlStreamLE(void * const buf, uint16_t len)
         if (usbDeviceState_LCL == DEVICE_STATE_SUSPENDED)
             return ENDPOINT_RWCSTREAM_BusSuspended;
 
-        if (*p_ueintx & 1<<rxstpi)  // setup received?
+        //setup received?
+        if (*p_ueintx & 1<<rxstpi)  
             return ENDPOINT_RWCSTREAM_HostAborted;
         
-        if (*p_ueintx & 1<<rxouti)   // is out received?
+        //is out received?
+        if (*p_ueintx & 1<<rxouti)   
         {
             while (len && bytesInEndpoint())
             {

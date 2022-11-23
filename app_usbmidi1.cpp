@@ -1,3 +1,5 @@
+//TODO: verhaal hier wat dit doet
+
 #include "usbmidi.h"
 #include "usbsound.h"
 #include <avr/pgmspace.h>
